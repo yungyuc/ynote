@@ -16,8 +16,8 @@ Journal Papers
    <http://dx.doi.org/10.1007/s00162-013-0301-6>`__
 
 #. David L. Bilyeu, S.-T. John Yu, Yung-Yu Chen, and Jean-Luc Cambier,
-   *A two-dimensional fourth-order unstructured-meshed Euler solver based on
-   the CESE method*,
+   *A Two-Dimensional Fourth-Order Unstructured-Meshed Euler Solver Based on
+   the CESE Method*,
    Journal of Computational Physics,
    Volume 257, Part A, 15 January 2014, Pages 981–999.
    `DOI: 10.1016/j.jcp.2013.09.044
