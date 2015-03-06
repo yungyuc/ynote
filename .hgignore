@@ -1,0 +1,4 @@
+syntax: glob
+track_info.dat
+_build/
+*.pyc
