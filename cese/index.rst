@@ -12,12 +12,12 @@ solution of hyperbolic partial different equations or conservation laws:
   \frac{\partial\mathbf{u}}{\partial t}
   + \sum_{\iota=1}^3
     \frac{\partial\mathbf{f}^{(\iota)}(\mathbf{u})}{\partial x_{\iota}}
-  = \mathbf{s}(\mathbf{u})
+  = 0
   \quad \Rightarrow \quad
   \frac{\partial\mathbf{u}}{\partial t}
   + \sum_{\iota=1}^3 \mathrm{A}^{(\iota)}(\mathbf{u})
                      \frac{\partial\mathbf{u}}{\partial x_{\iota}}
-  = \mathbf{s}(\mathbf{u})
+  = 0
 
 Key features of the CESE method include:
 
