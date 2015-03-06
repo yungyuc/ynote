@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Generation'
+project = u'Yung-Yu Chen\'s Notes'
 copyright = u'2008-2015, Yung-Yu Chen'
 
 # The version info for the project you're documenting, acts as replacement for
