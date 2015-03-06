@@ -10,6 +10,7 @@ am interested in high-performance software systems, and use :doc:`Python
 <python/index>` to command the wild C and C++.
 
 .. toctree::
+  :maxdepth: 3
 
   python/index
   cese/index
