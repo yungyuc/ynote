@@ -2,6 +2,8 @@
 I Can Now Write PSTricks in Sphinx
 ==================================
 
+:date: 2015/4/9
+
 Thanks to `Pstake <http://pstake.readthedocs.org/>`_, now I can turn Sphinx
 code into a PSTricks image:
 
