@@ -115,3 +115,10 @@ code into a PSTricks image:
 
 The commands can also be included from a separate file.  See Pstake_ for more
 information.
+
+To use Pstake_ with Sphinx (after pip installation: ``pip install pstake``), in
+your ``conf.py``, enable it as an extension, like:
+
+.. code-block:: python
+
+  extensions.append('pstake')

@@ -2,6 +2,11 @@
 Export EPS from LaTeX pstricks
 ==============================
 
+Updated on 2015/4/9: If you want to create image files from PSTricks, check
+http://pstake.readthedocs.org/ to learn an easier way to do so.  And
+":doc:`../2015/pstricks_arrived`" demonstrates how to include PSTricks in
+Sphinx.
+
 pstricks_ is a very powerful tool to draw high quality schematics.
 
 .. _pstricks: http://tug.org/PSTricks/main.cgi/
