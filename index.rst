@@ -1,6 +1,6 @@
-====================
-Yung-Yu Chen's Notes
-====================
+===============
+Yung-Yu's Notes
+===============
 
 I develop computer code for solving partial differential equations of the
 first-order, quasi-linear form by using :doc:`the space-time Conservation
