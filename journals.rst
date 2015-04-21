@@ -7,6 +7,7 @@ Executive Journals
 
 .. toctree::
 
+  writing/2015/euler
   writing/2015/pstricks_arrived
   writing/2015/pymem_tweak
   writing/2015/pymem_survey
