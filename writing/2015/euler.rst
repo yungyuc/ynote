@@ -7,14 +7,6 @@ Matrix-Vector Form of The Euler Equations
 .. contents:: Table of Contents
   :local:
 
-.. math::
-
-  \newcommand{\bvec}[1]{\mathbf{#1}}
-  \newcommand{\defeq}{\buildrel{\text{def}}\over{=}}
-  \newcommand{\dpd}[3][]{\mathinner{
-  \dfrac{\partial{^{#1}}#2}{\partial{#3^{#1}}}
-  }}
-
 Governing Equations
 ===================
 
@@ -22,6 +14,12 @@ The Euler equations consist of the mass conservation
 
 .. math::
   :label: euler.mass
+
+  \newcommand{\bvec}[1]{\mathbf{#1}}
+  \newcommand{\defeq}{\buildrel{\text{def}}\over{=}}
+  \newcommand{\dpd}[3][]{\mathinner{
+  \dfrac{\partial{^{#1}}#2}{\partial{#3^{#1}}}
+  }}
 
   \frac{\partial\rho}{\partial t} + \frac{\partial\rho v_j}{\partial x_j}
     = 0
@@ -65,11 +63,11 @@ Internal energy is related to temperate:
 
   e = c_vT = \frac{RT}{\gamma-1} = \frac{1}{\gamma-1}\frac{p}{\rho}
 
-By adding the two equations (Eqs. :eq:`euler:eos` and :eq:`euler:internal`) and
-one variable :math:`T`, the equations are closed.
+With the additional two equations (Eqs. :eq:`euler:eos` and
+:eq:`euler:internal`) and one variable :math:`T`, the equations are closed.
 
-Vector Form
-===========
+Vector Flux Function
+====================
 
 Define the conservation variables:
 
@@ -228,8 +226,8 @@ At the right-hand side, the source term is
     0 \\ b_1u_1 \\ b_2u_1 \\ b_3u_3 \\ \dot{q}u_1 + b_1u_2 + b_2u_3 + b_3u_4
   \end{array}\right)
 
-Matrix-Vector Form
-==================
+Quasi-linear System Equation
+============================
 
 Expand Eq. :eq:`euler:vec` to an index form:
 
@@ -406,10 +404,12 @@ Nomenclature
   Conservation variables.
 
 :math:`\bvec{f}^{(1)}, \bvec{f}^{(2)}, \bvec{f}^{(3)}`
-  Vector flux functions.
+  Vector flux functions.  :math:`\bvec{f}^{(\mu)} \defeq (f^{(\mu)}_1,
+  f^{(\mu)}_2, f^{(\mu)}_3, f^{(\mu)}_4, f^{(\mu)}_5)^t` where :math:`\mu = 1,
+  2, 3`.
 
-:math:`\bvec{s}`
+:math:`\bvec{s} \defeq (s_1, s_2, s_3, s_4, s_5)^t`
   Source term.
 
-:math:`\mathrm{A}^{(1)}, \mathrm{A}^{(2)}, \mathrm{A}^{(2)}`
+:math:`\mathrm{A}^{(1)}, \mathrm{A}^{(2)}, \mathrm{A}^{(3)}`
   Jacobian matrices.
