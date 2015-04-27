@@ -2,7 +2,7 @@
 Matrix-Vector Form of The Euler Equations
 =========================================
 
-:date: 2015/4/21
+:date: 2015/4/21, 2015/4/27
 
 .. contents:: Table of Contents
   :local:
@@ -11,6 +11,9 @@ Matrix-Vector Form of The Euler Equations
 
   \newcommand{\bvec}[1]{\mathbf{#1}}
   \newcommand{\defeq}{\buildrel{\text{def}}\over{=}}
+  \newcommand{\dpd}[3][]{\mathinner{
+  \dfrac{\partial{^{#1}}#2}{\partial{#3^{#1}}}
+  }}
 
 Governing Equations
 ===================
@@ -162,7 +165,7 @@ Then organize Eqs. :eq:`euler:gov1` -- :eq:`euler:gov5` into a vector form:
 
   \frac{\partial\bvec{u}}{\partial t}
     + \sum_{\mu=1}^3 \frac{\partial\bvec{f}^{(\mu)}}{\partial x_{\mu}}
-    = 0
+    = \bvec{s}
 
 The flux functions are defined as:
 
@@ -214,6 +217,149 @@ The flux functions are defined as:
       - \frac{\gamma-1}{2}\frac{u_2^2+u_3^2+u_4^2}{u_1}\frac{u_4}{u_1}
   \end{array}\right)
 
+At the right-hand side, the source term is
+
+.. math::
+  :label: euler:sterm
+
+  \bvec{s} = \left(\begin{array}{c}
+    s_1 \\ s_2 \\ s_3 \\ s_4 \\ s_5
+  \end{array}\right) \defeq \left(\begin{array}{l}
+    0 \\ b_1u_1 \\ b_2u_1 \\ b_3u_3 \\ \dot{q}u_1 + b_1u_2 + b_2u_3 + b_3u_4
+  \end{array}\right)
+
+Matrix-Vector Form
+==================
+
+Expand Eq. :eq:`euler:vec` to an index form:
+
+.. math::
+  :label: euler:idx
+
+  \frac{\partial u_m}{\partial t}
+    + \sum_{\mu=1}^3 \frac{\partial f^{(\mu)}_m}{\partial x_{\mu}}
+    = s_m, \quad m = 1, \ldots, 5
+
+Because we want to construct an inviscid baseline solver, later we will drop
+the source term from Eq. :eq:`euler:idx`.
+
+Define
+
+.. math::
+
+  u_{mt} &\defeq \dpd{u_m}{t}, \\
+  u_{mx_{\mu}} &\defeq \dpd{u_m}{x_{\mu}}, \\
+  f^{(\mu)}_{m,l} &\defeq \dpd{f^{(\mu)}_m}{u_l}
+  
+where :math:`\mu = 1, 2, 3,` and :math:`m, l = 1, 2, \ldots, 5`.
+
+Aided by the above definition, we rewrite the equation to a matrix-vector form:
+
+.. math::
+  :label: qliear
+
+  \dpd{\bvec{u}}{t} + \sum_{\mu=1}^3
+                      \mathrm{A}^{(\mu)} \dpd{\bvec{u}}{x_{\mu}} = 0
+
+where :math:`\mathrm{A}^{(1)}`, :math:`\mathrm{A}^{(2)}`, and
+:math:`\mathrm{A}^{(3)}` are Jacobian matrices
+(:math:`\left[\mathrm{A}^{(\mu)}\right]_{ml} \defeq f^{(\mu)}_{m,l}`).
+Components of the Jacobian matrices are tabulated.
+
+Constant components:
+
+.. math::
+  :label: euler:jaco0
+
+  f^{(1)}_{1,1} &= f^{(1)}_{1,3} = f^{(1)}_{1,4} = f^{(1)}_{1,5} = \\
+  f^{(2)}_{1,1} &= f^{(2)}_{1,2} = f^{(2)}_{1,4} = f^{(2)}_{1,5} = \\
+  f^{(3)}_{1,1} &= f^{(3)}_{1,2} = f^{(3)}_{1,3} = f^{(3)}_{1,5} = 0, \\
+  f^{(1)}_{1,2} &= f^{(2)}_{1,3} = f^{(3)}_{1,4} = 1
+
+Non-constant components of :math:`A^{(1)}`:
+
+.. math::
+  :label: euler:jaco1
+
+  f^{(1)}_{2,1} &= \frac{\gamma-3}{2}\frac{u_2^2}{u_1^2}
+    + \frac{\gamma-1}{2}\frac{u_3^2}{u_1^2}
+    + \frac{\gamma-1}{2}\frac{u_4^2}{u_1^2}, \\
+  f^{(1)}_{2,2} &= -(\gamma-3)\frac{u_2}{u_1}, \quad
+  f^{(1)}_{2,3} = -(\gamma-1)\frac{u_3}{u_1}, \quad
+  f^{(1)}_{2,4} = -(\gamma-1)\frac{u_4}{u_1}, \quad
+  f^{(1)}_{2,5} = \gamma-1, \\
+  f^{(1)}_{3,1} &= -\frac{u_2u_3}{u_1^2}, \quad
+  f^{(1)}_{3,2} = \frac{u_3}{u_1}, \quad
+  f^{(1)}_{3,3} = \frac{u_2}{u_1}, \quad
+  f^{(1)}_{3,4} = f^{(1)}_{3,5} = 0, \\
+  f^{(1)}_{4,1} &= -\frac{u_2u_4}{u_1^2}, \quad
+  f^{(1)}_{4,2} = \frac{u_4}{u_1}, \quad
+  f^{(1)}_{4,4} = \frac{u_2}{u_1}, \quad
+  f^{(1)}_{4,3} = f^{(1)}_{4,5} = 0, \\
+  f^{(1)}_{5,1} &= -\gamma\frac{u_2u_5}{u_1^2}
+    + (\gamma-1)\frac{u_2^2+u_3^2+u_4^2}{u_1^2}\frac{u_2}{u_1}, \quad
+  f^{(1)}_{5,2} = \gamma\frac{u_5}{u_1}
+    - \frac{\gamma-1}{2}\frac{3u_2^2 + u_3^2 + u_4^2}{u_1^2}, \\
+  f^{(1)}_{5,3} &= -(\gamma-1)\frac{u_2u_3}{u_1^2}, \quad
+  f^{(1)}_{5,4} = -(\gamma-1)\frac{u_2u_4}{u_1^2}, \quad
+  f^{(1)}_{5,5} = \gamma\frac{u_2}{u_1}
+
+Non-constant components of :math:`A^{(2)}`:
+
+.. math::
+  :label: euler:jaco2
+
+  f^{(2)}_{2,1} &= -\frac{u_2u_3}{u_1^2}, \quad
+  f^{(2)}_{2,2} = \frac{u_3}{u_1}, \quad
+  f^{(2)}_{2,3} = \frac{u_2}{u_1}, \quad
+  f^{(2)}_{2,4} = f^{(2)}_{2,5} = 0, \\
+  f^{(2)}_{3,1} &= \frac{\gamma-1}{2}\frac{u_2^2}{u_1^2}
+    + \frac{\gamma-3}{2}\frac{u_3^2}{u_1^2}
+    + \frac{\gamma-1}{2}\frac{u_4^2}{u_1^2}, \\
+  f^{(2)}_{3,2} &= -(\gamma-1)\frac{u_2}{u_1}, \quad
+  f^{(2)}_{3,3} = -(\gamma-3)\frac{u_3}{u_1}, \quad
+  f^{(2)}_{3,4} = -(\gamma-1)\frac{u_4}{u_1}, \quad
+  f^{(2)}_{3,5} = \gamma-1, \\
+  f^{(2)}_{4,1} &= -\frac{u_3u_4}{u_1^2}, \quad
+  f^{(2)}_{4,3} = \frac{u_4}{u_1}, \quad
+  f^{(2)}_{4,4} = \frac{u_3}{u_1}, \quad
+  f^{(2)}_{4,2} = f^{(2)}_{4,5} = 0, \\
+  f^{(2)}_{5,1} &= -\gamma\frac{u_3u_5}{u_1^2}
+    + (\gamma-1)\frac{u_2^2+u_3^2+u_4^2}{u_1^2}\frac{u_3}{u_1}, \quad
+  f^{(2)}_{5,3} = \gamma\frac{u_5}{u_1}
+    - \frac{\gamma-1}{2}\frac{u_2^2 + 3u_3^2 + u_4^2}{u_1^2}, \\
+  f^{(2)}_{5,2} &= -(\gamma-1)\frac{u_2u_3}{u_1^2}, \quad
+  f^{(2)}_{5,4} = -(\gamma-1)\frac{u_3u_4}{u_1^2}, \quad
+  f^{(2)}_{5,5} = \gamma\frac{u_3}{u_1}
+
+Non-constant components of :math:`A^{(3)}`:
+
+.. math::
+  :label: euler:jaco3
+
+  f^{(3)}_{2,1} &= -\frac{u_2u_4}{u_1^2}, \quad
+  f^{(3)}_{2,2} = \frac{u_4}{u_1}, \quad
+  f^{(3)}_{2,4} = \frac{u_2}{u_1}, \quad
+  f^{(3)}_{2,3} = f^{(3)}_{2,5} = 0, \\
+  f^{(3)}_{3,1} &= -\frac{u_3u_4}{u_1^2}, \quad
+  f^{(3)}_{3,3} = \frac{u_4}{u_1}, \quad
+  f^{(3)}_{3,4} = \frac{u_3}{u_1}, \quad
+  f^{(3)}_{3,2} = f^{(3)}_{3,5} = 0, \\
+  f^{(3)}_{4,1} &= \frac{\gamma-1}{2}\frac{u_2^2}{u_1^2}
+    + \frac{\gamma-1}{2}\frac{u_3^2}{u_1^2}
+    + \frac{\gamma-3}{2}\frac{u_4^2}{u_1^2}, \\
+  f^{(3)}_{4,2} &= -(\gamma-1)\frac{u_2}{u_1}, \quad
+  f^{(3)}_{4,3} = -(\gamma-1)\frac{u_3}{u_1}, \quad
+  f^{(3)}_{4,4} = -(\gamma-3)\frac{u_4}{u_1}, \quad
+  f^{(3)}_{4,5} = \gamma-1, \\
+  f^{(3)}_{5,1} &= -\gamma\frac{u_4u_5}{u_1^2}
+    + (\gamma-1)\frac{u_2^2+u_3^2+u_4^2}{u_1^2}\frac{u_4}{u_1}, \quad
+  f^{(3)}_{5,4} = \gamma\frac{u_5}{u_1}
+    - \frac{\gamma-1}{2}\frac{u_2^2 + u_3^2 + 3u_4^2}{u_1^2}, \\
+  f^{(3)}_{5,2} &= -(\gamma-1)\frac{u_2u_4}{u_1^2}, \quad
+  f^{(3)}_{5,3} = -(\gamma-1)\frac{u_3u_4}{u_1^2}, \quad
+  f^{(3)}_{5,5} = \gamma\frac{u_4}{u_1}
+
 Nomenclature
 ============
 
@@ -261,3 +407,9 @@ Nomenclature
 
 :math:`\bvec{f}^{(1)}, \bvec{f}^{(2)}, \bvec{f}^{(3)}`
   Vector flux functions.
+
+:math:`\bvec{s}`
+  Source term.
+
+:math:`\mathrm{A}^{(1)}, \mathrm{A}^{(2)}, \mathrm{A}^{(2)}`
+  Jacobian matrices.
