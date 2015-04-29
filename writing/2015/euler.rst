@@ -44,7 +44,7 @@ and energy conservation
         \left[\rho\left( e + \frac{v_k^2}{2} \right)v_j\right]
     = \rho \dot{q} - \frac{\partial pv_j}{\partial x_j} + \rho b_jv_j
 
-Einstein's index summation convention is used.
+Einstein's index summation convention was used.
 
 Equations :eq:`euler.mass`, :eq:`euler.momentum`, and :eq:`euler.energy` aren't
 closed even if we choose :math:`\bvec{b}` and :math:`\dot{q}` as given.  We
