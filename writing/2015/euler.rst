@@ -380,7 +380,7 @@ Nomenclature
   Body force vector.
 
 :math:`e`
-  Internal energy density.
+  Internal energy density per unit mass.
 
 :math:`\dot{q}`
   Heat generation rate per unit volume.
