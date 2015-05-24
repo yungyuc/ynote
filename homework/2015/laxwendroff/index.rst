@@ -32,8 +32,8 @@ the half grid point :math:`(x_j, t^{n+1/2})`:
   \bvec{f}_x \cong \frac{\bvec{f}_{j+1/2}^{n+1/2} - \bvec{f}_{j-1/2}^{n+1/2}}
                         {\Delta x}
 
-The Lax-Wendroff method can be constructed by replacing the time and space
-derivatives in Eq. :eq:`e:de` with the differencing terms in Eq.
+The Lax-Wendroff method [Lax60]_ can be constructed by replacing the time and
+space derivatives in Eq. :eq:`e:de` with the differencing terms in Eq.
 :eq:`e:difapprox`.
 
 .. math::
@@ -129,3 +129,7 @@ where
   \nu \defeq \frac{a\Delta t}{\Delta x}
 
 is the CFL number.
+
+.. [Lax60] P. Lax and B. Wendroff, “Systems of conservation laws,”
+  Comm. Pure Appl. Math., vol. 13, no. 2, pp. 217-237, May 1960.
+  `DOI: 10.1002/cpa.3160130205 <http://dx.doi.org/10.1002/cpa.3160130205>`__
