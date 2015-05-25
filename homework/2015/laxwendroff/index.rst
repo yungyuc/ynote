@@ -7,7 +7,7 @@ Lax-Wendroff Method
 .. pstake:: laxgrid
   :align: center
 
-  Grid definition
+  Grid definition for the Lax-Wendroff Method
 
 Consider the conservation law
 

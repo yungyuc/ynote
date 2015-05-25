@@ -1,5 +1,5 @@
 %\fontsize{4.5pt}{4pt}\selectfont
-\normalsize
+\small
 \psset{unit=2cm,dash=3pt 3pt}
 \begin{pspicture}(-2.2,-0.9)(2.1,1.7)
   \psset{linewidth=0.2pt}
@@ -13,15 +13,15 @@
   \psline[linestyle=dashed](-1.5,0)(-1,0)
   \psline(-1,0)(1,0)
   \psline[linestyle=dashed](1,0)(1.5,0)
-  \uput{0.1}[r](1.5,0){$n$}
+  \uput{0.1}[r](1.5,0){$t^n$}
 
   \psline[linestyle=dotted](-1.5,0.5)(1.5,0.5)
-  \uput{0.1}[r](1.5,0.5){$n+\frac{1}{2}$}
+  \uput{0.1}[r](1.5,0.5){$t^{n+\frac{1}{2}}$}
 
   \psline[linestyle=dashed](-1.5,1)(-1,1)
   \psline(-1,1)(1,1)
   \psline[linestyle=dashed](1,1)(1.5,1)
-  \uput{0.1}[r](1.5,1){$n+1$}
+  \uput{0.1}[r](1.5,1){$t^{n+1}$}
 
   \psline{<->}(-1.25,0)(-1.25,0.5)
   \uput{0.1}[l](-1.25,0.25){$\frac{\Delta t}{2}$}
@@ -31,23 +31,23 @@
   \psline[linestyle=dashed](-1,0)(-1,-0.5)
   \psline(-1,0)(-1,1)
   \psline[linestyle=dashed](-1,1)(-1,1.5)
-  \uput{0.1}[d](-1,-0.5){$j-1$}
+  \uput{0.1}[d](-1,-0.5){$x_{j-1}$}
 
   \psline[linestyle=dotted](-0.5,-0.15)(-0.5,1.5)
-  \uput{0.1}[d](-0.5,-0.15){$j-\frac{1}{2}$}
+  \uput{0.1}[d](-0.5,-0.15){$x_{j-\frac{1}{2}}$}
 
   \psline[linestyle=dashed](0,0)(0,-0.5)
   \psline(0,0)(0,1)
   \psline[linestyle=dashed](0,1)(0,1.5)
-  \uput{0.1}[d](0,-0.5){$j$}
+  \uput{0.1}[d](0,-0.5){$x_j$}
 
   \psline[linestyle=dotted](0.5,-.15)(0.5,1.5)
-  \uput{0.1}[d](0.5,-0.15){$j+\frac{1}{2}$}
+  \uput{0.1}[d](0.5,-0.15){$x_{j+\frac{1}{2}}$}
 
   \psline[linestyle=dashed](1,0)(1,-0.5)
   \psline(1,0)(1,1)
   \psline[linestyle=dashed](1,1)(1,1.5)
-  \uput{0.1}[d](1,-0.5){$j+1$}
+  \uput{0.1}[d](1,-0.5){$x_{j+1}$}
 
   \psline{<->}(-1,1.25)(-0.5,1.25)
   \uput{0.1}[u](-0.75,1.25){$\frac{\Delta x}{2}$}
