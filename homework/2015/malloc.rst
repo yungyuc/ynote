@@ -21,3 +21,8 @@ Surveyed memory managers:
   http://gperftools.googlecode.com/git/doc/tcmalloc.html
 - OSX malloc:
   http://www.opensource.apple.com/source/libmalloc/libmalloc-53.1.1/
+
+Other notes:
+
+- Ulrich Drepper wrote about statistical features of malloc() in glibc 2.10:
+  http://udrepper.livejournal.com/20948.html
