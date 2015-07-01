@@ -2,7 +2,7 @@
 Memory Management
 =================
 
-:date: 2015/6/17, 2015/6/26
+:date: 2015/6/17, 2015/6/26, 2015/7/1
 
 Existing POSIX Memory Managers
 ==============================
@@ -55,3 +55,10 @@ and pointed to `a related NumPy GitHub issue
 A related discussion on Python bug track about aligned memory allocation:
 http://bugs.python.org/issue18835 .  There is also a related NumPy issue:
 https://github.com/numpy/numpy/issues/5312 .
+
+NumPy Array Allocation Event Hooks
+==================================
+
+Thouis (Ray) Jones proposed a hook API set to ``PyDataMem_*()`` functions
+(http://mail.scipy.org/pipermail/numpy-discussion/2012-June/062814.html) to
+track the memory allocation of NumPy ndarrays.
