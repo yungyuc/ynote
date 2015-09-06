@@ -11,7 +11,7 @@ How to Reach Me
   - Twitter: `@yungyuc <https://twitter.com/yungyuc>`__
   - LinkedIn: https://www.linkedin.com/in/yungyuc
   - Email: `yyc@solvcon.net
-    <mailto:Yung-Yu %20 Chen %20%3c yyc@solvcon.net %3e>`__
+    <mailto:Yung-Yu %20 Chen %20%3c yungyuc@solvcon.net %3e>`__
 - Speak to me:
 
   - PyHUG: http://www.meetup.com/pythonhug/
