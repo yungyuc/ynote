@@ -2,6 +2,13 @@
 Chronological
 =============
 
+2016
+====
+
+.. toctree::
+
+  writing/2016/resource/index
+
 2015
 ====
 

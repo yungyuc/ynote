@@ -1,0 +1,10 @@
+main
+tags
+*.so
+*.o
+ex_shared_ptr_run
+*.dSYM
+recipes/*-feedstock
+build/
+opt/
+tmp/
