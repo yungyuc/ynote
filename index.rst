@@ -13,8 +13,12 @@ information is shown in :doc:`contact`.
 
   python/index
   cese/index
-  journals
   publications
+
+.. toctree::
+  :hidden:
+
+  journals
   contact
 
 .. vim: set ff=unix ft=rst fenc=utf8:
