@@ -1,4 +1,3 @@
-syntax: glob
 .DS_Store
 track_info.dat
 _build/
