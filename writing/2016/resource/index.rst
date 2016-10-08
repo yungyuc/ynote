@@ -76,7 +76,7 @@ reference count:
     // copy the first shared pointer to use its counter
     auto ref2 = ref1;
 
-  Catchs abound in share pointers.  Be careful.
+  Catches abound in share pointers.  Be careful.
 
 ``PyObject`` also uses reference counts in a similar way.  So all we need to do
 is to let ``PyObject`` and the shared pointer know the reference count of each
