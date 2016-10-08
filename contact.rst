@@ -1,6 +1,6 @@
-===============
-How to Reach Me
-===============
+===================
+Contact Information
+===================
 
 - Email: `yyc@solvcon.net
   <mailto:Yung-Yu %20 Chen %20%3c yyc@solvcon.net %3e>`__
