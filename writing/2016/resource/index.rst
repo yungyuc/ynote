@@ -12,7 +12,7 @@ code like this:
 
   def print_value(val):
     msg = "the value is %s" % val
-    print(value)
+    print(msg)
     # "msg" object gets automatically destroyed when the function returns
 
 But the happy story ends when Python needs to talk to low-level code.  If some
