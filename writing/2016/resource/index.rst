@@ -57,8 +57,8 @@ reference count:
   used as a substitute for raw pointers.  ``std::unique_ptr``, on the other
   hand, is suggested to be used to replace a raw pointer whenever possible.
   
-  One common mistake is to duplicate the reference counter, and the program
-  will crash because of double free:
+  For example, one common mistake with shared pointers is duplicated reference
+  counters, and the program will crash because of double free:
 
   .. code-block:: cpp
 
@@ -75,6 +75,8 @@ reference count:
     auto ref1 = SHARED_PTR<Resource>(resource);
     // copy the first shared pointer to use its counter
     auto ref2 = ref1;
+
+  Catchs abound in share pointers.  Be careful.
 
 ``PyObject`` also uses reference counts in a similar way.  So all we need to do
 is to let ``PyObject`` and the shared pointer know the reference count of each
