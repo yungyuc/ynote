@@ -6,6 +6,7 @@ Chronological
 ====
 
 .. toctree::
+  :maxdepth: 1
 
   writing/2016/resource/index
 
@@ -13,6 +14,7 @@ Chronological
 ====
 
 .. toctree::
+  :maxdepth: 1
 
   writing/2015/euler
   writing/2015/pstricks_arrived
@@ -23,6 +25,7 @@ Chronological
 ====
 
 .. toctree::
+  :maxdepth: 1
 
   writing/2014/solvcon_outlook
 
@@ -30,6 +33,7 @@ Chronological
 ====
 
 .. toctree::
+  :maxdepth: 1
 
   writing/2013/laminar_internal
   writing/2013/after_pycontw_2013/index
@@ -41,6 +45,7 @@ Chronological
 ====
 
 .. toctree::
+  :maxdepth: 1
 
   writing/2012/multi-dimensional-taylor-series
   writing/2012/coscup_python_booth
@@ -53,6 +58,7 @@ Chronological
 ====
 
 .. toctree::
+  :maxdepth: 1
 
   writing/2011/solvcon_start
   writing/2011/cuda_port
@@ -62,6 +68,7 @@ Chronological
 ====
 
 .. toctree::
+  :maxdepth: 1
 
   writing/2010/pycon2011
   writing/2010/solvcon_bench_3M/index
@@ -74,6 +81,7 @@ Chronological
 ====
 
 .. toctree::
+  :maxdepth: 1
 
   writing/2009/research_tools
   writing/2009/pstricks_eps
