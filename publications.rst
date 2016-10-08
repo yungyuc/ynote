@@ -2,8 +2,6 @@
 Publications
 ============
 
-.. contents::
-
 Journal Papers
 ==============
 
@@ -93,16 +91,6 @@ Conference Papers
    49th AIAA Aerospace Sciences Meeting, January 4-7 2011, Orlando, Florida.
    (`PDF <http://cfd.solvcon.net/pub/davidb/CESE_4th.pdf>`__)
 
-Invited Talks
-=============
-
-#. Yung-Yu Chen,
-   *SOLVCON: A Multi-Physics Software Framework for Supercomputing by
-   Next-Generation Heterogeneous Architecture*,
-   `National Center for High-Performance Computing
-   <http://www.nchc.org.tw/>`__,
-   March 24, 2011, Hsinchu, Taiwan.
-
 Presentations
 =============
 
@@ -120,14 +108,3 @@ Presentations
    Numerical Simulations*,
    `PyCon US 2011 <http://us.pycon.org/2011/schedule/presentations/50/>`__,
    March 11-13 2011, Atlanta, Georgia.
-
-#. Yung-Yu Chen and Sheng-Tao John Yu,
-   *Reduce Turnaround Time for Large-Scale CFD Simulations by Using Python*,
-   36th Dayton-Cincinnati Aerospace Sciences Symposium, March 1 2011, Dayton,
-   Ohio.
-
-#. Yung-Yu Chen and Sheng-Tao John Yu,
-   *SOLVCON: New Python-Based Software Framework for Massively Parallelized
-   Hyperbolic PDE Solvers Using the CESE Method*,
-   6th Annual Dayton Engineering Science Symposium, October 25 2010, Dayton,
-   Ohio.

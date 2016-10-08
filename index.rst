@@ -1,17 +1,18 @@
-===============
-Yung-Yu's Notes
-===============
+==============================================
+A Dispersive Collection of Computational Stuff
+==============================================
 
-I share stuff in this site.
+This site is maintained by Yung-Yu Chen.
 
 .. toctree::
-  :maxdepth: 3
+  :maxdepth: 1
 
   cese/index
   publications
 
 .. toctree::
   :hidden:
+  :maxdepth: 1
 
   journals
   contact
