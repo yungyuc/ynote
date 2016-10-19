@@ -101,7 +101,7 @@ Presentations
    <http://2012.pycon.jp/program/sessions.html#session-16-1100-room351a-ja>`__,
    September 15-17 2012, Tokyo, Japan.
    (`PDF of slides
-   <https://bitbucket.org/yungyuc/talk/src/27e961878ea3/pyconjp2012/yyc_solvcon_pyconjp2012.pdf>`__)
+   <https://github.com/yungyuc/pubtalk/raw/master/pyconjp2012/yyc_solvcon_pyconjp2012.pdf>`__)
 
 #. Yung-Yu Chen and Sheng-Tao John Yu,
    *SOLVCON: A New Python-Based Software Framework for Massively Parallelized
