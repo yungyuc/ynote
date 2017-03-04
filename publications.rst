@@ -65,7 +65,7 @@ Dissertation
   *A Multi-Physics Software Framework on Hybrid Parallel Computing for
   High-Fidelity Solutions of Conservation Laws*,
   Ph.D. Thesis, The Ohio State University, United States, Aug. 2011, 
-  (`PDF <_static/yyc_dissertation.pdf>`__)
+  (`PDF <https://etd.ohiolink.edu/pg_10?0::NO:10:P10_ACCESSION_NUM:osu1313000975>`__)
 
 Conference Papers
 =================
