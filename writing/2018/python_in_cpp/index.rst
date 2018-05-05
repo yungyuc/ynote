@@ -39,9 +39,28 @@ in that simple program, it's boring to use Python :py:class:`str` which isn't
 too much different from C++ :cpp:class:`std::string`.  We should try something
 more, like mutable containers:
 
-.. literalinclude:: code/_helloworld.cpp
-  :language: cpp
+.. code-block:: cpp
   :linenos:
+
+  #include <pybind11/pybind11.h> // must be first
+  #include <vector>
+  #include <string>
+  namespace py = pybind11;
+  PYBIND11_MODULE(_helloworld, mod) {
+    mod.def(
+      "do",
+      []() {
+        std::vector<char> v{'h', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd'};
+        py::list l;
+        for (auto & i : v) {
+          py::str s(std::string(1, i));
+          l.append(s);
+        }
+        return l;
+      },
+      "a little more interesting hello world"
+    );
+  } /* end PYBIND11_PLUGIN(_helloworld) */
 
 That's how you create a Python :py:class:`list` in C++.  And you see how it's
 returned to Python and to get the famous hello, world:
@@ -63,9 +82,31 @@ https://github.com/pybind/pybind11/blob/master/include/pybind11/pytypes.h, it's
 just a thin shell to access :c:type:`PyList` API.  It provides some more
 features, but not really comprehensive.
 
-.. literalinclude:: code/_pylist.cpp
-  :language: cpp
+.. code-block:: cpp
   :linenos:
+
+  #include <pybind11/pybind11.h> // must be first
+  #include <string>
+  #include <iostream>
+  namespace py = pybind11;
+  PYBIND11_MODULE(_pylist, mod) {
+    mod.def(
+      "do",
+      [](py::list & l) {
+        std::cout << "std::cout:" << std::endl;
+        for (py::handle obj : l) {
+          std::string str = py::cast<std::string>(obj);
+          std::cout << str << std::endl;
+        }
+        std::cout << "py::print:" << std::endl;
+        for (size_t it=0; it<l.size(); ++it) {
+          py::print(py::str("{}").format(l[it]));
+        }
+        // operator+() doesn't work:
+        // py::list newl = l + l;
+      }
+    );
+  } /* end PYBIND11_PLUGIN(_pylist) */
 
 :cpp:class:`pybind11::tuple`
 ============================
@@ -75,9 +116,28 @@ API for reading it.  We can create a :cpp:class:`pybind11::tuple` from a
 sequence object, index the content, get the length of it, but not add or modify
 it.
 
-.. literalinclude:: code/_pytuple.cpp
-  :language: cpp
+.. code-block:: cpp
   :linenos:
+
+  #include <pybind11/pybind11.h> // must be first
+  #include <vector>
+  namespace py = pybind11;
+  PYBIND11_MODULE(_pytuple, mod) {
+    mod.def(
+      "do",
+      [](py::args & args) {
+        py::list l;
+        for (py::handle h : args) {
+          l.append(h);
+        }
+        py::tuple t(l);
+        py::print(py::str("{} len={}").format(t, t.size()));
+        for (size_t it=0; it<t.size(); ++it) {
+          py::print(py::str("{}").format(t[it]));
+        }
+      }
+    );
+  } /* end PYBIND11_PLUGIN(_pytuple) */
 
 :cpp:class:`pybind11::dict`
 ===========================
@@ -86,9 +146,47 @@ it.
 to the obvious :cpp:func:`pybind11::dict::size`, it has
 :cpp:func:`pybind11::dict::clear` and :cpp:func:`pybind11::dict::contains`.
 
-.. literalinclude:: code/_pydict.cpp
-  :language: cpp
+.. code-block:: cpp
   :linenos:
+
+  #include <pybind11/pybind11.h> // must be first
+  #include <string>
+  #include <stdexcept>
+  #include <iostream>
+  namespace py = pybind11;
+  PYBIND11_MODULE(_pydict, mod) {
+    mod.def(
+      "do",
+      [](py::args & args) {
+        if (args.size() % 2 != 0) {
+          throw std::runtime_error("argument number must be even");
+        }
+        py::dict d;
+        for (size_t it=0; it<args.size(); it+=2) {
+          d[args[it]] = args[it+1];
+        }
+        return d;
+      },
+      "a little more interesting hello world"
+    );
+    mod.def(
+      "do2",
+      [](py::dict d, py::args & args) {
+        for (py::handle h : args) {
+          if (d.contains(h)) {
+            std::cout << py::cast<std::string>(h)
+                      << " is in the input dictionary" << std::endl;
+          } else {
+            std::cout << py::cast<std::string>(h)
+                      << " isn't found in the input dictionary" << std::endl;
+          }
+        }
+        std::cout << "remove everything in the input dictionary!" << std::endl;
+        d.clear();
+        return d;
+      }
+    );
+  } /* end PYBIND11_PLUGIN(_pydict) */
 
 :cpp:class:`pybind11::str`
 ==========================
@@ -96,9 +194,22 @@ to the obvious :cpp:func:`pybind11::dict::size`, it has
 I've used :cpp:class:`pybind11::str` many times in previous sample code.  Just
 add one trick of C++11 literal for strings:
 
-.. literalinclude:: code/_pystr.cpp
-  :language: cpp
+.. code-block:: cpp
   :linenos:
+
+  #include <pybind11/pybind11.h> // must be first
+  #include <iostream>
+  namespace py = pybind11;
+  using namespace py::literals; // to bring in the `_s` literal
+  PYBIND11_MODULE(_pystr, mod) {
+    mod.def(
+      "do",
+      []() {
+        py::str s("python string {}"_s.format("formatting"));
+        py::print(s);
+      }
+    );
+  } /* end PYBIND11_PLUGIN(_pystr) */
 
 :cpp:class:`pybind11::handle` and :cpp:class:`pybind11::object`
 ===============================================================
@@ -111,9 +222,38 @@ around Python types.
 and adds automatic reference counting.  The two classes offer bookkeeping for
 pybind11.
 
-.. literalinclude:: code/_pyho.cpp
-  :language: cpp
+.. code-block:: cpp
   :linenos:
+
+  #include <pybind11/pybind11.h> // must be first
+  #include <iostream>
+  namespace py = pybind11;
+  using namespace py::literals; // to bring in the `_s` literal
+  PYBIND11_MODULE(_pyho, mod) {
+    mod.def(
+      "do",
+      [](py::object const & o) {
+        std::cout << "refcount in the beginning: "
+                  << o.ptr()->ob_refcnt << std::endl;
+        py::handle h(o);
+        std::cout << "refcount with a new pybind11::handle: "
+                  << h.ptr()->ob_refcnt << std::endl;
+        {
+          py::object o2(o);
+          std::cout << "refcount with a new pybind11::object: "
+                    << o2.ptr()->ob_refcnt << std::endl;
+        }
+        std::cout << "refcount after the new pybind11::object destructed: "
+                  << o.ptr()->ob_refcnt << std::endl;
+        h.inc_ref();
+        std::cout << "refcount after h.inc_ref(): "
+                  << h.ptr()->ob_refcnt << std::endl;
+        h.dec_ref();
+        std::cout << "refcount after h.dec_ref(): "
+                  << h.ptr()->ob_refcnt << std::endl;
+      }
+    );
+  } /* end PYBIND11_PLUGIN(_pyho) */
 
 :cpp:class:`pybind11::none`
 ===========================
@@ -122,9 +262,25 @@ The last class is :cpp:class:`pybind11::none`.  It is just the :py:obj:`None`
 object, or in the C API :c:type:`Py_None`.  :py:obj:`None` is also reference
 counted, and it's convenient that in pybind11 we have a class representing it.
 
-.. literalinclude:: code/_pynone.cpp
-  :language: cpp
+.. code-block:: cpp
   :linenos:
+
+  #include <pybind11/pybind11.h> // must be first
+  #include <iostream>
+  namespace py = pybind11;
+  using namespace py::literals; // to bring in the `_s` literal
+  PYBIND11_MODULE(_pynone, mod) {
+    mod.def(
+      "do",
+      [](py::object const & o) {
+        if (o.is(py::none())) {
+          std::cout << "it is None" << std::endl;
+        } else {
+          std::cout << "it isn't None" << std::endl;
+        }
+      }
+    );
+  } /* end PYBIND11_PLUGIN(_pynone) */
 
 Reference
 =========

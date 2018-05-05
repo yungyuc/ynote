@@ -1,10 +1,16 @@
 # Haven't got this working with anaconda on osx
+OS_S = $(shell uname -s)
 RUNTIME_PREFIX?=$(shell python3-config --prefix)
-CXX = clang++
-CXXFLAGS = -I${RUNTIME_PREFIX}/include -O0 -g -fPIC -std=c++11 -stdlib=libc++
+CXX = c++
+CXXFLAGS = -I${RUNTIME_PREFIX}/include -O0 -g -fPIC -std=c++11
 CXXFLAGS_PY = $(shell python3-config --includes)
-LDFLAGS = -fPIC -L${RUNTIME_PREFIX}/lib -stdlib=libc++ -lstdc++
+LDFLAGS = -fPIC -L${RUNTIME_PREFIX}/lib -lstdc++
 LDFLAGS_PY = -shared $(shell python3-config --libs)
+
+ifeq ($(OS_S),Darwin)
+CXXFLAGS += -stdlib=libc++
+LDFLAGS += -stdlib=libc++
+endif
 
 DEPEND=Makefile
 

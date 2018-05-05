@@ -1,5 +1,4 @@
 #include <pybind11/pybind11.h> // must be first
-#include <string>
 #include <iostream>
 namespace py = pybind11;
 using namespace py::literals; // to bring in the `_s` literal
