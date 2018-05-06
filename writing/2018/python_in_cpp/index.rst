@@ -2,7 +2,7 @@
 Use Python Objects in C++
 =========================
 
-:date: draft on 2018/5/4
+:date: 2018/5/6
 
 C++ is difficult.  The language has so many catches and requires us to take care
 of every detail.  The reason to use it is usually performance.  But learning C++
@@ -26,9 +26,9 @@ And we also have `pybind11 <http://pybind11.readthedocs.io/>`_, a compact
 library providing comprehensive wrapping between Python and C++11.  It also
 includes neat API for manipulating Python objects.  The API is very basic and
 covers only a fraction of what Python C API does, but fun to use.  And it's the
-real point of this post: make a note about manipulating Python objects using
+real point of this post: make a note about manipulating Python objects with
 pybind11.  Other parts of the library are important and probably more useful
-than this.  But I find it particularly interesting.
+than this.  But I find this particularly interesting.
 
 I am starting with "hello, world".  But it's boring to just print a Python
 :py:class:`str`, which doesn't differ much from C++ :cpp:class:`std::string`.
