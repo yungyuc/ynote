@@ -4,40 +4,35 @@ Use Python Objects in C++
 
 :date: draft on 2018/5/4
 
-Ten years ago, if someone started to learn programming using C++, it would be a
-frustrated journey.  The language has so many catches and duct tapes.  It takes
-a lot of time to make it work, and even more efforts to make it work well.
-Elegancy is usually only left to selected few who stand fast against the pain
-in the process.  But to achieve uncompromisable performance, there isn't
-another option.
+C++ is difficult.  The language has so many catches and requires us to take care
+of every detail.  The reason to use it is usually performance.  But learning C++
+is so frustrating that when performance isn't mandatory, people try hard to
+avoid it.  Things are getting better now.  Recently, C++11 standard looks just
+like the right way to go for the language.  C++ is still hard, but the learning
+path isn't as concealed as it did.
 
-C++ is still difficult.  But the C++11 standard looks just like the right part
-of the language, and the enhancements it needs.  Programming in C++ doesn't
-become easy, but the path doesn't look as concealed as it did.
-
-It now makes sense for a Python programmer to invest in C++.  These are two
-very different languages.  Each is good in its field.  Although both are
+It now makes sense to encourage a Python programmer to invest in C++.  These are
+two very different languages.  Each is good in its field.  Although both are
 pronounced and designed to be general-purpose, and indeed are used for
-everything, it's naive to use vanilla Python for anything needing speed.  On
-the other hand, only C++ maniacs use it for one-liners or scripts that seldom
-are executed more than twice.  But the two languages are surprisingly good
-companions.  In the past decades almost a dozen tools are made to bridge C++
-and Python.  Python the interpreter is also a well-organized C library easy to
-be used from C++.  The major thing that Python programmers concern is really
-the complexity of C++ the language.  With C++11, it is very much mitigated.
+everything, it's naive to use vanilla Python for anything calling for speed.  On
+the other hand, C++ is too heavy-lifting for simple one-liners or scripts.  To
+master the two very different languages gives a programmer powerful synergy.
+There are alreay many wrappers developed to bridge them.  Python the interpreter
+is also a well-organized C library easy to be used from C++.  The major thing
+that Python programmers concerned was the complexity of C++ the language.  With
+C++11, it is very much mitigated.
 
-And we even have `pybind11 <http://pybind11.readthedocs.io/>`_ available.  It's
-a compact library providing comprehensive wrapping between Python and C++11.
-It also includes neat API for manipulating Python objects.  The API is very
-basic and covers only a fraction of what Python C API does, but fun to use.
-After saying this much, here's the point: this post is my note about
-manipulating Python objects using pybind11.  It's so interesting that I'd like
-to skip everything else in the library.
+And we also have `pybind11 <http://pybind11.readthedocs.io/>`_, a compact
+library providing comprehensive wrapping between Python and C++11.  It also
+includes neat API for manipulating Python objects.  The API is very basic and
+covers only a fraction of what Python C API does, but fun to use.  And it's the
+real point of this post: make a note about manipulating Python objects using
+pybind11.  Other parts of the library are important and probably more useful
+than this.  But I find it particularly interesting.
 
-The first thing to do when meeting a new tool is to print "hello, world".  But
-in that simple program, it's boring to use Python :py:class:`str` which isn't
-too much different from C++ :cpp:class:`std::string`.  We should try something
-more, like mutable containers:
+I am starting with "hello, world".  But it's boring to just print a Python
+:py:class:`str`, which doesn't differ much from C++ :cpp:class:`std::string`.
+Let me use a container to do it:
 
 .. code-block:: cpp
   :linenos:
@@ -63,7 +58,7 @@ more, like mutable containers:
   } /* end PYBIND11_PLUGIN(_helloworld) */
 
 That's how you create a Python :py:class:`list` in C++.  And you see how it's
-returned to Python and to get the famous hello, world:
+returned to Python and gets the famous hello, world:
 
 .. code-block:: python
   :linenos:
@@ -79,8 +74,8 @@ returned to Python and to get the famous hello, world:
 
 More on :cpp:class:`pybind11::list`.  Take a look at
 https://github.com/pybind/pybind11/blob/master/include/pybind11/pytypes.h, it's
-just a thin shell to access :c:type:`PyList` API.  It provides some more
-features, but not really comprehensive.
+just a thin shell to access :c:type:`PyList` API.  The pybind11 support isn't
+fancy, but enough for basic operations.
 
 .. code-block:: cpp
   :linenos:
@@ -93,28 +88,67 @@ features, but not really comprehensive.
     mod.def(
       "do",
       [](py::list & l) {
+        // convert contents to std::string and send to cout
         std::cout << "std::cout:" << std::endl;
-        for (py::handle obj : l) {
-          std::string str = py::cast<std::string>(obj);
+        for (py::handle o : l) {
+          std::string str = py::cast<std::string>(o);
           std::cout << str << std::endl;
         }
-        std::cout << "py::print:" << std::endl;
-        for (size_t it=0; it<l.size(); ++it) {
-          py::print(py::str("{}").format(l[it]));
-        }
-        // operator+() doesn't work:
-        // py::list newl = l + l;
       }
     );
   } /* end PYBIND11_PLUGIN(_pylist) */
 
+Run the code.  Elements are converted to :cpp:class:`std::string` and sent to
+standard output one by one:
+
+.. code-block:: python
+  :linenos:
+
+  >>> import _pylist
+  >>> # print the input list
+  >>> _pylist.do(["a", "b", "c"])
+  std::cout:
+  a
+  b
+  c
+
+pybind11 provides :cpp:class:`pybind11::list::append` to populate elements (we
+saw it in the hello, world).  Spell it out:
+ 
+.. code-block:: cpp
+  :linenos:
+
+  mod.def(
+    "do2",
+    [](py::list & l) {
+      // create a new list
+      std::cout << "py::print:" << std::endl;
+      py::list l2;
+      for (py::handle o : l) {
+        std::string s = py::cast<std::string>(o);
+        s = "elm:" + s;
+        py::str s2(s);
+        l2.append(s2); // populate contents
+      }
+      py::print(l2);
+    }
+  );
+
+This is the result:
+
+.. code-block:: python
+  :linenos:
+
+  >>> _pylist.do2(["d", "e", "f"])
+  py::print:
+  ['elm:d', 'elm:e', 'elm:f']
+
 :cpp:class:`pybind11::tuple`
 ============================
 
-:py:class:`tuple` is more restrictive than :py:class:`list`.  pybind11 provides
-API for reading it.  We can create a :cpp:class:`pybind11::tuple` from a
-sequence object, index the content, get the length of it, but not add or modify
-it.
+:py:class:`tuple` is immutable and more restrictive than :py:class:`list`.
+pybind11 provides API for reading it.  To creat a non-trivial tupple, we can
+convert from a sequence object:
 
 .. code-block:: cpp
   :linenos:
@@ -126,12 +160,16 @@ it.
     mod.def(
       "do",
       [](py::args & args) {
+        // build a list using py::list::append
         py::list l;
         for (py::handle h : args) {
           l.append(h);
         }
+        // convert it to a tuple
         py::tuple t(l);
+        // print it out
         py::print(py::str("{} len={}").format(t, t.size()));
+        // print the element one by one
         for (size_t it=0; it<t.size(); ++it) {
           py::print(py::str("{}").format(t[it]));
         }
@@ -139,12 +177,23 @@ it.
     );
   } /* end PYBIND11_PLUGIN(_pytuple) */
 
+Execution in Python:
+
+.. code-block:: python
+  :linenos:
+
+  >>> import _pytuple
+  >>> _pytuple.do("a", 7, 5.6)
+  ('a', 7, 5.6) len=3
+  a
+  7
+  5.6
+
 :cpp:class:`pybind11::dict`
 ===========================
 
-:cpp:class:`pybind11::dict` is slightly richer than the sequences.  In addition
-to the obvious :cpp:func:`pybind11::dict::size`, it has
-:cpp:func:`pybind11::dict::clear` and :cpp:func:`pybind11::dict::contains`.
+:cpp:class:`pybind11::dict` is slightly richer than the sequences.  This is how
+to create a :py:class:`dict` from a :py:class:`tuple` in C++:
 
 .. code-block:: cpp
   :linenos:
@@ -161,38 +210,72 @@ to the obvious :cpp:func:`pybind11::dict::size`, it has
         if (args.size() % 2 != 0) {
           throw std::runtime_error("argument number must be even");
         }
+        // create a dict from the input tuple
         py::dict d;
         for (size_t it=0; it<args.size(); it+=2) {
           d[args[it]] = args[it+1];
         }
         return d;
-      },
-      "a little more interesting hello world"
-    );
-    mod.def(
-      "do2",
-      [](py::dict d, py::args & args) {
-        for (py::handle h : args) {
-          if (d.contains(h)) {
-            std::cout << py::cast<std::string>(h)
-                      << " is in the input dictionary" << std::endl;
-          } else {
-            std::cout << py::cast<std::string>(h)
-                      << " isn't found in the input dictionary" << std::endl;
-          }
-        }
-        std::cout << "remove everything in the input dictionary!" << std::endl;
-        d.clear();
-        return d;
       }
     );
   } /* end PYBIND11_PLUGIN(_pydict) */
 
+Result:
+
+.. code-block:: python
+  :linenos:
+
+  >>> import _pydict
+  >>> d = _pydict.do("a", 7, "b", "name", 10, 4.2)
+  >>> print(d)
+  {'a': 7, 'b': 'name', 10: 4.2}
+
+In addition to the obvious :cpp:func:`pybind11::dict::size`, it has
+:cpp:func:`pybind11::dict::clear` and :cpp:func:`pybind11::dict::contains`.  The
+second example uses them to process the created dict:
+
+.. code-block:: cpp
+  :linenos:
+
+  mod.def(
+    "do2",
+    [](py::dict d, py::args & args) {
+      for (py::handle h : args) {
+        if (d.contains(h)) {
+          std::cout << py::cast<std::string>(h)
+                    << " is in the input dictionary" << std::endl;
+        } else {
+          std::cout << py::cast<std::string>(h)
+                    << " is not found in the input dictionary" << std::endl;
+        }
+      }
+      std::cout << "remove everything in the input dictionary!" << std::endl;
+      d.clear();
+      return d;
+    }
+  );
+
+Then the dictionary becomes empty:
+
+.. code-block:: python
+  :linenos:
+
+  >>> d2 = _pydict.do2(d, "b", "d")
+  b is in the input dictionary
+  d is not found in the input dictionary
+  remove everything in the input dictionary!
+  >>> print("The returned dictionary is empty:", d2)
+  The returned dictionary is empty: {}
+  >>> print("The first dictionary becomes empty too:", d)
+  The first dictionary becomes empty too: {}
+  >>> print("Are the two dictionaries the same?", d2 is d)
+  Are the two dictionaries the same? True
+
 :cpp:class:`pybind11::str`
 ==========================
 
-I've used :cpp:class:`pybind11::str` many times in previous sample code.  Just
-add one trick of C++11 literal for strings:
+I've used :cpp:class:`pybind11::str` many times in previous examples.  Here I
+just bring up one more trick: C++11 literal for strings.
 
 .. code-block:: cpp
   :linenos:
@@ -211,6 +294,15 @@ add one trick of C++11 literal for strings:
     );
   } /* end PYBIND11_PLUGIN(_pystr) */
 
+Result:
+
+.. code-block:: python
+  :linenos:
+
+  >>> import _pystr
+  >>> _pystr.do()
+  python string formatting
+
 :cpp:class:`pybind11::handle` and :cpp:class:`pybind11::object`
 ===============================================================
 
@@ -218,9 +310,9 @@ add one trick of C++11 literal for strings:
 :c:type:`PyObject`.  It's the base class of all pybind11 classes that wrap
 around Python types.
 
-:cpp:class:`pybind11::object` is derived from :cpp:class:`pybind11::handle`,
-and adds automatic reference counting.  The two classes offer bookkeeping for
-pybind11.
+:cpp:class:`pybind11::object` is derived from :cpp:class:`pybind11::handle`, and
+adds automatic reference counting.  The two classes offer bookkeeping for Python
+objects in pybind11.
 
 .. code-block:: cpp
   :linenos:
@@ -236,31 +328,46 @@ pybind11.
         std::cout << "refcount in the beginning: "
                   << o.ptr()->ob_refcnt << std::endl;
         py::handle h(o);
-        std::cout << "refcount with a new pybind11::handle: "
+        std::cout << "no increase of refcount with a new pybind11::handle: "
                   << h.ptr()->ob_refcnt << std::endl;
         {
           py::object o2(o);
-          std::cout << "refcount with a new pybind11::object: "
+          std::cout << "increased refcount with a new pybind11::object: "
                     << o2.ptr()->ob_refcnt << std::endl;
         }
-        std::cout << "refcount after the new pybind11::object destructed: "
+        std::cout << "decreased refcount after the new pybind11::object destructed: "
                   << o.ptr()->ob_refcnt << std::endl;
         h.inc_ref();
-        std::cout << "refcount after h.inc_ref(): "
+        std::cout << "manually increases refcount after h.inc_ref(): "
                   << h.ptr()->ob_refcnt << std::endl;
         h.dec_ref();
-        std::cout << "refcount after h.dec_ref(): "
+        std::cout << "manually descrases refcount after h.dec_ref(): "
                   << h.ptr()->ob_refcnt << std::endl;
       }
     );
   } /* end PYBIND11_PLUGIN(_pyho) */
 
+See the change of the reference count.
+
+.. code-block:: python
+  :linenos:
+
+  >>> import _pyho
+  >>> _pyho.do(["name"])
+  refcount in the beginning: 3
+  no increase of refcount with a new pybind11::handle: 3
+  increased refcount with a new pybind11::object: 4
+  decreased refcount after the new pybind11::object destructed: 3
+  manually increases refcount after h.inc_ref(): 4
+  manually descrases refcount after h.dec_ref(): 3
+
 :cpp:class:`pybind11::none`
 ===========================
 
-The last class is :cpp:class:`pybind11::none`.  It is just the :py:obj:`None`
-object, or in the C API :c:type:`Py_None`.  :py:obj:`None` is also reference
-counted, and it's convenient that in pybind11 we have a class representing it.
+The last class covered in this note is :cpp:class:`pybind11::none`.  It is just
+the :py:obj:`None` object, or in the C API :c:type:`Py_None`.  :py:obj:`None` is
+also reference counted, and it's convenient that in pybind11 we have a class
+representing it.
 
 .. code-block:: cpp
   :linenos:
@@ -276,11 +383,22 @@ counted, and it's convenient that in pybind11 we have a class representing it.
         if (o.is(py::none())) {
           std::cout << "it is None" << std::endl;
         } else {
-          std::cout << "it isn't None" << std::endl;
+          std::cout << "it is not None" << std::endl;
         }
       }
     );
   } /* end PYBIND11_PLUGIN(_pynone) */
+
+See the test result:
+
+.. code-block:: python
+  :linenos:
+
+  >>> import _pynone
+  >>> _pynone.do(None)
+  it is None
+  >>> _pynone.do(False)
+  it is not None
 
 Reference
 =========

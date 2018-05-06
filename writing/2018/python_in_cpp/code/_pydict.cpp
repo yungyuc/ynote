@@ -10,13 +10,13 @@ PYBIND11_MODULE(_pydict, mod) {
       if (args.size() % 2 != 0) {
         throw std::runtime_error("argument number must be even");
       }
+      // create a dict from the input tuple
       py::dict d;
       for (size_t it=0; it<args.size(); it+=2) {
         d[args[it]] = args[it+1];
       }
       return d;
-    },
-    "a little more interesting hello world"
+    }
   );
   mod.def(
     "do2",
@@ -27,7 +27,7 @@ PYBIND11_MODULE(_pydict, mod) {
                     << " is in the input dictionary" << std::endl;
         } else {
           std::cout << py::cast<std::string>(h)
-                    << " isn't found in the input dictionary" << std::endl;
+                    << " is not found in the input dictionary" << std::endl;
         }
       }
       std::cout << "remove everything in the input dictionary!" << std::endl;

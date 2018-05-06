@@ -9,7 +9,7 @@ PYBIND11_MODULE(_pynone, mod) {
       if (o.is(py::none())) {
         std::cout << "it is None" << std::endl;
       } else {
-        std::cout << "it isn't None" << std::endl;
+        std::cout << "it is not None" << std::endl;
       }
     }
   );

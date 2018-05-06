@@ -6,17 +6,27 @@ PYBIND11_MODULE(_pylist, mod) {
   mod.def(
     "do",
     [](py::list & l) {
+      // convert contents to std::string and send to cout
       std::cout << "std::cout:" << std::endl;
-      for (py::handle obj : l) {
-        std::string str = py::cast<std::string>(obj);
-        std::cout << str << std::endl;
+      for (py::handle o : l) {
+        std::string s = py::cast<std::string>(o);
+        std::cout << s << std::endl;
       }
+    }
+  );
+  mod.def(
+    "do2",
+    [](py::list & l) {
+      // create a new list
       std::cout << "py::print:" << std::endl;
-      for (size_t it=0; it<l.size(); ++it) {
-        py::print(py::str("{}").format(l[it]));
+      py::list l2;
+      for (py::handle o : l) {
+        std::string s = py::cast<std::string>(o);
+        s = "elm:" + s;
+        py::str s2(s);
+        l2.append(s2); // populate contents
       }
-      // operator+() doesn't work:
-      // py::list newl = l + l;
+      py::print(l2);
     }
   );
 } /* end PYBIND11_PLUGIN(_pylist) */
