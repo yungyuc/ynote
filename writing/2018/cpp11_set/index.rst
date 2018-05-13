@@ -203,6 +203,7 @@ pointer:
     // OUT: no memory leak: Series::count = 0
     return 0;
   }
+.. sptr2.cpp
 
 In the function :cpp:func:`make_shared_pointer`, we create a shared pointer and
 return it:
@@ -252,78 +253,97 @@ we usually think of a shared pointer.
 But keep in mind that the convenience comes with costs, although we aren't
 discussing it here.
 
-All together
-------------
+Enable from this
+----------------
+
+Pointers are used both from outside and inside of a class.  But when we want to
+use a shared pointer form inside the object the pointer points to, can we just
+create a new :cpp:class:`std::shared_ptr`?
+
+.. code-block:: cpp
+
+  class Series {
+  //...
+    std::shared_ptr<Series> get_this_bad() {
+      return std::shared_ptr<Series>(this);
+    }
+  //...
+  };
+
+No!  When you create the bad shared pointer, it looks fine.  But after it is
+destructed, you will get double free:
+
+.. code-block:: cpp
+
+  std::shared_ptr<Series> sp1(new Series(10, 2));
+  assert(sp1.use_count() == 1)
+  auto sp2 = sp1->get_this_bad();
+  assert(sp2.use_count() == 1) // this isn't 2 and is wrong
+  sp2 = nullptr;
+  assert(sp1->count == 0) // uhoh, Series object is destructed
+  sp1 = nullptr; // double free!  This gets you segfault if you are lucky
+
+We need :cpp:class:`std::enable_shared_from_this` and the helper function
+:cpp:func:`shared_from_this` it provides.  To use a shared pointer from inside
+the object it points to, the class needs to be derived from
+:cpp:class:`std::enable_shared_from_this`.  Note it's a class template and you
+should provide the derived class as the template argument:
 
 .. code-block:: cpp
   :linenos:
 
   #include <memory>
+  #include <vector>
+  #include <algorithm>
   #include <iostream>
 
-  struct Data {
+  class Series : public std::enable_shared_from_this<Series> {
+    std::vector<int> m_data;
+  public:
+    int sum() const {
+      const int ret = std::accumulate(m_data.begin(), m_data.end(), 0);
+      std::cout << "Series::sum() = " << ret << std::endl;
+      return ret;
+    }
     static size_t count;
-    Data() { count++; }
-    ~Data() { count--; }
-  };
-  size_t Data::count = 0;
-
-  struct Worker {
-    std::shared_ptr<Data> data;
-    void work () {
-      std::cout << "in Worker::work(): data.use_count() = " << data.use_count()
-                << ", Data::count = " << Data::count << std::endl;
+    Series(size_t size, int lead) : m_data(size) {
+      for (size_t it=0; it<size; it++) { m_data[it] = lead+it; }
+      count++;
+    }
+    ~Series() { count--; }
+    std::shared_ptr<Series> get_this_bad() {
+      // this will result in double free! don't do this
+      return std::shared_ptr<Series>(this);
+    }
+    std::shared_ptr<Series> get_this_good() {
+      return shared_from_this(); // by std::enable_shared_from_this
     }
   };
+  size_t Series::count = 0;
 
-  std::shared_ptr<Data> new_shared_ptr() {
-    std::shared_ptr<Data> data(new Data);
-    std::cout << "in new_shared_ptr(): data.use_count() = " << data.use_count()
-              << ", Data::count = " << Data::count << std::endl;
-    return data;
-  }
-
-  void copy_shared_ptr(std::shared_ptr<Data> data) {
-    std::cout << "in copy_shared_ptr(): data.use_count() = "
-              << data.use_count()
-              << ", Data::count = " << Data::count << std::endl;
-  }
-
-  void reference_shared_ptr(std::shared_ptr<Data> const & data) {
-    std::cout << "in reference_shared_ptr(): data.use_count() = "
-              << data.use_count()
-              << ", Data::count = " << Data::count << std::endl;
+  std::shared_ptr<Series> make_shared_pointer(size_t size, int lead) {
+    return std::shared_ptr<Series>(new Series(size, lead));
   }
 
   int main(int argc, char ** argv) {
-    auto data = new_shared_ptr();
-    copy_shared_ptr(data);
-    reference_shared_ptr(data);
-    Worker worker = {data};
-    worker.work();
-    data = nullptr;
-    std::cout << "after reset the local shared_ptr to null, "
-              << "the shared_ptr::use_count drops to 0" << std::endl;
-    reference_shared_ptr(data);
-    std::cout << "the shared_ptr in worker isn't affected"
-              << std::endl;
-    reference_shared_ptr(worker.data);
+    // create a shared pointer
+    auto sp1 = make_shared_pointer(10, 2);
+    std::cout << "sp1.use_count() = "
+              << sp1.use_count() << std::endl;
+    // OUT: sp1.use_count() = 1
+    // recreate a new shared pointer from the existing one
+    auto sp2 = sp1->get_this_good();
+    std::cout << "sp2.use_count() = "
+              << sp2.use_count() << std::endl;
+    // OUT: sp1.use_count() = 2
     return 0;
   }
 
-The output:
+By using :cpp:func:`shared_from_this`, we get a correct reference count from
+inside the class.
 
-.. code-block:: none
-  :linenos:
-
-  in new_shared_ptr(): data.use_count() = 1, Data::count = 1
-  in copy_shared_ptr(): data.use_count() = 2, Data::count = 1
-  in reference_shared_ptr(): data.use_count() = 1, Data::count = 1
-  in Worker::work(): data.use_count() = 2, Data::count = 1
-  after reset the local shared_ptr to null, the shared_ptr::use_count drops to 0
-  in reference_shared_ptr(): data.use_count() = 0, Data::count = 1
-  the shared_ptr in worker isn't affected
-  in reference_shared_ptr(): data.use_count() = 1, Data::count = 1
+Safety measures
+---------------
 
 Move Semantics
 ==============

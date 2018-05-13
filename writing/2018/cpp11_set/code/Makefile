@@ -38,6 +38,11 @@ run_sptr2: sptr2.o
 	$(CXX) $< -o $@ $(LDFLAGS)
 	./$@
 
+.PHONY: run_sptr3
+run_sptr3: sptr3.o
+	$(CXX) $< -o $@ $(LDFLAGS)
+	./$@
+
 .PHONY: default
 clean:
 	rm -rf *.o *.so *.dSYM/
