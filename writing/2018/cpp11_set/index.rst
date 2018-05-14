@@ -342,8 +342,154 @@ should provide the derived class as the template argument:
 By using :cpp:func:`shared_from_this`, we get a correct reference count from
 inside the class.
 
-Safety measures
+Ensure to Share
 ---------------
+
+The risk of double free doesn't only appear when one creates a shared pointer
+from within the object.  It's easy to make a similar mistake when one first
+uses a shared pointer:
+
+.. code-block:: cpp
+
+  Series * p1 = new Series(3, 7);
+  std::shared_ptr<Series> sp1(p1);
+  // wrong! Double free when both pointers are destructed
+  std::shared_ptr<Series> sp2(p1);
+
+To prevent this mistake, we can hide the constructor of :cpp:class:`Series`, so
+that no one can get a raw pointer from a newly constructed object:
+
+.. code-block:: cpp
+  :linenos:
+
+  #include <memory>
+  #include <vector>
+  #include <algorithm>
+  #include <iostream>
+
+  class Series : public std::enable_shared_from_this<Series> {
+    std::vector<int> m_data;
+    // private constructor
+    Series(size_t size, int lead) : m_data(size) {
+      for (size_t it=0; it<size; it++) { m_data[it] = lead+it; }
+      count++;
+    }
+  public:
+    int sum() const {
+      const int ret = std::accumulate(m_data.begin(), m_data.end(), 0);
+      std::cout << "Series::sum() = " << ret << std::endl;
+      return ret;
+    }
+    static size_t count;
+    ~Series() { count--; }
+    // factory method to construct the object
+    // and put it in the shared pointer
+    static std::shared_ptr<Series> make(size_t size, int lead) {
+      return std::shared_ptr<Series>(new Series(size, lead));
+    }
+  };
+  size_t Series::count = 0;
+
+  int main(int argc, char ** argv) {
+    // create a shared pointer
+    auto sp1 = Series::make(10, 2);
+    std::cout << "sp1.use_count() = "
+              << sp1.use_count() << std::endl;
+    // OUT: sp1.use_count() = 1
+    Series o2(*sp1); // uhoh, we forgot copy construction!
+    o2.sum();
+    // OUT: Series::sum() = 65
+    return 0;
+  }
+.. sptr4.cpp
+
+There are two key points.  First, we make the constructor private:
+
+.. code-block:: cpp
+
+  // private constructor
+  Series(size_t size, int lead) : m_data(size) {
+    for (size_t it=0; it<size; it++) { m_data[it] = lead+it; }
+    count++;
+  }
+
+Second, we provide a static factory method to construct the object and return
+the shared pointer managing it:
+
+.. code-block:: cpp
+
+  // factory method to construct the object
+  // and put it in the shared pointer
+  static std::shared_ptr<Series> make(size_t size, int lead) {
+    return std::shared_ptr<Series>(new Series(size, lead));
+  }
+
+Because the class doesn't allow to be constructed from outside, the factory
+method is the only way to create a new instance, and then all instances must be
+managed by a shared pointer.
+
+Hold on, didn't we miss something?  Copy constructor!
+
+.. code-block:: cpp
+
+  Series o2(*sp1); // uhoh, we forgot copy construction!
+  o2.sum();
+  // OUT: Series::sum() = 65
+
+Let's say we don't want the object to be copyable.  For a resource object
+holding a lot of memory, it's not uncommon.  Instead of allowing the object to
+be copied, it is foreced to use the idiom of transfer ownership.
+
+.. code-block:: cpp
+
+  // no copy, no move
+  Series(Series const & ) = delete;
+  Series(Series       &&) = delete;
+  Series & operator=(Series const & ) = delete;
+  Series & operator=(Series       &&) = delete;
+
+That's it.  We have a class totally managed by a shared pointer.  I probably
+can add one more comment about performace.  The reference count of share
+pointers requires atomic operation, and it's not free.  The cost is especially
+significant when multiple threads are in use.  Put synchronization aside, the
+reference couter needs to be dynamically allocated.  The pointed instance
+itself needs to be on the heap as well.  Then there are two allocations.  This
+is why shared pointers are a performance killer for small objects.  But even
+for large objects, we hope to reduce the allocation overhead.
+
+:cpp:func:`std::make_shared` can help.  It only make allocation once for both
+the class and the reference counter.  The use is simple:
+
+.. code-block:: cpp
+
+  // factory method to construct the object
+  // and put it in the shared pointer
+  static std::shared_ptr<Series> make(size_t size, int lead) {
+    return std::make_shared<Series>(size, lead, ctor_passkey());
+  }
+
+What is that :cpp:class:`ctor_passkey`?  It's there because
+:cpp:func:`std::make_shared` cannot work with a private constructor!  But we
+want no one but the class itself to access the constructor.  That
+:cpp:class:`ctor_passkey` is the solution:
+
+.. code-block:: cpp
+
+  private:
+    struct ctor_passkey {};
+  public:
+    Series(size_t size, int lead, ctor_passkey const &) : m_data(size) {
+      for (size_t it=0; it<size; it++) { m_data[it] = lead+it; }
+      count++;
+    }
+    static std::shared_ptr<Series> make(size_t size, int lead) {
+      return std::make_shared<Series>(size, lead, ctor_passkey());
+    }
+
+Since :cpp:class:`ctor_passkey` can only be used inside the class, no one from
+outside can call the constructor.  Our system isn't compromised.  (And without
+additional overhead.  The compiler optimizes away the :cpp:class:`ctor_passkey`
+object since it's not used at all.)
 
 Move Semantics
 ==============

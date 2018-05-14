@@ -43,6 +43,16 @@ run_sptr3: sptr3.o
 	$(CXX) $< -o $@ $(LDFLAGS)
 	./$@
 
+.PHONY: run_sptr4
+run_sptr4: sptr4.o
+	$(CXX) $< -o $@ $(LDFLAGS)
+	./$@
+
+.PHONY: run_sptr5
+run_sptr5: sptr5.o
+	$(CXX) $< -o $@ $(LDFLAGS)
+	./$@
+
 .PHONY: default
 clean:
 	rm -rf *.o *.so *.dSYM/
