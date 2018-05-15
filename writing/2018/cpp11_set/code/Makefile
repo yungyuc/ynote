@@ -53,6 +53,16 @@ run_sptr5: sptr5.o
 	$(CXX) $< -o $@ $(LDFLAGS)
 	./$@
 
+.PHONY: run_move1
+run_move1: move1.o
+	$(CXX) $< -o $@ $(LDFLAGS)
+	./$@
+
+.PHONY: run_move2
+run_move2: move2.o
+	$(CXX) $< -o $@ $(LDFLAGS)
+	./$@
+
 .PHONY: default
 clean:
 	rm -rf *.o *.so *.dSYM/
