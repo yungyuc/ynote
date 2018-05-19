@@ -68,6 +68,11 @@ run_lambda1: lambda1.o
 	$(CXX) $< -o $@ $(LDFLAGS)
 	./$@
 
+.PHONY: run_vart1
+run_vart1: vart1.o
+	$(CXX) $< -o $@ $(LDFLAGS)
+	./$@
+
 .PHONY: default
 clean:
 	rm -rf *.o *.so *.dSYM/

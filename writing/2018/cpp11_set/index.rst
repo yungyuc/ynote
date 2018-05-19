@@ -697,3 +697,43 @@ especially useful when writing wrapper code for high-level languages.
 
 Variadic Template
 =================
+
+This is a versatile addition to C++.  My interest in it is the capability to
+write generic wrapping code cleanly.  For example, the C++11 standard doesn't
+include the function template :cpp:func:`std::make_unique` (it's an oversight,
+and added back to standard in C++14), but we can easily implement it using
+variadic template:
+
+.. code-block:: cpp
+  :linenos:
+
+  #include <memory>
+  #include <cstdio>
+  #include <vector>
+  #include <list>
+
+  // C++11 doesn't have make_unique
+  template<typename T, typename... Args>
+  std::unique_ptr<T> make_unique(Args&&... args) {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+  }
+
+  int main(int argc, char ** argv) {
+    auto vec = make_unique<std::vector<int>>(10);
+    std::printf("vec->size() = %ld\n", vec->size());
+    // OUT: vec->size() = 10
+
+    auto lst = make_unique<std::list<int>>(vec->begin(), vec->end());
+    std::printf("lst->size() = %ld\n", lst->size());
+    // OUT: lst->size() = 10
+
+    return 0;
+  }
+
+No matter what types and number of argument the wrapped constructor has, the
+variadic template faithfully translates.  It provides type safety but doesn't
+incur any runtime overhead.  The expansion is done in the compile-time.
+
+The above example showed how to wrap C++ functions.  But when one wraps C/C++
+code for Python, the same technique applies.  For a dynamic language like
+Python, a dynamic-static type translation layer needs to be in between.
