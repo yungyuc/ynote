@@ -63,6 +63,11 @@ run_move2: move2.o
 	$(CXX) $< -o $@ $(LDFLAGS)
 	./$@
 
+.PHONY: run_lambda1
+run_lambda1: lambda1.o
+	$(CXX) $< -o $@ $(LDFLAGS)
+	./$@
+
 .PHONY: default
 clean:
 	rm -rf *.o *.so *.dSYM/
