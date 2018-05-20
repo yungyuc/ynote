@@ -7,4 +7,6 @@ Notes That Could Be Useful
 
   writing/2016/resource/index
 
-`Draft notes <drafts>`__
+.. admonition:: For my own reference
+
+ :doc:`Link to drafts <drafts>`

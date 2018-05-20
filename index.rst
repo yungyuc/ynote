@@ -7,9 +7,9 @@ This site is maintained by Yung-Yu Chen.
 .. toctree::
   :maxdepth: 1
 
+  writings
   cese/index
   publications
-  writings
 
 .. toctree::
   :hidden:
