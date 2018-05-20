@@ -2,7 +2,7 @@
 C++11 for Python
 ================
 
-:date: draft 2018/5/7
+:date: draft 2018/5/7, 2018/5/20
 
 C++11 is a giant stride in the C++ history.  After 8 years of work, lots of `new
 features <https://en.cppreference.com/w/cpp/language/history>`_ are added to the

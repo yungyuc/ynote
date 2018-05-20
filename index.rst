@@ -7,9 +7,9 @@ This site is maintained by Yung-Yu Chen.
 .. toctree::
   :maxdepth: 1
 
-  writings
   cese/index
   publications
+  writings
 
 .. toctree::
   :hidden:
@@ -17,5 +17,6 @@ This site is maintained by Yung-Yu Chen.
 
   journals
   contact
+  drafts
 
 .. vim: set ff=unix ft=rst fenc=utf8:
