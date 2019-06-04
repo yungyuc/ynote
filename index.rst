@@ -2,8 +2,6 @@
 A Dispersive Collection of Computational Stuff
 ==============================================
 
-This site is maintained by Yung-Yu Chen.
-
 .. toctree::
   :maxdepth: 1
 
