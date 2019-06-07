@@ -7,12 +7,6 @@ Things That Could Be Useful
 
   writing/2016/resource/index
 
-Slides:
-
-* :download:`C++ array library: xtensor
-  <writing/2019/xtensor-1906-pyhug.slides.html>`
-
-
 .. admonition:: For my own reference
 
  :doc:`Link to drafts <drafts>`
