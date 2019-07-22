@@ -37,8 +37,8 @@ Shared Pointers
 Shared pointers use reference counts to track the life cycle of an object.  The
 tracked object is the resource to be managed.  As long as a shared pointer
 exists, the reference count is positive, and then the resource is alive.  When
-all shared pointers are destroyed to make the reference count descrease to
-zero, the resource object gets deleted.
+all shared pointers are destroyed to make the reference count decrease to zero,
+the resource object gets deleted.
 
 C++11 provides a shared pointer library ``std::shared_ptr``, but before the
 standardization, ``boost::shared_ptr`` was the most popular one.  It probably
