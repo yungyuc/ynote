@@ -5,16 +5,16 @@ A Dispersive Collection of Computational Stuff
 .. toctree::
   :maxdepth: 1
 
-  writings
   cese/index
+  writings
   publications
+  contact
 
 .. toctree::
   :hidden:
   :maxdepth: 1
 
-  journals
-  contact
   drafts
+  journals
 
 .. vim: set ff=unix ft=rst fenc=utf8:

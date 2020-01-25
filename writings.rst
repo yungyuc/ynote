@@ -1,6 +1,6 @@
-===========================
-Things That Could Be Useful
-===========================
+============
+Recent Notes
+============
 
 .. toctree::
   :maxdepth: 1
