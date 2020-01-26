@@ -1,6 +1,11 @@
-==========
-Past Notes
-==========
+=========
+All Notes
+=========
+
+2020
+====
+
+- :doc:`writing/2020/sciwork_start/index`
 
 2016
 ====
