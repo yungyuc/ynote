@@ -11,7 +11,7 @@ production?
 
 Perhaps one reason is the large gap between programmers and scientists.
 Programmers, or software developers, know how easily mistakes (bugs!) may enter
-to software, and invent many ways in the development process to capture them.
+software, and invent many ways in the development process to capture them.
 That idea doesn't enter scientists' mind automatically.  Scientists write code
 in the way they feel natural.  Little attention is paid to maintainability.  It
 may take months for someone else to learn to run the code.  It hinders
