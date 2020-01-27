@@ -13,9 +13,9 @@ Perhaps one reason is the large gap between programmers and scientists.
 Programmers, or software developers, know how easily mistakes (bugs!) may enter
 software, and invent many ways in the development process to capture them.
 That idea doesn't enter scientists' mind automatically.  Scientists write code
-in the way they feel natural.  Little attention is paid to maintainability.  It
-may take months for someone else to learn to run the code.  It hinders
-technology development.
+in the way they feel natural, with little attention paid to maintainability.
+It may take months for someone else to learn to run the code, and it's not an
+efficient methodology to develop technology.
 
 It is difficult for programmers to help the code development, on the other
 hand, because they will be overloaded with the amount of required knowledge.
