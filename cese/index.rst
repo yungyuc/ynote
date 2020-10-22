@@ -2,10 +2,15 @@
 The space-time Conservation Element and Solution Element (CESE) Method
 ======================================================================
 
+.. admonition:: More information
+
+  See `External links`_.
+
 The space-time conservation element and solution element (CESE) method is a
 novel numerical method developed by `Sin-Chung Chang
-<http://www.grc.nasa.gov/WWW/microbus/>`_ for time-accurate, high-fidelity
-solution of hyperbolic partial different equations or conservation laws:
+<https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Sin-Chung+Chang&btnG=>`_
+for time-accurate, high-fidelity solution of hyperbolic partial different
+equations or conservation laws:
 
 .. math::
 
@@ -46,5 +51,10 @@ Consequently, the CESE method provides the following merits:
 - The method provides simple and effective treatments for non-reflective
   boundary conditions.
 
-For more information, please consult the website of the `space-time CE/SE
-working group <http://www.grc.nasa.gov/WWW/microbus/>`_.
+External links
+==============
+
+* `The space-time CE/SE working group (offline)
+  <http://www.grc.nasa.gov/WWW/microbus/>`__
+* `Gary C. Cheng's Computational Simulation Lab Research page
+  <http://gcheng.people.ua.edu/research.html>`__
