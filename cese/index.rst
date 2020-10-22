@@ -58,3 +58,5 @@ External links
   <http://www.grc.nasa.gov/WWW/microbus/>`__
 * `Gary C. Cheng's Computational Simulation Lab Research page
   <http://gcheng.people.ua.edu/research.html>`__
+* `Ohio State Computational Fluid Dynamics Laboratory Research page (archived)
+  <https://cfd.solvcon.net/research.html>`_
