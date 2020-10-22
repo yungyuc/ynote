@@ -59,4 +59,4 @@ External links
 * `Gary C. Cheng's Computational Simulation Lab Research page
   <http://gcheng.people.ua.edu/research.html>`__
 * `Ohio State Computational Fluid Dynamics Laboratory Research page (archived)
-  <https://cfd.solvcon.net/research.html>`_
+  <https://cfd.solvcon.net/research.html>`__
