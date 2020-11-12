@@ -37,7 +37,7 @@ Journal Papers
    `DOI: 10.1007/s10659-011-9315-8
    <http://dx.doi.org/10.1007/s10659-011-9315-8>`__
 
-#. Lixiang Yang, Yung-Yu Chen, and Sheng-Tao John Yu, 
+#. Lixiang Yang, Yung-Yu Chen, and Sheng-Tao John Yu,
    *Velocity-Stress Equations for Waves in Solids of Hexagonal Symmetry Solved
    by the Space-Time CESE Method*,
    ASME Journal of Vibration and Acoustics, Volume 133, Issue 2, Apr. 2011,
@@ -51,7 +51,7 @@ Journal Papers
    `doi: 10.1016/j.wavemoti.2010.07.001
    <http://dx.doi.org/10.1016/j.wavemoti.2010.07.001>`__
 
-#. Lixiang Yang, Yung-Yu Chen, and Sheng-Tao John Yu, 
+#. Lixiang Yang, Yung-Yu Chen, and Sheng-Tao John Yu,
    *Eigen Structure of First-Order Velocity-Stress Equations for Waves in
    Elastic Solids of Trigonal 32 Symmetry*,
    ASME Journal of Applied Mechanics, Volume 77, Issue 6, Nov. 2010, Pages
@@ -64,8 +64,8 @@ Dissertation
 - Yung-Yu Chen,
   *A Multi-Physics Software Framework on Hybrid Parallel Computing for
   High-Fidelity Solutions of Conservation Laws*,
-  Ph.D. Thesis, The Ohio State University, United States, Aug. 2011, 
-  (`PDF <https://etd.ohiolink.edu/pg_10?0::NO:10:P10_ACCESSION_NUM:osu1313000975>`__)
+  Ph.D. Thesis, The Ohio State University, United States, Aug. 2011,
+  (`Ohiolink <http://rave.ohiolink.edu/etdc/view?acc_num=osu1313000975>`__)
 
 Conference Papers
 =================
