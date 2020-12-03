@@ -1,5 +1,5 @@
 .DS_Store
 track_info.dat
-_build/
+_build*
 tmp/
 *.pyc
