@@ -1,5 +1,5 @@
 ======================================================================
-The space-time Conservation Element and Solution Element (CESE) Method
+The Space-Time Conservation Element and Solution Element (CESE) Method
 ======================================================================
 
 .. admonition:: More information

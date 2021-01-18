@@ -58,15 +58,6 @@ Journal Papers
    061003.
    `doi: 10.1115/1.4001545 <http://dx.doi.org/10.1115/1.4001545>`__
 
-Dissertation
-============
-
-- Yung-Yu Chen,
-  *A Multi-Physics Software Framework on Hybrid Parallel Computing for
-  High-Fidelity Solutions of Conservation Laws*,
-  Ph.D. Thesis, The Ohio State University, United States, Aug. 2011,
-  (`Ohiolink <http://rave.ohiolink.edu/etdc/view?acc_num=osu1313000975>`__)
-
 Conference Papers
 =================
 
@@ -108,3 +99,12 @@ Presentations
    Numerical Simulations*,
    `PyCon US 2011 <http://us.pycon.org/2011/schedule/presentations/50/>`__,
    March 11-13 2011, Atlanta, Georgia.
+
+Dissertation
+============
+
+- Yung-Yu Chen,
+  *A Multi-Physics Software Framework on Hybrid Parallel Computing for
+  High-Fidelity Solutions of Conservation Laws*,
+  Ph.D. Thesis, The Ohio State University, United States, Aug. 2011,
+  (`Ohiolink <http://rave.ohiolink.edu/etdc/view?acc_num=osu1313000975>`__)
