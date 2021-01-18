@@ -1,5 +1,5 @@
 =========================================
-Matrix-Vector Form of The Euler Equations
+Matrix-Vector Form of the Euler Equations
 =========================================
 
 :date: 2015/4/21, 2015/4/27
