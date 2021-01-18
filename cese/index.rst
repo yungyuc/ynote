@@ -57,7 +57,7 @@ External links
 * Yazhong Jiang, Chih-Yung Wen and Deliang Zhang, *Space–Time Conservation
   Element and Solution Element Method and Its Applications*,
   AIAA Journal,
-  Volume 58, Number 12, December 2020.
+  Volume 58, Number 12, December 2020, Page 5408-5430.
   `DOI: 10.2514/1.J058928
   <https://doi.org/10.2514/1.J058928>`__
 * `The space-time CE/SE working group (offline)
