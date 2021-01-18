@@ -54,6 +54,12 @@ Consequently, the CESE method provides the following merits:
 External links
 ==============
 
+* Yazhong Jiang, Chih-Yung Wen and Deliang Zhang, *Space–Time Conservation
+  Element and Solution Element Method and Its Applications*,
+  AIAA Journal,
+  Volume 58, Number 12, December 2020.
+  `DOI: 10.2514/1.J058928
+  <https://doi.org/10.2514/1.J058928>`__
 * `The space-time CE/SE working group (offline)
   <http://www.grc.nasa.gov/WWW/microbus/>`__
 * `Gary C. Cheng's Computational Simulation Lab Research page
