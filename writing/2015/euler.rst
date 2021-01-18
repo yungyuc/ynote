@@ -4,7 +4,9 @@ Matrix-Vector Form of The Euler Equations
 
 :date: 2015/4/21, 2015/4/27
 
-.. contents:: Table of Contents
+My online note for the Euler equations in the useful form.
+
+.. contents::
   :local:
 
 Governing Equations

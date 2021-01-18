@@ -7,6 +7,10 @@ Other Writings
 
   writing/2020/sciwork_start/index
   writing/2016/resource/index
+  writing/2015/euler
+  writing/2013/after_pycontw_2013/index
+  writing/2012/pycontw2012_finale
+  writing/2012/pythonite_callout
 
 Journal Papers
 ==============
