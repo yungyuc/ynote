@@ -12,7 +12,7 @@ After PyCon Taiwan 2013
 
 This year `the conference <http://tw.pycon.org/2013/en/>`__ was great.  Totally
 beyond my imagination.  This single sentence hit me when I walked into the
-confenrence hall: "Oh yes, THIS is what I always want to see."
+conference hall: "Oh yes, THIS is what I always want to see."
 
 .. figure:: conference_hall.jpg
   :align: center
