@@ -1,4 +1,4 @@
 Yung-Yu's note
 ==============
 
-http://yyc.solvcon.net/
+https://yyc.solvcon.net/
