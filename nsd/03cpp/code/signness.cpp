@@ -9,3 +9,4 @@ int main(int, char **)
     if (sint > uint) { std::cout << "sint > uint, although it can't be" << std::endl; }
     return 0;
 }
+// vim: set sw=4 ts=4 sts=4 et:

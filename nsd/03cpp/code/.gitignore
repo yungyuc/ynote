@@ -13,7 +13,9 @@ distance
 float
 fpexc
 helloworld
+helloworld[0-9]*
 hellomain
+hellomain_*
 hellomain[0-9]*
 list
 map

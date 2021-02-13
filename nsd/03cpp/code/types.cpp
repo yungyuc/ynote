@@ -14,3 +14,4 @@ int main(int, char **)
     std::cout << "sizeof(unsigned long long): " << sizeof(unsigned long long) << std::endl;
     return 0;
 }
+// vim: set sw=4 ts=4 sts=4 et:

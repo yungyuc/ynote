@@ -18,3 +18,4 @@ int main(int, char **)
     std::cout << "*(odata-10): " << *(odata-10) << std::endl;
     return 0;
 }
+// vim: set sw=4 ts=4 sts=4 et:

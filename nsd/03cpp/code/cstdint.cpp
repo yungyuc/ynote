@@ -13,3 +13,4 @@ int main(int, char **)
     std::cout << "sizeof(uint64_t): " << sizeof(uint64_t) << std::endl;
     return 0;
 }
+// vim: set sw=4 ts=4 sts=4 et:

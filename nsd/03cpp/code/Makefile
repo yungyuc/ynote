@@ -1,5 +1,6 @@
 BINS = \
-	helloworld hellomain hellomain2 hellomain3 distance \
+	helloworld helloworld2 \
+	hellomain hellomain_sys hellomain2 hellomain3 distance \
 	types cstdint signness arrays float nlimits fpexc \
 	class accessor reference constructor polymorphic crtp \
 	vector array list map unordered_map
@@ -39,20 +40,41 @@ runall: $(patsubst %,run_%,$(BINS))
 run_%: %
 	./$<
 
+helloworld: helloworld.cpp Makefile
+	g++ $< -o $@
+
 helloworld.o: helloworld.cpp Makefile
 	g++ -c $< -o $@
 
-helloworld: helloworld.o Makefile
+helloworld2: helloworld.o Makefile
 	g++ $< -o $@
 
 hello.o: hello.cpp hello.hpp Makefile
 	g++ -c $< -o $@
 
+hello_error: hello.cpp hello.hpp Makefile
+	g++ $< -o $@
+
 hellomain.o: hellomain.cpp Makefile
 	g++ -c $< -o $@
 
+hellomain.o_error: hellomain.cpp Makefile
+	g++ $< -o hellomain.o
+
 hellomain: hello.o hellomain.o Makefile
 	g++ hello.o hellomain.o -o $@
+
+hellomain_sys.o: hellomain_sys.cpp Makefile
+	g++ -I. -c $< -o $@
+
+hellomain_sys: hello.o hellomain_sys.o Makefile
+	g++ hello.o hellomain_sys.o -o $@
+
+hellomain_sys_error.o: hellomain_sys.cpp Makefile
+	g++ -c $< -o $@
+
+hellomain_sys_error: hello.o hellomain_sys_error.o Makefile
+	g++ hello.o hellomain_sys_error.o -o $@
 
 libhello.a: hello.o Makefile
 	ar rcs $@ $<
