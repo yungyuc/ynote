@@ -1,0 +1,139 @@
+name: nsd
+
+on:
+  push:
+    branches:
+      - '**/nsd**'
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      CPPROOT: nsd/03cpp/code
+      MATRIXROOT: nsd/04matrix/code
+      CACHEROOT: nsd/05cache/code
+      SIMDROOT: nsd/06simd/code
+
+    strategy:
+        matrix:
+          os: [ubuntu-20.04, macos-10.15]
+
+        fail-fast: false
+
+    steps:
+
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: apt (ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get -q update
+        sudo apt-get -qy install \
+            curl build-essential make cmake libc6-dev \
+            gcc g++ clang clang-tidy \
+            gfortran intel-mkl-full \
+            python3 python3-pip python3-pytest \
+            python3-numpy python3-scipy python3-pandas
+
+    - name: brew (macos)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew install make cmake llvm libomp python3 radare2
+
+    - name: pip (ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo pip3 install -U flake8
+        sudo pip3 install -U https://github.com/aldanor/ipybind/tarball/master
+
+    - name: pip (macos)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        pip3 install -U pip
+        pip3 install -U setuptools
+        pip3 install -U pytest numpy scipy pandas
+        pip3 install -U flake8
+        pip3 install -U https://github.com/aldanor/ipybind/tarball/master
+
+    - name: INSTALL_PREFIX (ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        echo "INSTALL_PREFIX=/usr" >> ${GITHUB_ENV}
+
+    - name: INSTALL_PREFIX (macos)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        echo "INSTALL_PREFIX=/usr/local" >> ${GITHUB_ENV}
+
+    - name: custom
+      run: |
+        INSTALL_PREFIX=${{ env.INSTALL_PREFIX }}
+        echo "INSTALL_PREFIX=${INSTALL_PREFIX}"
+        #nsd/contrib/install.sh radare2 # skip to save time, for now
+        nsd/contrib/install.sh pybind11
+        nsd/contrib/install.sh xtl
+        nsd/contrib/install.sh xsimd
+        nsd/contrib/install.sh xtensor
+        nsd/contrib/install.sh xtensor_blas
+        nsd/contrib/install.sh xtensor_python
+
+    - name: show dependency
+      run: |
+        echo "radare2 path: $(which radare2)"
+        echo "radare2 version: $(radare2 -v)"
+        echo "gcc path: $(which gcc)"
+        echo "gcc version: $(gcc --version)"
+        echo "cmake path: $(which cmake)"
+        echo "cmake version: $(cmake --version)"
+        echo "python3 path: $(which python3)"
+        echo "python3 version: $(python3 --version)"
+        python3 -c 'import numpy ; print("numpy.__version__:", numpy.__version__)'
+        echo "pytest path: $(which pytest)"
+        echo "pytest version: $(pytest --version)"
+        echo "clang-tidy path: $(which clang-tidy)"
+        echo "clang-tidy version: $(clang-tidy -version)"
+        echo "flake8 path: $(which flake8)"
+        echo "flake8 version: $(flake8 --version)"
+
+    - name: 03cpp
+      run: |
+        make -C ${{ env.CPPROOT }} clean
+        make -C ${{ env.CPPROOT }} runall
+
+    - name: 04matrix
+      # macos does not have MKL.
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        make -C ${{ env.MATRIXROOT }} clean
+        make -C ${{ env.MATRIXROOT }} runall
+
+    - name: 05cache
+      # macos does not have MKL.
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        make -C ${{ env.CACHEROOT }} clean
+        make -C ${{ env.CACHEROOT }} runall
+
+    - name: 06simd_mul
+      run: |
+        make -C ${{ env.SIMDROOT }} hardware
+        make -C ${{ env.SIMDROOT }} clean
+        make -C ${{ env.SIMDROOT }}/01_mul run
+        #make -C ${{ env.SIMDROOT }}/02_fma run # server not supporting FMA
+
+    - name: 06simd_mul_r2
+      # ubuntu does not have a working r2.
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        make -C ${{ env.SIMDROOT }}/01_mul r2all
+
+    - name: 06simd_omp
+      run: |
+        make -C ${{ env.SIMDROOT }}/03_omp
+        make -C ${{ env.SIMDROOT }}/03_omp run
+        [ "$(env OMP_NUM_THREADS=5 make -C ${{ env.SIMDROOT }}/03_omp run | grep 'Hello from thread' | wc -l | xargs)" = "5" ]
