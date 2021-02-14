@@ -122,12 +122,22 @@ jobs:
         make -C ${{ env.MATRIXROOT }} clean
         make -C ${{ env.MATRIXROOT }} runla
 
-    - name: 05cache
+    - name: 05cache_skip_access
+      run: |
+        make -C ${{ env.CACHEROOT }} clean
+        make -C ${{ env.CACHEROOT }} run_01_skip_access
+
+    - name: 05cache_locality
+      run: |
+        make -C ${{ env.CACHEROOT }} clean
+        make -C ${{ env.CACHEROOT }} run_02_locality
+
+    - name: 05cache_matrix_matrix
       # macos does not have MKL.
       if: startsWith(matrix.os, 'ubuntu')
       run: |
         make -C ${{ env.CACHEROOT }} clean
-        make -C ${{ env.CACHEROOT }} runall
+        make -C ${{ env.CACHEROOT }} run_03_matrix_matrix
 
     - name: 06simd_mul
       run: |
