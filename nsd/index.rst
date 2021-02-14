@@ -42,5 +42,6 @@ Second, the practical implementation skills:
   04matrix/index
   05cache/index
   06simd/index
+  07mem/index
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:

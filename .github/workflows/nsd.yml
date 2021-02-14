@@ -16,6 +16,7 @@ jobs:
       MATRIXROOT: nsd/04matrix/code
       CACHEROOT: nsd/05cache/code
       SIMDROOT: nsd/06simd/code
+      MEMROOT: nsd/07mem/code
 
     strategy:
         matrix:
@@ -157,3 +158,8 @@ jobs:
         make -C ${{ env.SIMDROOT }}/03_omp
         make -C ${{ env.SIMDROOT }}/03_omp run
         [ "$(env OMP_NUM_THREADS=5 make -C ${{ env.SIMDROOT }}/03_omp run | grep 'Hello from thread' | wc -l | xargs)" = "5" ]
+
+    - name: 07mem
+      run: |
+        make -C ${{ env.MEMROOT }} clean
+        make -C ${{ env.MEMROOT }} runall
