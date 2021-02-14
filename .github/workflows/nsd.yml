@@ -105,12 +105,22 @@ jobs:
         make -C ${{ env.CPPROOT }} clean
         make -C ${{ env.CPPROOT }} runall
 
-    - name: 04matrix
+    - name: 04matrix_pod
+      run: |
+        make -C ${{ env.MATRIXROOT }} clean
+        make -C ${{ env.MATRIXROOT }} runpod
+
+    - name: 04matrix_ma
+      run: |
+        make -C ${{ env.MATRIXROOT }} clean
+        make -C ${{ env.MATRIXROOT }} runma
+
+    - name: 04matrix_la
       # macos does not have MKL.
       if: startsWith(matrix.os, 'ubuntu')
       run: |
         make -C ${{ env.MATRIXROOT }} clean
-        make -C ${{ env.MATRIXROOT }} runall
+        make -C ${{ env.MATRIXROOT }} runla
 
     - name: 05cache
       # macos does not have MKL.

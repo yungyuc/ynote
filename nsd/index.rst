@@ -39,5 +39,6 @@ Second, the practical implementation skills:
   01engineering/index
   02numpy/index
   03cpp/index
+  04matrix/index
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
