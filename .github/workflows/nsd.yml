@@ -18,6 +18,7 @@ jobs:
       SIMDROOT: nsd/06simd/code
       MEMROOT: nsd/07mem/code
       SMARTROOT: nsd/08smart/code
+      MODERNCPPROOT: nsd/09moderncpp/code
 
     strategy:
         matrix:
@@ -174,3 +175,12 @@ jobs:
       run: |
         make -C ${{ env.SMARTROOT }}/02_shared clean
         make -C ${{ env.SMARTROOT }}/02_shared runall
+
+    - name: 09moderncpp
+      run: |
+        make -C ${{ env.MODERNCPPROOT }}/03_elision clean
+        make -C ${{ env.MODERNCPPROOT }}/03_elision runall
+        make -C ${{ env.MODERNCPPROOT }}/04_template clean
+        make -C ${{ env.MODERNCPPROOT }}/04_template runall
+        make -C ${{ env.MODERNCPPROOT }}/05_lambda clean
+        make -C ${{ env.MODERNCPPROOT }}/05_lambda runall

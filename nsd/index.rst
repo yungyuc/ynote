@@ -44,5 +44,6 @@ Second, the practical implementation skills:
   06simd/index
   07mem/index
   08smart/index
+  09moderncpp/index
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
