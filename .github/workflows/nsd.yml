@@ -17,6 +17,7 @@ jobs:
       CACHEROOT: nsd/05cache/code
       SIMDROOT: nsd/06simd/code
       MEMROOT: nsd/07mem/code
+      SMARTROOT: nsd/08smart/code
 
     strategy:
         matrix:
@@ -163,3 +164,13 @@ jobs:
       run: |
         make -C ${{ env.MEMROOT }} clean
         make -C ${{ env.MEMROOT }} runall
+
+    - name: 08smart_pointer
+      run: |
+        make -C ${{ env.SMARTROOT }}/01_pointer clean
+        make -C ${{ env.SMARTROOT }}/01_pointer runall
+
+    - name: 08smart_shared
+      run: |
+        make -C ${{ env.SMARTROOT }}/02_shared clean
+        make -C ${{ env.SMARTROOT }}/02_shared runall
