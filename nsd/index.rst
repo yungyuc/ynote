@@ -47,5 +47,6 @@ Second, the practical implementation skills:
   09moderncpp/index
   10cpppy/index
   11arraydesign/index
+  12advpy/index
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
