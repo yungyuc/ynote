@@ -2,46 +2,42 @@
 Numerical Software Development
 ==============================
 
-`Numerical software development <https://yungyuc.github.io/nsd>`__ is a course
-taught in NCTU, dept of CS, focusing on the art to build numerical software,
-i.e., computer programs applying numerical methods for solving mathematical or
-physical problems.
+.. admonition:: Work in Progress
 
-It introduces the hybrid architecture popular in the industry and shows how to
-use Python and C++ for implementation.  I expect students to practice serious
-software engineering and obtain fundamental skills for developing modern
-numerical software systems.
+  This note is being adapted from `the lecture note of numerical software
+  development <https://yungyuc.github.io/nsd>`__.
 
-The contents have two parts.  First, the recapitulation of how computers work:
-
-1. Engineering practices
-2. Python and numpy
-3. C++ and computer architecture
-4. Matrix operations
-5. Cache optimization
-6. Vector processing
-
-Second, the practical implementation skills:
-
-7. Memory management
-8. Ownership and smart pointers
-9. Modern C++
-10. C++ and C for Python
-11. Array code in C++
-12. Advanced Python
-
-.. rubric:: Contents
+This is a note introducing the popular hybrid architecture that uses Python and
+C++ to develop numerical software systems.  It has two parts.  The :ref:`first
+<nsd-first-part>` is the recapitulation of how computers work.  The
+:ref:`second <nsd-second-part>` is the practical implementation skill.  An
+:doc:`overview <00intro>` is provided before the details.
 
 .. toctree::
   :maxdepth: 1
+  :hidden:
 
   00intro
+
+.. _nsd-first-part:
+
+.. toctree::
+  :caption: Computer Architecture
+  :maxdepth: 1
+
   01engineering/index
   02numpy/index
   03cpp/index
   04matrix/index
   05cache/index
   06simd/index
+
+.. _nsd-second-part:
+
+.. toctree::
+  :caption: Implementation Skill
+  :maxdepth: 1
+
   07mem/index
   08smart/index
   09moderncpp/index
