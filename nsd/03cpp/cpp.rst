@@ -1,0 +1,1246 @@
+=============================
+C++ and Computer Architecture
+=============================
+
+C++ is particularly difficult to learn and use.  There were attempts to invent
+an easier language running equally fast for numerical calculation, but they
+were not very close to success.
+
+Two reasons render the new-language approach incomplete.  The first one is
+speed.  It's just difficult to invent something that is as fast as C++ in all
+aspects.  C++ is compatible to the language of operating system and accesses
+assembly easily.  Other languages may outperform C++ in some occasions, but not
+most.
+
+The second is maintenance.  A numerical system usually takes years to develop.
+When proven useful, it will be maintained for decades.  Such a long-living
+system needs a lot of support from the compiler, which is offered by C++.
+
+Compile and Link
+================
+
+Compiler is a complex system.  The most common way to use it is to execute the
+compiler driver from the command-line.  For example, of GCC, the C++ compiler
+driver is ``g++``.  It accepts a lot of command-line arguments.  But the
+simplest for is to supply an input and an output.
+
+.. code-block:: console
+  :caption: Make a binary executable
+  :linenos:
+
+  $ g++ helloworld.cpp -o helloworld
+  $ ./helloworld
+  hello, world
+
+When running the compiler with the argument ``-c``, it takes the source code and
+output the object file.  The object file contains the machine code, but doesn't
+include the functions not defined in the source file.
+
+The argument ``-o`` is used to specify the output file name.
+
+.. code-block:: console
+  :caption: Compile source file to object file
+  :linenos:
+
+  $ g++ -c helloworld.cpp -o helloworld.o
+  $ file helloworld.o
+  helloworld.o: Mach-O 64-bit object x86_64
+
+An object file contains the compiled assembly code, but it may not be directly
+executed.
+
+.. code-block:: console
+  :caption: Object file isn't executable yet
+  :linenos:
+
+  $ chmod a+x helloworld.o
+  $ ./helloworld.o
+  -bash: ./helloworld.o: cannot execute binary file
+
+By dropping the ``-c`` argument, and supplying the object file as the input,
+``g++`` will link the object file and necessary libraries into the executable.
+
+.. code-block:: console
+  :caption: Link into executable; dropping ``-c``
+  :linenos:
+
+  $ g++ helloworld.o -o helloworld2
+  $ file helloworld2
+  helloworld: Mach-O 64-bit executable x86_64
+  $ ./helloworld2
+  hello, world
+
+Separate Compilation Units
+++++++++++++++++++++++++++
+
+In a larger project, it is common to separate the declaration of functions to a
+header file.  The implementation of functions is in in the implementation file.
+Usually, a header file uses the extension name ``.h``, ``.hxx``, or ``.hpp``.
+An implementation file uses ``.cc``, ``.cxx``, or ``.cpp``.
+
+.. literalinclude:: code/hello.hpp
+  :caption: Header file ``hello.hpp``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. literalinclude:: code/hello.cpp
+  :caption: Implementation file ``hello.cpp``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Because there is no ``main()`` defined in ``hello.cpp``, it cannot be built as
+a binary executable.
+
+.. code-block:: console
+  :caption: There's no ``main()``; cannot link
+  :linenos:
+
+  $ g++ hello.cpp -o hello
+  Undefined symbols for architecture x86_64:
+  "_main", referenced from:
+     implicit entry/start for main executable
+  ld: symbol(s) not found for architecture x86_64
+  clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+We need to build the object file using ``-c``.
+
+.. code-block:: console
+  :caption: There's no ``main()``; cannot link
+  :linenos:
+
+  $ g++ -c hello.cpp -o hello
+
+.. rubric:: Main Program
+
+The separated header file allows us to put the function ``main()`` in another file.
+
+.. literalinclude:: code/hellomain.cpp
+  :caption: Implementation file for ``main()``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+If trying to build a binary executable solely with this file, we will receive a
+different linking error.
+
+.. code-block:: console
+  :caption: Cannot link without ``hello()``
+  :linenos:
+
+  $ g++ hellomain.cpp -o hellomain.o
+  Undefined symbols for architecture x86_64:
+    "hello()", referenced from:
+        _main in hellomain-ce1e94.o
+  ld: symbol(s) not found for architecture x86_64
+  clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+Building to object file is not a problem.
+
+.. code-block:: console
+  :caption: Build object file and then link
+  :linenos:
+
+  # hellomain.cpp also needs to be built as an object file
+  $ g++ -c hellomain.cpp -o hellomain.o
+  # Link into executable
+  $ g++ hello.o hellomain.o -o hellomain
+  # Then it can run
+  $ ./hellomain
+  hello with standalone compiling unit
+
+Include Syntax
+++++++++++++++
+
+The directive ``#include`` may use two delimiters: ``""`` or ``<>``.  The
+former will search for the include file in the current directory and then the
+system directories.  The latter will search only in the system directories.
+
+.. literalinclude:: code/hellomain_sys.cpp
+  :caption: System include
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+The above file cannot be built with the same command line.
+
+.. code-block:: console
+  :caption: The ``<angled>`` include does not check the current directory
+  :linenos:
+
+  $ g++ -c hellomain.cpp -o hellomain.o
+  hellomain_sys.cpp:1:10: error: 'hello.hpp' file not found with <angled> include; use "quotes" instead
+  #include <hello.hpp>
+           ^~~~~~~~~~~
+           "hello.hpp"
+
+We need to tell the compiler frontend to search in the current directory by using ``-I.``.
+
+.. code-block:: console
+  :caption: The ``<angled>`` include does not check the current directory
+  :linenos:
+
+  $ g++ -I. -c hellomain.cpp -o hellomain.o
+
+Static Library
+++++++++++++++
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ -c hellomain.cpp -o hellomain.o
+  $ ar rcs libhello.a hello.o
+  $ g++ hellomain.o -L. -lhello -o hellomain2
+
+Shared Object
++++++++++++++
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ -c -fPIC hello.cpp -o hello_pic.o
+  $ g++ -shared hello_pic.o -o libshared_hello.so
+  $ g++ hellomain.o -L. -lshared_hello -o hellomain3
+
+.. code-block:: console
+  :linenos:
+
+  $ make distance
+  g++ distance.cpp -o distance -lcblas
+
+C++ Integer Types
+=================
+
+Width of the fundamental types is specified by the standard to assist writing
+portable code.
+
+* Boolean types: ``bool``
+* Integer (signed) types: ``short`` (16+ bits), ``int`` (16+ bits), ``long``
+  (32+ bits), ``long long`` (64+ bits)
+
+  * Unsigned integer: ``unsigned short`` (16+ bits), ``unsigned int`` (16+
+    bits), ``unsigned long`` (32+ bits), ``unsigned long long`` (64+ bits)
+* Character type: ``char``, ``unsigned char`` (8 bits)
+
+You can check the number of bytes of each of types using the example code
+:download:`types.cpp <code/types.cpp>`:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ types.cpp -o types
+  $ ./types
+  unit is byte
+  sizeof(char): 1
+  sizeof(short): 2
+  sizeof(int): 4
+  sizeof(long): 8
+  sizeof(long long): 8
+  sizeof(unsigned char): 1
+  sizeof(unsigned short): 2
+  sizeof(unsigned int): 4
+  sizeof(unsigned long): 8
+  sizeof(unsigned long long): 8
+
+Fixed-Width Integer Types
++++++++++++++++++++++++++
+
+The C++ standard library provides the fixed-width (bit) integer types which are
+the same as C in the header file `<cstdint>`:
+
+* Signed integer: ``int8_t``, ``int16_t``, ``int32_t``, ``int64_t``.
+* Unsigned integer: ``uint8_t``, ``uint16_t``, ``uint32_t``, ``uint64_t``.
+
+Fixed width matters for numerical code more than hardware architecture does.
+It's easier for numerical code to break by changed width of indexing integer
+than by changed addressing space.
+
+You can check the number of bytes of each of types using the example code
+:download:`types.cpp <code/cstdint.cpp>`:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ cstdint.cpp -o cstdint
+  $ ./cstdint
+  unit is byte
+  sizeof(int8_t): 1
+  sizeof(uint8_t): 1
+  sizeof(int16_t): 2
+  sizeof(uint16_t): 2
+  sizeof(int32_t): 4
+  sizeof(uint32_t): 4
+  sizeof(int64_t): 8
+  sizeof(uint64_t): 8
+
+Signness
+========
+
+Care should be taken when signed and unsigned integers are both used in code.
+Comparison result between signed and unsigned integers is sometimes surprising.
+
+The common wisdom advises to not mixing signed and unsigned integer, but in
+numerical code negative indices are commonplace.  Be especially careful about
+the sign.  Check the example code:
+
+.. literalinclude:: code/signness.cpp
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+It gives rather surprising results.
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ signness.cpp -o signness
+  $ ./signness
+  sint: -1
+  uint: 1
+  sint > uint, although it can't be
+
+It's such a common mistake that compiler provides a check.
+
+.. code-block:: console
+  :caption: Use ``-Wsign-compare`` or ``-Wall`` to highlight the comparison of signed and unsigned integers
+  :linenos:
+
+  $ g++ signness.cpp -o signness -Wsign-compare -Werror
+  signness.cpp:9:14: error: comparison of integers of different signs: 'long' and 'unsigned long' [-Werror,-Wsign-compare]
+      if (sint > uint) { std::cout << "sint > uint, although it can't be" << std::endl; }
+          ~~~~ ^ ~~~~
+  1 error generated.
+
+Pointer and Array Indexing
+==========================
+
+Example code.
+
+.. literalinclude:: code/arrays.cpp
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ arrays.cpp -o arrays -Wall -Wextra -Werror
+  $ ./arrays
+  data[10]: 5010
+  pdata[10]: 5010
+  *(data+20): 5020
+  *(pdata+20): 5020
+  data[50]: 5050
+  odata[0]: 5050
+  data[40]: 5040
+  odata[-10]: 5040
+  *(data+40): 5040
+  *(odata-10): 5040
+
+Floating-Point Value
+====================
+
+x86 architecture follows the IEEE 754-1985 standard for floating-point.  A
+floating-point value uses 3 fields to represent: sign, exponent (biased)
+(denoted by $p$), and fraction (denoted by :math:`f` and :math:`f<1`).  The
+formula is:
+
+.. math::
+
+  \pm(1+f)_2 \times 2^p
+
+Note that the number is binary-based.
+
+x86 follows IEEE 754 standard for floating-point.  There are two commonly used
+floating-point formats: single and double precision.  The C++ type names are
+``float`` and ``double``, respectively.
+
+Single-Precision (``float``)
+++++++++++++++++++++++++++++
+
+Single-precision floating-point value uses 32 bits (4 bytes).  The first 23
+bits are fraction.  The following 8 bits are exponent.  The last (highest) bit
+is sign; 0 is positive while 1 is negative.  In C++, the type name is
+``float``.
+
+Conisder a decimal number 2.75, which we use as an example to show how to get
+the fields.  Write it by using the base of 2:
+
+.. math::
+
+  2.75 &= 2 + \frac{1}{2} + \frac{1}{2^2} = 1\times2^1 + 0\times2^0 + 1\times2^{-1} + 1\times2^{-2} \\
+  &= (10.11)_2 = (1.011)_2 \times 2^1 .
+
+The bit fields for its IEEE 754 single-precision floating-point are:
+
+.. table::
+  :align: center
+
+  ================ ====================== ==================================
+   sign (1 bit)     exponent (8 bits)      fraction (23 bits)
+  ================ ====================== ==================================
+   ``0``            ``1000 0000``          ``011 0000 0000 0000 0000 0000``
+  ================ ====================== ==================================
+
+The exponent bias for single-precision floating-point is 127
+(:math:`(\mathtt{0111 \, 1111})_2`).
+
+The floating-point value is usually inexact.  For example, ``0.3``, although it
+is rational, cannot be exactly represented as a single-precision
+floating-point.  Because the single-precision is 2-based, you should not follow
+the arithmetic intuition learned from the 10-based number system.
+
+.. literalinclude:: code/float.cpp
+  :caption: Print the bit field of a ``float``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ float.cpp -o float
+  $ ./float
+  fvalue: 0.3000000119
+  b32value (float sep):    0 01111101 00110011001100110011010
+                        sign exponent fraction
+  fvalue: 3
+  b32value (float sep):    0 10000000 10000000000000000000000
+                        sign exponent fraction
+
+Double-Precision (``double``)
++++++++++++++++++++++++++++++
+
+Double-precision floating-point value uses 64 bits (8 bytes).  The first 52
+bits are fraction.  The following 11 bits are exponent.  The last (highest) bit
+is sign; 0 is positive while 1 is negative.  In C++, the type name is ``double``.
+
+Use the same example of 2.75 for the double-precision floating-point.  Write
+:math:`2.75 = (1.011)_2 \times 2^1`.  The exponent bias for double-precision
+floating-point is 1023 (:math:`(\mathtt{11 \, 1111 \, 1111})_2`).  The bit
+fields are:
+
+.. table::
+  :align: left
+
+  ================ ====================== ======================================================================
+   sign (1 bit)     exponent (11 bits)     fraction (52 bits)
+  ================ ====================== ======================================================================
+   ``0``            ``100 0000 0000``      ``0110 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000``
+  ================ ====================== ======================================================================
+
+Compared with the single-precision version:
+
+.. table::
+  :align: left
+
+  ================ ====================== ==================================
+   sign (1 bit)     exponent (8 bits)      fraction (23 bits)
+  ================ ====================== ==================================
+   ``0``            ``1000 0000``          ``011 0000 0000 0000 0000 0000``
+  ================ ====================== ==================================
+
+Numeric Limits
+++++++++++++++
+
+Both C and C++ provides constants for the value limit of each type.  In C++,
+the constants are available through include file ``limits``.
+
+.. literalinclude:: code/nlimits.cpp
+  :caption: Print the limit of selected fundamental types
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ nlimits.cpp -o nlimits
+  $ ./nlimits
+  type		lowest()	min()		max()		epsilon()
+
+  float		-3.40282e+38	1.17549e-38	3.40282e+38	1.19209e-07
+  double		-1.79769e+308	2.22507e-308	1.79769e+308	2.22045e-16
+  int32_t		-2147483648	-2147483648	2147483647	0
+  uint32_t	0		0		4294967295	0
+  int64_t		-9223372036854775808	-9223372036854775808	9223372036854775807	0
+  uint64_t	0		0		18446744073709551615	0
+
+Exception Handling
+++++++++++++++++++
+
+The pragma "``#pragma STDC FENV_ACCESS ON``" turns on floating-point exception
+handling in CPU.  C++ defines the following floating-point exception that is
+supported by the hardware:
+
+.. table::
+  :align: left
+
+  =================== ====================== =================================================================
+   macro               math error condition   description
+  =================== ====================== =================================================================
+   ``FE_DIVBYZERO``    pole error             math result was infinite or undefined
+   ``FE_INEXACT``      inexact result         rounding was required for the operation
+   ``FE_INVALID``      domain error           the argument was outside the domain in which the math operation
+   ``FE_OVERFLOW``     range error            the result was too large to be representable
+   ``FE_UNDERFLOW``    range error            the result became subnormal due to loss of precision
+   ``FE_ALL_EXCEPT``   n/a                    bitwise OR of all supported floating-point exceptions
+  =================== ====================== =================================================================
+
+.. literalinclude:: code/fpexc.cpp
+  :caption: Example code for floating-point exceptions
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ fpexc.cpp -o fpexc
+  $ ./fpexc
+  result: inf
+    FE_DIVBYZERO
+  std::sqrt(2): 1.41421
+    FE_INEXACT
+  std::acos(2): nan
+    FE_INVALID
+  std::numeric_limits<float>::max() * 2: inf
+    FE_OVERFLOW
+  std::numeric_limits<float>::min() / 10: 1.17549e-39
+    FE_UNDERFLOW
+
+Object-Oriented Programming
+===========================
+
+Object-oriented programming (OOP) allows us to organize data with logic.  The
+organized entities are called objects.  The point of using OOP is to make it
+easier to process the data.  It usually may result in fewer lines of code and
+make more helper functions memorable.
+
+Class
++++++
+
+A class defines how objects organize the data and logic.  C++ provides two
+keywords to define a class: ``class`` and ``struct``.  In most cases one can be
+used to replace the other.  By default, the accessibility of ``class`` is
+``private``, if no access specifier is used.  On the other hand, ``struct``\ 's
+default accessibility is ``public``.
+
+In addition to the mostly equivalent behavior, conventionally, ``struct`` has a
+strong implication that the type is a POD (plain old data).  As such, when you
+need a class, prefer ``class`` over `struct`.  If you want a POD, use
+``struct``.
+
+Encapsulation
++++++++++++++
+
+Class is the basic unit for encapsulation, i.e., separating the interface from
+the implementation detail.  Users of the class should not know how the class is
+implemented internally.  C++ class has 3 access controls to help encapsulation.
+The ``private`` access means only the class itself may access the member (data
+or functions).  The ``public`` access means everything can access the member.
+The ``protected`` applies to inherited classes.  Only the defining class and
+its derived classes can access ``protected``.
+
+Encapsulation is very useful for numerical code.  In the first impression, the
+access control prevents "straight-forward" code to access data.  However, when
+we start development it's impossible to foresee all the logic and constructs.
+Without proper encapsulation, we may not productively move forward.
+
+Class Example
++++++++++++++
+
+For private member data, we want a convention to distinguish them from other
+variables.  Prefixing ``m_`` is a common one.  Other popular choices include
+``mMember`` (prefixing ``m`` with camel-case) and ``member_`` (postfixing
+``_``).
+
+See the differences between ``class`` and ``struct``.  Use ``class`` to define
+a point:
+
+.. code-block:: cpp
+  :linenos:
+
+  class PointClass
+  {
+      float m_x, m_y; // by default private.
+  public:
+      // Accessors
+      float getX() const { return m_x; }
+      float getY() const { return m_y; }
+      void setX(float v) { m_x = v; }
+      void setY(float v) { m_y = v; }
+  }; /* end class PointClass */
+
+Alternately, use ``struct``:
+
+.. code-block:: cpp
+  :linenos:
+
+  struct PointStruct
+  {
+      float m_x, m_y; // by default public.
+  }; /* end class PointStruct */
+
+.. literalinclude:: code/class.cpp
+  :caption: Full example for C++ classes
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ class.cpp -o class --std=c++11
+  $ ./class
+  PointClass and PointStruct has the same size: true
+  pntc.getX() = 1002, pntc.getY() = 2004
+  pnts.m_x = 1007, pnts.m_y = 1009
+
+Accessors
++++++++++
+
+To access the private member data, accessors are usually needed.  It may be
+argued that in a good OO design, classes should not let their consumers know
+about its member data.  But it is impractical to eliminate data classes from
+numerical code.  If you cannot totally hide it from outside, accessors must be
+provided.
+
+There are two major styles for accessors: get/set and one-method-name.  The
+second style uses a reference to directly access member data.
+
+.. literalinclude:: code/accessor.cpp
+  :caption: Example code for C++ accessors
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ accessor.cpp -o accessor --std=c++11
+  $ ./accessor
+  pntc.getX() = 2, pntc.getY() = 4
+  pntc.x() = 12, pntc.y() = 24
+
+Reference
++++++++++
+
+Reference is an important construct in C++ and used everywhere.
+
+Like a pointer, a C++ reference allow aliasing.  But unlike a pointer, a reference cannot be constructed without initialization, and is safer than a pointer.
+
+.. code-block:: cpp
+  :linenos:
+
+  int v = 10;
+  std::cout << "v = " << v << std::endl;
+  int * pv; // pointer; danger: uninitialized
+  pv = &v;
+  *pv = 11;
+  std::cout << "v = " << v << std::endl;
+  int & rv = v; // reference
+  rv = 12;
+  std::cout << "v = " << v << std::endl;
+  // error: declaration of reference variable 'nrv' requires an initializer
+  //int & nrv;
+
+A const reference is often used to alias a read-only object.
+
+.. code-block:: cpp
+  :linenos:
+
+  int const & crv = v; // const reference
+  // error: cannot assign to variable 'crv' with const-qualified type 'const int &'
+  //crv = 12;
+
+.. literalinclude:: code/reference.cpp
+  :caption: Full example for C++ reference
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ reference.cpp -o reference --std=c++11
+  $ ./reference
+  v = 10
+  v = 11
+  v = 12
+  &v, pv, &rv, &crv (address):
+    0x7ffee458314c
+    0x7ffee458314c
+    0x7ffee458314c
+    0x7ffee458314c
+
+Constructor and Destructor
+++++++++++++++++++++++++++
+
+A constructor of a class is called when an object of the class is
+*instantiated* (the *object* can also be called an *instance*).  You may have
+as many constructors as you like.  There are special constructors that the
+compiler provides even if you don't.  The most essential one is the *default
+constructor*.  It does not have any argument, and is called when you declare a
+variable of the class.
+
+.. code-block:: cpp
+  :linenos:
+
+  class Line // assume it possesses heavy resources
+  {
+  public:
+      Line(); // default constructor.
+  };
+
+The other two special constructors are *copy constructor* and *move
+constructor*.
+
+.. code-block:: cpp
+  :linenos:
+
+  Line & Line(Line const & ); // copy constructor
+  Line & Line(Line       &&); // move constructor
+
+A copy constructor is called when the compiler needs to copy the object:
+
+.. code-block:: cpp
+  :linenos:
+
+  Line line1; // invokes default constructor
+  Line line2(line1); // invokes copy constructor
+
+
+A move constructor is called when the compiler knows the object to be
+instantiated will move the resources from the argument:
+
+.. code-block:: cpp
+  :linenos:
+
+  Line line3(std::move(line2)); // invokes move constructor
+
+(Move semantics will be discussed in later lectures.)
+
+When an object is no longer in use, the compiler calls its destructor to remove
+it from memory.  The destructor is responsible for releasing the resources that
+it no longer needs.  (Failure to release the unused resource is called resource
+leak.)
+
+.. code-block:: cpp
+  :linenos:
+
+  class Line
+  {
+  public:
+      Line(size_t size) : m_size(size), m_coord(new float[size*2]) {}
+      // Desctructor.
+      ~Line() { if (nullptr != m_coord) { delete[] m_coord; } }
+  private:
+      size_t m_size = 0; // number of points.
+      float * m_coord = nullptr; // memory buffer for the points.
+  };
+
+.. literalinclude:: code/constructor.cpp
+  :caption: Full example for constructor and destructor
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  g++ constructor.cpp -o constructor --std=c++11
+  ./constructor
+  line: number of points = 3
+  point 0: x = 0 y = 1
+  point 1: x = 1 y = 3
+  point 2: x = 2 y = 5
+  line2: number of points = 3
+  point 0: x = 9 y = 1
+  point 1: x = 1 y = 3
+  point 2: x = 2 y = 5
+
+Polymorphism
+============
+
+In C++, when a class has any member function that is virtual, it is
+polymorphic.  C++ compiler knows the object is polymorphic, and uses the type
+information to find the associated member function in runtime.
+
+To make the class ``Line`` polymorphic, we add an additional virtual function
+``length()``, and make the destructor virtual too.
+
+.. code-block:: cpp
+  :linenos:
+
+  class Line
+  {
+  public:
+      Line() = default;
+      Line(Line const & );
+      Line(Line       &&);
+      Line & operator=(Line const & );
+      Line & operator=(Line       &&);
+      Line(size_t size) : m_size(size), m_coord(new float[size*2]) {}
+      virtual ~Line() { if (nullptr != m_coord) { delete[] m_coord; } }
+      virtual float length() const;
+      size_t size() const { return m_size; }
+      float & x(size_t it) const { check_range(it); return m_coord[it*2  ]; }
+      float & x(size_t it)       { check_range(it); return m_coord[it*2  ]; }
+      float & y(size_t it) const { check_range(it); return m_coord[it*2+1]; }
+      float & y(size_t it)       { check_range(it); return m_coord[it*2+1]; }
+  private:
+      void check_range(size_t it) const
+      { if (it >= m_size) { throw std::out_of_range("Line index out of range"); } }
+      size_t m_size = 0; // number of points.
+      float * m_coord = nullptr; // memory buffer for the points.
+  }; /* end class Line */
+
+Then derive the class ``WeighedLine`` from it and override the virtual
+functions:
+
+.. code-block:: cpp
+  :linenos:
+
+  class WeighedLine : public Line
+  {
+  public:
+      WeighedLine(WeighedLine const & );
+      WeighedLine(WeighedLine       &&);
+      WeighedLine & operator=(WeighedLine const & );
+      WeighedLine & operator=(WeighedLine       &&);
+      WeighedLine(size_t size) : Line(size), m_weight(new float[size-1]) {}
+      virtual ~WeighedLine() override { delete[] m_weight; }
+      virtual float length() const override;
+      float const & weight(size_t it) const { return m_weight[it]; }
+      float       & weight(size_t it)       { return m_weight[it]; }
+  private:
+      float * m_weight = nullptr; // weight on line segments.
+  }; /* end class WeighedLine */
+
+.. literalinclude:: code/polymorphic.cpp
+  :caption: Full example for polymorphism
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+To make the polymorphism work correctly, the derived class also needs to
+implement the copy and move constructors and assignment operators by taking the
+base class into account.
+
+With the example we will observe the following things:
+
+1. When the derived class needs addition data, the memory management becomes
+   much more complex.
+2. A pointer to the base class can point to a derived object.  (Up-casting is
+   fine.)
+3. A pointer to the derived class can NOT point to a base object.
+   (Down-casting is forbidden by default.)
+4. To downcast polymorphic objects, you need to use ``dynamic_cast`` to let
+   RTTI (run-time type information) do the work.
+5. RTTI makes the object know the correct virtual function to call.  Although
+   ``line3`` is declared as reference to the base class (``Line &``),
+   ``WeighedLine::length()`` is called.
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ polymorphic.cpp -o polymorphic --std=c++11
+  $ ./polymorphic
+  sizeof(Line) = 24
+  sizeof(WeighedLine) = 32
+  downcasting from Line * to WeighedLine * works on a WeighedLine object: pwline3= 0x7fda8dc05b00
+  downcasting from Line * to WeighedLine * fails on a Line object: pwline2 = 0x0
+  Object type of pwline3: 11WeighedLine
+  Object type of pline3: 11WeighedLine
+  line: number of points = 3
+  point 0: x = 0 y = 1
+  point 1: x = 5 y = 1 weight = 1
+  point 2: x = 5 y = 4 weight = 2
+    length = 11
+  line2: number of points = 3
+  point 0: x = 2 y = 1
+  point 1: x = 5 y = 1
+  point 2: x = 5 y = 4
+    length = 6
+  line3: number of points = 3
+  point 0: x = 3 y = 1
+  point 1: x = 5 y = 1
+  point 2: x = 5 y = 4
+    length = 8
+  wline3: number of points = 3
+  point 0: x = 3 y = 1
+  point 1: x = 5 y = 1 weight = 1
+  point 2: x = 5 y = 4 weight = 2
+    length = 8
+
+Polymorphism incurs runtime penalty.  It is OK in two scenarios:
+
+1. Runtime work is unavoidable.  We trust the compiler does a better job than
+   writing branching code ourselves.
+2. Timing doesn't matter.  When the code isn't in the inner loop of
+   computation, inefficiency may be negligible.
+
+As we see, to make polymorphism work, there is a lot of code to write.
+Therefore in high-performance numerical code we use polymorphism with great
+caution.
+
+Curiously Recursive Template Pattern (CRTP)
+===========================================
+
+If we want to make a class hierarchy polymorphic without the runtime overhead,
+CRTP helps.  Usually the word polymorphism means _dynamic_ polymorphism, as we
+described in the previous section.  If the classes behave as polymorphic but
+all the type information is determined during _compile_ time, it is called
+_static_ polymorphism.
+
+Static polymorphism has two major benefits (at the cost of being limited in
+compile time).  First is to not have runtime overhead.  The second is to avoid
+the memory overhead associated with virtual functions.  RTTI needs some
+information to determine types in runtime.  That is usually (if not always)
+accomplished by a virtual function table, which at least add one more word on
+_every_ polymorphic object.  For very small objects, like a resource handle,
+which usually occupies one or two words, it's a great overhead.
+
+This is how a CRTP hierarchy looks like.  ``PointBase`` is our class template
+base.  ``CartesianPoint`` and ``PolarPoint`` pass themselves into the base
+class' template argument, so ``PointBase`` can see and access the derived
+classes' function to provide a common interface.
+
+.. code-block:: cpp
+  :linenos:
+
+  template <class Derived>
+  class PointBase
+  {
+  public:
+      constexpr static const double PI = 3.14159265358979323846;
+      PointBase(float v0, float v1) : m_v0(v0), m_v1(v1) {}
+      float const & v0() const { return m_v0; }
+      float       & v0()       { return m_v0; }
+      float const & v1() const { return m_v1; }
+      float       & v1()       { return m_v1; }
+      float dist() const
+      {
+          // Prevent the derived class from working if it doesn't define dist(),
+          // just like what a pure virtual function does.
+          static_assert(&PointBase<Derived>::dist != &Derived::dist,
+                        "derived class must define dist()");
+          return derived().dist();
+      }
+  private:
+      Derived const & derived() const { return *static_cast<Derived const *>(this); }
+      float m_v0, m_v1;
+  }; /* end class PointBase */
+
+  class CartesianPoint : public PointBase<CartesianPoint>
+  {
+  public:
+      using base_type = PointBase<CartesianPoint>;
+      using base_type::base_type;
+      float dist() const
+      {
+          return std::hypot(v0(), v1());
+      }
+  }; /* end class CartesianPoint */
+
+  class PolarPoint : public PointBase<PolarPoint>
+  {
+  public:
+      using base_type = PointBase<PolarPoint>;
+      using base_type::base_type;
+      float dist() const
+      {
+          return std::abs(v0());
+      }
+  }; /* end class PolarPoint */
+
+.. literalinclude:: code/crtp.cpp
+  :caption: Full example for CRTP
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ crtp.cpp -o crtp --std=c++11
+  $ ./crtp
+  sizeof(CartesianPoint) = 8
+  sizeof(PolarPoint) = 8
+  CartesianPoint(1,1)::dist() = 1.41421
+  PolarPoint(1, pi/4)::dist() = 1
+
+Standard Template Library (STL)
+===============================
+
+Containers are essential to data processing.  The STL provides efficient
+implementation of commonly used containers.  They can be grouped in 3
+categories:
+
+1. Sequence containers: ``std::vector``, ``std::array``, ``std::list``,
+   ``std::forward_list``, ``std::deque``.
+2. Associative containers: ``std::map``, ``std::set``, ``std::multimap``,
+   ``std::multiset``.
+3. Unordered associated containers: ``std::unordered_map``,
+   ``std::unordered_set``, ``std::unordered_multimap``,
+   ``std::unordered_multiset``.
+
+We will make a quick recapitulation for those we always use in numerical code:
+``std::vector``, ``std::array``, ``std::list``, ``std::map``, ``std::set``,
+``std::unordered_map``, ``std::unordered_set``.
+
+``std::vector``
+===============
+
+``std::vector`` is one of the most useful STL containers.  Whenever thinking of
+using one-dimensional, variable-length arrays, we should consider whether or
+not ``std::vector`` may be applicable.
+
+.. literalinclude:: code/vector.cpp
+  :caption: Example code for ``std::vector``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ vector.cpp -o vector --std=c++11
+  $ ./vector
+  sizeof(std::vector<int>) = 24
+  sizeof(std::vector<double>) = 24
+  sizeof(std::vector<std::vector<double>>) = 24
+  vec1 indices [20-25):
+    1020
+    1021
+    1022
+    1023
+    1024
+  out of range exception: vector
+  vec1 modified:
+    1020
+    1021
+    500
+    600
+    1024
+  &data.at(0) = 0x7fa868405c40
+  &data.at(0) = 0x7fa868406150
+  oops, address changes
+
+``std::array``
+==============
+
+The class template ``array`` provides a type-safe alternate to C-style
+fixed-size arrays.
+
+.. literalinclude:: code/array.cpp
+  :caption: Example code for ``std::array``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ array.cpp -o array --std=c++11
+  $ ./array
+  sizeof(std::array<int, 3>) = 12
+  sizeof(std::array<int, 10>) = 40
+  arr1:
+    100
+    101
+    102
+
+``std::list``
+=============
+
+STL ``list`` supports constant time insertion and deletion of elements.  Unlike
+``vector``, iterators and references to an element in a ``list`` don't get
+invalidated by adding or removing other elements.  The price to pay, however,
+is the slow random access.
+
+``std::list`` is usually implemented as a doubly-linked list.
+
+.. literalinclude:: code/list.cpp
+  :caption: Example code for ``std::list``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ list.cpp -o list --std=c++11
+  $ ./list
+  lst1: 100 101 102
+  lst2: 202 201 200
+  lst2 (modified): 202 301 200
+  lst1 (after splice): 100
+  lst2 (after splice): 202 301 101 102 200
+
+``std::map`` and ``std::set``
+=============================
+
+STL ``map`` is an ordered container for key-value pairs.  The keys are unique
+and don't allow duplication.  ``map`` is usually implemented as a red-black
+tree.
+
+STL ``set`` is a unique key container.  Like ``map``, it's usually implemented
+as a red-black tree.
+
+.. literalinclude:: code/map.cpp
+  :caption: Example code for ``std::map`` and ``std::set``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ map.cpp -o map --std=c++11
+  $ ./map
+  map1: (1,1) (2,0.5) (3,0.333333) (4,0.25) (5,0.2)
+  map1 has key 3
+  map1 does not have key 6
+  set1: 1 2 3 4 5
+  set1 has key 3
+  set1 does not have key 6
+
+``std::unordered_map`` and ``std::unordered_set``
+=================================================
+
+STL ``unordered_map`` is also a container for key-value pairs.  While the keys
+are unique and don't allow duplication, they do not have order.
+``unordered_map`` is usually implemented using hash table.
+
+Search, insertion, and removal of elements in an ``unordered_map`` have
+constant time complexity.  On the other hand, those in a ``map`` have
+logarithmic time complexity.  While ``unordered_map`` usually offers faster
+runtime than ``map``, it tends to use more memory since red-black trees is very
+efficient in memory usage.
+
+Like ``set`` is a valueless version of ``map``, ``unordered_map`` also has a
+valueless version called ``unordered_set``.  STL ``unordered_set``, like
+``unordered_map``, is usually implemented using hash table.
+
+.. literalinclude:: code/unordered_map.cpp
+  :caption: Example code for ``std::unordered_map`` and ``std::unordered_set``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ unordered_map.cpp -o unordered_map --std=c++11
+  $ ./unordered_map
+  map1: (1,1) (2,0.5) (3,0.333333) (4,0.25) (5,0.2)
+  map1 has key 3
+  map1 does not have key 6
+  set1: 1 2 3 4 5
+  set1 has key 3
+  set1 does not have key 6
+
+Exercises
+=========
+
+1. In `array.cpp`, what may happen if you write the following code?
+
+  .. code-block:: cpp
+
+    data[-1] = 0;
+
+2. Given 2 single-precision floating-point values, 0.3 and -0.3.  Reinterpret
+   (not integer to floating-point casting) their data (bits) as 32-bit unsigned
+   integers.  What is the integer value after performing XOR of the two
+   integers?  Change the floating-point values to 183.2 and -183.2.  What is
+   the value after XOR again?
+3. What are the member data (including types) in the ``std::vector``
+   implementation in the STL in the compiler you use?
+4. Reimplement the class ``Line`` by using STL containers instead of raw
+   pointers (do not copy-n-paste the following code listing):
+
+  .. code-block:: cpp
+    :linenos:
+
+    class Line
+    {
+    public:
+        Line();
+        Line(Line const & );
+        Line(Line       &&);
+        Line & operator=(Line const & );
+        Line & operator=(Line       &&);
+        Line(size_t size);
+        ~Line();
+        size_t size() const;
+        float & x(size_t it) const;
+        float & x(size_t it);
+        float & y(size_t it) const;
+        float & y(size_t it);
+    private:
+        // Member data.
+    }; /* end class Line */
+
+    int main(int, char **)
+    {
+        Line line(3);
+        line.x(0) = 0; line.y(0) = 1;
+        line.x(1) = 1; line.y(1) = 3;
+        line.x(2) = 2; line.y(2) = 5;
+
+        Line line2(line);
+        line2.x(0) = 9;
+
+        std::cout << "line: number of points = " << line.size() << std::endl;
+        for (size_t it=0; it<line.size(); ++it)
+        {
+            std::cout << "point " << it << ":"
+                      << " x = " << line.x(it)
+                      << " y = " << line.y(it) << std::endl;
+        }
+
+        std::cout << "line2: number of points = " << line.size() << std::endl;
+        for (size_t it=0; it<line.size(); ++it)
+        {
+            std::cout << "point " << it << ":"
+                      << " x = " << line2.x(it)
+                      << " y = " << line2.y(it) << std::endl;
+        }
+
+        return 0;
+    }
+
+.. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

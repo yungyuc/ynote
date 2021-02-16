@@ -1,0 +1,7 @@
+alloc
+cmem
+cppmem
+icount
+mismatch
+*.o
+*.dSYM/
