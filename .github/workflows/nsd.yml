@@ -5,6 +5,11 @@ on:
     branches:
       - '**/nsd**'
   pull_request:
+    branches:
+      - '**/nsd**'
+      - 'master'
+  schedule:
+    - cron: '02 18 * * *'
 
 jobs:
   build:
