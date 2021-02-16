@@ -1,0 +1,6 @@
+modmesh-master/
+turgon-master/
+*.pyc
+*.pyo
+*.so
+*.dylib
