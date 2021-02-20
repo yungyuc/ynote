@@ -25,12 +25,12 @@ C++ to develop numerical software systems.  It has two parts.  The :ref:`first
   :caption: Computer Architecture
   :maxdepth: 1
 
-  01engineering/index
-  02numpy/index
-  03cpp/index
-  04matrix/index
-  05cache/index
-  06simd/index
+  01engineering/engineering
+  02numpy/numpy
+  03cpp/cpp
+  04matrix/matrix
+  05cache/cache
+  06simd/simd
 
 .. _nsd-second-part:
 
@@ -38,11 +38,11 @@ C++ to develop numerical software systems.  It has two parts.  The :ref:`first
   :caption: Implementation Skill
   :maxdepth: 1
 
-  07mem/index
-  08smart/index
-  09moderncpp/index
-  10cpppy/index
-  11arraydesign/index
-  12advpy/index
+  07mem/mem
+  08smart/smart
+  09moderncpp/moderncpp
+  10cpppy/cpppy
+  11arraydesign/arraydesign
+  12advpy/advpy
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
