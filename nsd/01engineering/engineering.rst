@@ -65,7 +65,7 @@ Default value when variable isn't set:
 
 .. code-block:: console
 
-  # show the fallback value since the variable isn't set
+  $ # show the fallback value since the variable isn't set
   $ THISVAR='something'
   $ unset THISVAR; echo ${THISVAR:-no such thing}
   no such thing
@@ -452,7 +452,7 @@ Another common use of phony targets is to redirect the default rule:
   hello: hello.o hellomain.o
           $(CXX) $^ -o $@
 
-.. code-block:: make
+.. code-block:: console
 
   $ make clean
   rm -rf hello *.o
