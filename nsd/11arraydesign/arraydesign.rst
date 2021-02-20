@@ -74,7 +74,7 @@ difference equaion:
   u^{n+1}(x_i, y_i) = \frac{u^n(x_{i+1}, y_j) + u^n(x_{i-1}, y_j)
     + u^n(x_i, y_{j+1}) + u^n(x_i, y_{j-1})}{4}
 
-where :math:`u^n` is the solution at the $n$-th iteration.
+where :math:`u^n` is the solution at the :math:`n`-th iteration.
 
 Now we can use Python to quickly implement the solver:
 
@@ -228,7 +228,8 @@ calculation to C.
   Wall time: 0.0552309 s
 
 The speed is much better: less than 0.1 second.  Compared to the naive Python
-loop, the speed up is more than 50x.
+loop, the speed up is more than 50x (to be exact, :ref:`87x
+<runtime-comparison>`).
 
 Nested Loop in C++
 ==================
@@ -258,6 +259,27 @@ version.
   >>> with Timer():
   >>>     u, step, norm = solve_cpp.solve_cpp(uoriginal)
   Wall time: 0.0251369 s
+
+.. list-table:: Runtime with Python loop, Numpy array, and C++ loop
+  :name: runtime-comparison
+  :align: center
+
+  * - Code
+    - Time (s)
+    - Speedup
+    -
+  * - Python nested loop
+    - 4.797
+    - 1 (baseline)
+    - n/a
+  * - Numpy array
+    - 0.055
+    - 87.22
+    - 1 (baseline)
+  * - C++ nested loop
+    - 0.025
+    - 191.88
+    - 2.2
 
 Major Source of Overhead: Data Preparation
 ==========================================
