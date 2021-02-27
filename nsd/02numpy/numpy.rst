@@ -2,68 +2,142 @@
 Python and Numpy
 ================
 
-Organize Python modules
-=======================
+Python is easy to use and popular among scientists and engineers for its
+simplicity.  It is suitable for almost every task, and the versatility makes is
+one of the best tool as the programming interface for numerical applications.
+
+Contents in this chapter:
+
+.. contents::
+  :local:
+  :depth: 1
+
+Organize Python Code
+====================
+
+To help the discussions for Python code organization, we make a simple
+categorization:
 
 * One file containing Python code as a **script**.
-* One Python file is a "**module**".
+* One Python file is a ":term:`module <python:module>`".
 * One directory containing Python files (satisfying some rules) is a
-  "**package**".
+  ":term:`package <python:package>`".
 * "Module" is usually used in a loose way to refer to things that may be
   imported by Python :ref:`import <python:import>` statement.  Then a "module"
   can mean (the strictly defined) module or a package.
 
-What Is a Script and How It Works
-+++++++++++++++++++++++++++++++++
+Contents in this section:
 
-* A script is a text file that the program loader sends to an engine (usually
-  interpreter) to execute the content.
-* Executable permission needs to be set for the shell to run it:
+.. contents::
+  :local:
+  :depth: 1
+
+How a Python Script Works
++++++++++++++++++++++++++
+
+A script is a text file that the program loader sends to an engine (usually
+interpreter) to execute with the content.  We usually write scripts for
+automating repetitive work, and they should be short for quick implementation.
+Assume that we have a simple task: count the number of lines in a file.  Here
+is a simple script to do it:
+
+.. literalinclude:: code/step0.py
+  :caption:
+    A simple Python script that counts lines in a file (:download:`step0.py
+    <code/step0.py>`)
+  :language: python
+  :linenos:
+
+Running a script requires the executable permission to be set.  Otherwise, the
+script file cannot be executed in the shell as a command:
 
 .. code-block:: console
 
-  $ ls -al step0.py      # executable bit not set
+  $ ls -al step0.py      # executable bit is not set
   -rw-r--r--  1 yungyuc  staff  574 Apr  7 22:18 step0.py
+
   $ ./step0.py pstake.py # can't run without permission
   -bash: ./step0.py: Permission denied
+
+.. code-block:: console
+
   $ chmod a+x step0.py   # set the executable bit
+
   $ ls -al step0.py      # executable bit is set
   -rwxr-xr-x  1 yungyuc  staff  574 Apr  7 22:18 step0.py*
+
   $ ./step0.py pstake.py # properly it runs
   811 lines in pstake.py
 
-* Scripts usually are for automating repetitive work.
-* Scripts should be short for quick implementation.
+If we do not need to run the script like an executable, it can be run by
+explicitly calling Python:
 
-The leading line in a script that starts with `#!` is called the *shebang*.  It tells the program loader which executable to run for the script.
+.. code-block:: console
+
+  $ chmod u-x step0.py
+
+  $ python3 step0.py pstake.py
+  811 lines in pstake.py
+
+Python Script Shebang
+---------------------
+
+The leading line in a script that starts with ``#!`` is called the *shebang*.
+It tells the program loader which executable to run for the script.  For a
+Python script, `it is recommended
+<https://www.python.org/dev/peps/pep-0394/#for-python-script-publishers>`__ to
+use ``/usr/bin/env python3`` in the shebang.  It allows the interactive shell
+to search for the Python binary configured by the user.
 
 .. code-block:: python
 
   #!/usr/bin/env python3
   # ...
 
-It won't work if executable permission isn't set on the script.
+Modeline
+--------
 
-Example: line counting (step0)
-------------------------------
+At the end of the script we have the `vim modeline magic
+<https://vim.fandom.com/wiki/Modeline_magic>`__:
 
-This is the first example: :download:`step0.py <code/step0.py>`.  It counts the
-number of lines in the file specified with the first argument.
+.. code-block:: python
 
-.. code-block:: console
+  ...
+  # vim: set ff=unix ft=python et sw=4 ts=4 sts=4:
 
-  $ chmod u+x step0.py
-  $ ./step0.py pstake.py
-  811 lines in pstake.py
+A script runs without it, but it may be used to specify how the file should be
+formatted in the editor.  Vim runs the command in the modeline when reading a
+file having it.  The modeline is useful to specify how the source code is
+formatted and provide the minimal information about the coding convention.  The
+modeline should not contain commands that changes the global or cosmetic
+behaviors, e.g., show or hide the line numbers.  The above example does the
+following:
 
-Another way, regardless the executable bit, to run the script is to explicitly
-call the Python executable.
+``ff=unix``
+  Use ``<LF>`` to for the end-of-line character.
 
-.. code-block:: console
+``ft=python``
+  Use Python syntax highlighting.
 
-  $ chmod u-x step0.py
-  $ python3 step0.py pstake.py
-  811 lines in pstake.py
+``et``
+  Expand tab characters.
+
+``sw=4``
+  Number of spaces for each step of indent.
+
+``ts=4``
+  Number of spaces for a tab.
+
+``sts=4``
+  Number of spaces for a tab during editing.
+
+Emacs has a similar feature called `file variable
+<https://www.gnu.org/software/emacs/manual/html_node/emacs/Specifying-File-Variables.html>`__:
+
+.. code-block:: lisp
+
+  ...
+  ;; -*- mode: Lisp; fill-column: 75; comment-column: 50; -*-
 
 One-Liner
 ---------
