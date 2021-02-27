@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-At step 0, we plainly make a script to do the work. The script isn't suitable
-for being imported.
+This script counts the number of line of a text file.  This is intended to be
+run as a script and not suitable for being imported.
 """
 
 

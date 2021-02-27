@@ -1,6 +1,6 @@
 """
-At step 2, take the "main" code out into a real main function. For short code
-it's optional. For long code it helps keep the code organized.
+Take the "main" code out into a real function main().  For short code it's
+optional.  For long code it helps keep the code organized.
 """
 
 
@@ -8,6 +8,7 @@ it's optional. For long code it helps keep the code organized.
 # be considered public from outside this module.
 __all__ = [
     'count_line',
+    'main',
 ]
 
 
@@ -36,3 +37,5 @@ def main():
 # This tests whether the file is evaluated as a script.
 if __name__ == '__main__':
     main()
+
+# vim: set ff=unix ft=python et sw=4 ts=4 sts=4:

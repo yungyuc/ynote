@@ -42,8 +42,9 @@ Assume that we have a simple task: count the number of lines in a file.  Here
 is a simple script to do it:
 
 .. literalinclude:: code/step0.py
+  :name: nsd-numpy-example-step0
   :caption:
-    A simple Python script that counts lines in a file (:download:`step0.py
+    A Python script that counts lines in a file (:download:`step0.py
     <code/step0.py>`)
   :language: python
   :linenos:
@@ -157,8 +158,48 @@ hard to read.
 Make a Module
 +++++++++++++
 
-See the example file :download:`step1.py <code/step1.py>`.  It factors out the
-line-counting code to a distinct function:
+A :term:`Python module <python:module>` is pretty much a Python source file.  A
+Python script is also a file containing Python code.  They differ in the way
+the code is invoked.  A script is used as a command.  A module is imported as a
+library.
+
+Can a script be used as a module?  It depends on how it is written.  For
+example, the script :ref:`step0.py <nsd-numpy-example-step0>` is not suitable
+for being imported as a module:
+
+.. code-block:: console
+
+  $ python3 -c 'import step0'
+  missing file name
+
+The :ref:`import <python:import>` statement runs the Python source code and
+puts the results in the module namespace.  However, the code in :ref:`step0.py
+<nsd-numpy-example-step0>` simply does the work without leaving anything useful
+in the module to be imported.
+
+We should modify the script to be make it suitable for a module:
+
+.. literalinclude:: code/step1.py
+  :name: nsd-numpy-example-step1
+  :caption:
+    A Python module file (:download:`step1.py <code/step1.py>`)
+  :language: python
+  :linenos:
+
+Because a module is not supposed to be run as a command, the file no longer has
+a shebang.  In addition to that, we made two changes.  First, the module file
+factors out the line-counting code from the script example:
+
+.. code-block:: python
+
+  if os.path.exists(fname):
+      with open(fname) as fobj:
+          lines = fobj.readlines()
+      sys.stdout.write('{} lines in {}\n'.format(len(lines), fname))
+  else:
+      sys.stdout.write('{} not found\n'.format(fname))
+
+into a function:
 
 .. code-block:: python
 
@@ -170,8 +211,7 @@ line-counting code to a distinct function:
       else:
           sys.stdout.write('{} not found\n'.format(fname))
 
-The other code is for processing command-line arguments.  It's only useful for
-a script, so we move it into an ``if`` test:
+Second, the rest of the code is moved into an ``if`` test:
 
 .. code-block:: python
 
@@ -184,61 +224,49 @@ a script, so we move it into an ``if`` test:
       else:
           count_line(sys.argv[1])
 
-Different Behaviors on :py:keyword:`python:import`
---------------------------------------------------
+.. note::
 
-Because :py:mod:`!step1` checks for ``__main__``, when it is imported as a module,
-nothing happens:
+  :py:mod:`__main__ <python:__main__>` is the name of the scope in which the
+  top-level code execute in Python.
+
+After the change, :py:mod:`!step1` acts like a module.  When it is imported,
+nothing happens in the calling site:
 
 .. code-block:: console
 
   $ python3 -c 'import step1'
 
-But importing :py:mod:`!step0` runs the code:
-
-.. code-block:: console
-
-  $ python3 -c 'import step0' pstake.py
-  811 lines in pstake.py
-
-To run the code defined in the :py:mod:`!step1` module can only be run by
-explicitly calling the function:
+To run the code defined in the :py:mod:`!step1` module, the function
+:py:func:`!count_line` should be explicitly called:
 
 .. code-block:: console
 
   $ python3 -c 'import step1 ; step1.count_line("pstake.py")'
+  811 lines in pstake.py
 
-But when running as a script, both behave the same:
+While modifying the file, we keep the capability to run the file as a script:
 
 .. code-block:: console
 
   $ python3 step0.py pstake.py
+  811 lines in pstake.py
   $ python3 step1.py pstake.py
-
-Run Module as Script
---------------------
-
-Python executable supports the ``-m`` argument.  It imports the script as a
-module, and still runs it as a script.
-
-.. code-block:: console
-
-  $ python3 -m step1 pstake.py
   811 lines in pstake.py
 
-With ``python -m``, :download:`step0.py <code/step0.py>` and
-:download:`step1.py <code/step1.py>` behave the same again:
+Move Everything inside Function
+-------------------------------
 
-.. code-block:: console
+We can improve the module by factoring out all code to functions.  See the
+following example:
 
-  $ python3 -m step0 pstake.py
-  811 lines in pstake.py
+.. literalinclude:: code/step2.py
+  :name: nsd-numpy-example-step2
+  :caption:
+    Move all code to functions (:download:`step2.py <code/step2.py>`)
+  :language: python
+  :linenos:
 
-Make the Module More like a Library
------------------------------------
-
-It's common to further factor out the code for script to a :py:func:`!main`
-function.  See the example file :download:`step2.py <code/step2.py>`.
+It moves the argument-processing code to the function :py:func:`!main`:
 
 .. code-block:: python
 
@@ -255,19 +283,10 @@ function.  See the example file :download:`step2.py <code/step2.py>`.
   if __name__ == '__main__':
       main()
 
-The behavior is the same as :py:mod:`!step1`:
-
-.. code-block:: console
-
-  $ # run as a script
-  $ python3 step2.py pstake.py
-  811 lines in pstake.py
-
-.. code-block:: console
-
-  $ # run the module as a script
-  $ python3 -m step2 pstake.py
-  811 lines in pstake.py
+:ref:`step1.py <nsd-numpy-example-step1>` and :ref:`step2.py
+<nsd-numpy-example-step2>` have the same behavior, except :ref:`step2.py
+<nsd-numpy-example-step2>` has a :py:func:`!main` function, which allows it to
+behave like a script:
 
 .. code-block:: console
 
@@ -275,6 +294,18 @@ The behavior is the same as :py:mod:`!step1`:
   $ python3 -c 'import step2'
   $ # import and then run the new main function
   $ python3 -c 'import step2 ; step2.main()' pstake.py
+  811 lines in pstake.py
+
+Run Module as Script
+--------------------
+
+If there is a module, Python allows to run the module as a script without
+knowing where the module file is.  The functionality is supported with the
+``-m`` argument.
+
+.. code-block:: console
+
+  $ python3 -m step1 pstake.py
   811 lines in pstake.py
 
 Make a Package
