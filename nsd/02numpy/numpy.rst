@@ -38,16 +38,8 @@ How a Python Script Works
 A script is a text file that the program loader sends to an engine (usually
 interpreter) to execute with the content.  We usually write scripts for
 automating repetitive work, and they should be short for quick implementation.
-Assume that we have a simple task: count the number of lines in a file.  Here
-is a simple script to do it:
-
-.. literalinclude:: code/step0.py
-  :name: nsd-numpy-example-step0
-  :caption:
-    A Python script that counts lines in a file (:download:`step0.py
-    <code/step0.py>`)
-  :language: python
-  :linenos:
+Assume that we have a simple task: count the number of lines in a file.  For
+the simple example script, see: :ref:`nsd-numpy-example-step0`.
 
 Running a script requires the executable permission to be set.  Otherwise, the
 script file cannot be executed in the shell as a command:
@@ -104,7 +96,7 @@ At the end of the script we have the `vim modeline magic
 .. code-block:: python
 
   ...
-  # vim: set ff=unix ft=python et sw=4 ts=4 sts=4:
+  # vim: set ff=unix fenc=utf8 ft=python et sw=4 ts=4 sts=4 tw=79:
 
 A script runs without it, but it may be used to specify how the file should be
 formatted in the editor.  Vim runs the command in the modeline when reading a
@@ -116,6 +108,9 @@ following:
 
 ``ff=unix``
   Use ``<LF>`` to for the end-of-line character.
+
+``fenc=utf8``
+  Use UTF-8 for file content encoding.
 
 ``ft=python``
   Use Python syntax highlighting.
@@ -131,6 +126,10 @@ following:
 
 ``sts=4``
   Number of spaces for a tab during editing.
+
+``tw=79``
+  Maximum number or characters in a line to be inserted.  `PEP-8
+  <https://www.python.org/dev/peps/pep-0008/>`__ recommends to use 79.
 
 Emacs has a similar feature called `file variable
 <https://www.gnu.org/software/emacs/manual/html_node/emacs/Specifying-File-Variables.html>`__:
@@ -177,14 +176,8 @@ puts the results in the module namespace.  However, the code in :ref:`step0.py
 <nsd-numpy-example-step0>` simply does the work without leaving anything useful
 in the module to be imported.
 
-We should modify the script to be make it suitable for a module:
-
-.. literalinclude:: code/step1.py
-  :name: nsd-numpy-example-step1
-  :caption:
-    A Python module file (:download:`step1.py <code/step1.py>`)
-  :language: python
-  :linenos:
+We should modify the script to be make it suitable for a module.  See:
+:ref:`nsd-numpy-example-step1`.
 
 Because a module is not supposed to be run as a command, the file no longer has
 a shebang.  In addition to that, we made two changes.  First, the module file
@@ -256,17 +249,9 @@ While modifying the file, we keep the capability to run the file as a script:
 Move Everything inside Function
 -------------------------------
 
-We can improve the module by factoring out all code to functions.  See the
-following example:
-
-.. literalinclude:: code/step2.py
-  :name: nsd-numpy-example-step2
-  :caption:
-    Move all code to functions (:download:`step2.py <code/step2.py>`)
-  :language: python
-  :linenos:
-
-It moves the argument-processing code to the function :py:func:`!main`:
+We can improve the module by factoring out all code to functions.  See:
+:ref:`nsd-numpy-example-step2`.  It moves the argument-processing code to the
+function :py:func:`!main`:
 
 .. code-block:: python
 
@@ -311,72 +296,106 @@ knowing where the module file is.  The functionality is supported with the
 Make a Package
 ++++++++++++++
 
-When the code grows to a point, you may need a directory to house it.  Let's
-use our simple example to show how to make a package:
+When the code grows to a point that a single file is not enough to house
+everything, we should split the code into multiple files and put them in a
+directory.  Python :term:`package <python:package>` provides a framework to
+organize source-code files in a directory and allows them to be imported like a
+module.  Now we will turn the line-counting example code into a package.  Make
+a directory with the following layout:
 
 * ``step3/``
 
-  * :download:`__init__.py <code/step3/__init__.py>`
-  * :download:`__main__.py <code/step3/__main__.py>`
-  * :download:`_core.py <code/step3/_core.py>`
+  * ``__init__.py``: :ref:`nsd-numpy-example-step3-init`
+  * ``_core.py``: :ref:`nsd-numpy-example-step3-core`
+  * ``__main__.py``: :ref:`nsd-numpy-example-step3-main`
 
-No file in the package version :py:mod:`!step3` can be run as a script.
+Python recognizes a directory containing an ``__init__.py`` file as a package.
+The :ref:`__init__.py <nsd-numpy-example-step3-init>` file usually just takes
+functions (or classes) from the internal modules via relative import:
+
+.. code-block:: python
+
+  from ._core import count_line
+  from ._core import main
+
+Code that does the real work is put in :ref:`_core.py
+<nsd-numpy-example-step3-core>`:
+
+.. code-block:: python
+
+  def count_line(fname):
+      if os.path.exists(fname):
+          with open(fname) as fobj:
+              lines = fobj.readlines()
+          sys.stdout.write('{} lines in {}\n'.format(len(lines), fname))
+      else:
+          sys.stdout.write('{} not found\n'.format(fname))
+
+
+  def main():
+      if len(sys.argv) < 2:
+          sys.stdout.write('missing file name\n')
+      elif len(sys.argv) > 2:
+          sys.stdout.write('only one argument is allowed\n')
+      else:
+          count_line(sys.argv[1])
+
+For simple and short code like the example we are showing, it doesn't matter
+how to organize the code.  But if there are 10,000 lines of Python, the
+directory structure becomes handy.  The import statements in the
+:ref:`__init__.py <nsd-numpy-example-step3-init>` serves as documentation for
+where to find the implementation.  The real code in implementation files
+(:ref:`_core.py <nsd-numpy-example-step3-core>`) may be organized differently,
+but users don't need to know the detail.
+
+While having the code implemented in :ref:`_core.py
+<nsd-numpy-example-step3-core>`, the package :py:mod:`!step3` allows users to
+run the code directly from its top-level namespace:
+
+.. code-block:: console
+  :caption: Call :py:func:`!count_line`
+
+  $ # This works just like a module.
+  $ python3 -c 'import step3 ; step3.count_line("pstake.py")'
+  811 lines in pstake.py
+
+.. code-block:: console
+  :caption: Call :py:func:`!main`
+
+  $ # This also works just like a module.
+  $ python3 -c 'import step3 ; step3.main()' pstake.py
+  811 lines in pstake.py
+
+Since the package is a directory, and no file in the directory contains the
+complete code to do all the work, we cannot run the package as a script:
 
 .. code-block:: console
 
-  $ # The package __init__.py doesn't work like a module.
-  $ python3 step3/__init__.py numpy.ipynb
+  $ python3 step3/__init__.py pstake.py
   Traceback (most recent call last):
-    File "step3/__init__.py", line 11, in <module>
+    File "/Users/yungyuc/work/web/ynote/nsd/02numpy/code/step3/__init__.py", line 12, in <module>
       from ._core import count_line
   ImportError: attempted relative import with no known parent package
 
-Everything else remains working, including the ``-m`` option of Python
-executable.
+But the ``-m`` option still works, because we have added :ref:`__main__.py
+<nsd-numpy-example-step3-main>`:
 
 .. code-block:: console
 
-  $ python3 -m step3 numpy.ipynb
-  1512 lines in numpy.ipynb
-  $ python3 -c 'import step3 ; step3.main()' numpy.ipynb
-  1512 lines in numpy.ipynb
+  $ python3 -m step3 pstake.py
+  811 lines in pstake.py
 
 A Real Useful Script
 ++++++++++++++++++++
 
-Here is a real-world example (:download:`pstake.py <code/pstake.py>`) for how
-to write a useful script: convert `pstricks
-<http://tug.org/PSTricks/main.cgi/>`__ to an image file.
-
-.. code-block:: tex
-  :caption: Example PSTricks TeX file :download:`code/cce.tex`.
-
-  \psset{unit=2cm}
-  \begin{pspicture}(-3,-.5)(3,1.5)
-    \psset{linewidth=1pt}
-    \psset{linecolor=black}
-    \psframe(-1,0)(1,1)
-    \psline[linestyle=dashed](0,0)(0,1)
-    \psframe[linestyle=dotted,linecolor=blue](-0.95,0.05)(-0.05,0.95)
-    \rput[t](-0.5,0.9){$\mathrm{CE}_-$}
-    \psframe[linestyle=dotted,linecolor=blue](0.05,0.05)(0.95,0.95)
-    \rput[t](0.5,0.9){$\mathrm{CE}_+$}
-    \psframe[linestyle=dotted,linecolor=red](-1.05,-0.05)(1.05,1.05)
-    \rput[tr](-1.1,0.9){$\mathrm{CE}$}
-    \psdots[dotstyle=*](0,1)(-1,1)(-1,0)(0,0)(1,0)(1,1)(0,1)
-    \uput{0.1}[u](0,1){A $(x_j,t^n)$}
-    \uput{0.1}[ul](-1,1){B}
-    \uput{0.1}[dl](-1,0){$(x_{j-\frac{1}{2}},t^{n-\frac{1}{2}})$ C}
-    \uput{0.1}[d](0,0){D}
-    \uput{0.1}[dr](1,0){E $(x_{j+\frac{1}{2}},t^{n-\frac{1}{2}})$}
-    \uput{0.1}[ur](1,1){F}
-    \psline[linestyle=dashed](0,0)(0,1)
-  \end{pspicture}
+Here is a real-world example: :ref:`nsd-numpy-example-pstake`.  It converts
+`pstricks <http://tug.org/PSTricks/main.cgi/>`__ commands (see:
+:ref:`nsd-numpy-example-cce`) to an image file.
 
 .. code-block:: console
 
   $ rm -f cce.png
-  $ ./pstake.py cce.tex cce.png 2>&1 > /dev/null
+  $ ./pstake.py cce.tex cce.png > /dev/null 2>&1
 
 .. figure:: image/cce.png
   :align: center
@@ -771,10 +790,15 @@ Broadcasting
 :ref:`Broadcasting <numpy:ufuncs.broadcasting>` handles arrays of different
 shapes participating in an operation.
 
-1. All input arrays with number of dimension smaller than the input array of largest number of dimension, have 1’s prepended to their shapes.
-2. The size in each dimension of the output shape is the maximum of all the input sizes in that dimension.
-3. An input can be used in the calculation if its size in a particular dimension either matches the output size in that dimension, or has value exactly 1.
-4. If an input has a dimension size of 1 in its shape, the first data entry in that dimension will be used for all calculations along that dimension.
+1. All input arrays with number of dimension smaller than the input array of
+   largest number of dimension, have 1’s prepended to their shapes.
+2. The size in each dimension of the output shape is the maximum of all the
+   input sizes in that dimension.
+3. An input can be used in the calculation if its size in a particular
+   dimension either matches the output size in that dimension, or has value
+   exactly 1.
+4. If an input has a dimension size of 1 in its shape, the first data entry in
+   that dimension will be used for all calculations along that dimension.
 
 .. code-block:: pycon
 
@@ -941,7 +965,7 @@ of packages:
 
 In addition to conda, `pip <https://pip.pypa.io/>`__ is another popular choice.
 pip is the package installer for Python.  You can use pip to install packages
-from the `Python Package Index <https://pypi.org/`__ and other indexes.
+from the `Python Package Index <https://pypi.org/>`__ and other indexes.
 
 Exercises
 =========

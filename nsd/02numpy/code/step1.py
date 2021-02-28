@@ -33,4 +33,4 @@ if __name__ == '__main__':
     else:
         count_line(sys.argv[1])
 
-# vim: set ff=unix ft=python et sw=4 ts=4 sts=4:
+# vim: set ff=unix fenc=utf8 ft=python et sw=4 ts=4 sts=4 tw=79:

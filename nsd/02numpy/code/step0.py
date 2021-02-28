@@ -23,4 +23,4 @@ else:
     else:
         sys.stdout.write('{} not found\n'.format(fname))
 
-# vim: set ff=unix ft=python et sw=4 ts=4 sts=4:
+# vim: set ff=unix fenc=utf8 ft=python et sw=4 ts=4 sts=4 tw=79:
