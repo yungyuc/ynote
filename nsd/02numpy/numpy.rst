@@ -2,18 +2,20 @@
 Python and Numpy
 ================
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 Python is easy to use and popular among scientists and engineers for its
 simplicity.  It is suitable for almost every task, and the versatility makes is
 one of the best tool as the programming interface for numerical applications.
 
-Contents in this chapter:
-
-.. contents::
-  :local:
-  :depth: 1
-
 Organize Python Code
 ====================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 To help the discussions for Python code organization, we make a simple
 categorization:
@@ -26,14 +28,12 @@ categorization:
   imported by Python :ref:`import <python:import>` statement.  Then a "module"
   can mean (the strictly defined) module or a package.
 
-Contents in this section:
-
-.. contents::
-  :local:
-  :depth: 1
-
 How a Python Script Works
 +++++++++++++++++++++++++
+
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
 
 A script is a text file that the program loader sends to an engine (usually
 interpreter) to execute with the content.  We usually write scripts for
@@ -156,6 +156,10 @@ hard to read.
 
 Make a Module
 +++++++++++++
+
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
 
 A :term:`Python module <python:module>` is pretty much a Python source file.  A
 Python script is also a file containing Python code.  They differ in the way
@@ -296,6 +300,10 @@ knowing where the module file is.  The functionality is supported with the
 Make a Package
 ++++++++++++++
 
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
 When the code grows to a point that a single file is not enough to house
 everything, we should split the code into multiple files and put them in a
 directory.  Python :term:`package <python:package>` provides a framework to
@@ -388,6 +396,10 @@ But the ``-m`` option still works, because we have added :ref:`__main__.py
 A Real Useful Script
 ++++++++++++++++++++
 
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
 Here is a real-world example: :ref:`nsd-numpy-example-pstake`.  It converts
 `pstricks <http://tug.org/PSTricks/main.cgi/>`__ commands (see:
 :ref:`nsd-numpy-example-cce`) to an image file.
@@ -402,6 +414,10 @@ Here is a real-world example: :ref:`nsd-numpy-example-pstake`.  It converts
 
 Numpy for Array-Centric Code
 ============================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 * Arrays are the best container to manage homogeneous data.
 * The `numpy <http://www.numpy.org/>`__ library provides everything we need for
@@ -842,6 +858,10 @@ shapes participating in an operation.
 Python Tools for Numerical Analysis
 ===================================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 There are two equally important activities for software development.  One is to
 write code.  We will need to learn some basic concepts to write meaningful
 code.
@@ -981,8 +1001,8 @@ Exercises
 References
 ==========
 
-.. [1] [Broadcasting arrays in
-   Numpy](https://eli.thegreenplace.net/2015/broadcasting-arrays-in-numpy/) by
-   Eli Bendersky
+.. [1] `Broadcasting arrays in Numpy
+   <https://eli.thegreenplace.net/2015/broadcasting-arrays-in-numpy/>`__ by Eli
+   Bendersky
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
