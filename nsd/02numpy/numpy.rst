@@ -2,68 +2,142 @@
 Python and Numpy
 ================
 
-Organize Python modules
-=======================
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
+Python is easy to use and popular among scientists and engineers for its
+simplicity.  It is suitable for almost every task, and the versatility makes is
+one of the best tool as the programming interface for numerical applications.
+
+Organize Python Code
+====================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+To help the discussions for Python code organization, we make a simple
+categorization:
 
 * One file containing Python code as a **script**.
-* One Python file is a "**module**".
+* One Python file is a ":term:`module <python:module>`".
 * One directory containing Python files (satisfying some rules) is a
-  "**package**".
+  ":term:`package <python:package>`".
 * "Module" is usually used in a loose way to refer to things that may be
   imported by Python :ref:`import <python:import>` statement.  Then a "module"
   can mean (the strictly defined) module or a package.
 
-What Is a Script and How It Works
-+++++++++++++++++++++++++++++++++
+How a Python Script Works
++++++++++++++++++++++++++
 
-* A script is a text file that the program loader sends to an engine (usually
-  interpreter) to execute the content.
-* Executable permission needs to be set for the shell to run it:
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
+A script is a text file that the program loader sends to an engine (usually
+interpreter) to execute with the content.  We usually write scripts for
+automating repetitive work, and they should be short for quick implementation.
+Assume that we have a simple task: count the number of lines in a file.  For
+the simple example script, see: :ref:`nsd-numpy-example-step0`.
+
+Running a script requires the executable permission to be set.  Otherwise, the
+script file cannot be executed in the shell as a command:
 
 .. code-block:: console
 
-  $ ls -al step0.py      # executable bit not set
+  $ ls -al step0.py      # executable bit is not set
   -rw-r--r--  1 yungyuc  staff  574 Apr  7 22:18 step0.py
+
   $ ./step0.py pstake.py # can't run without permission
   -bash: ./step0.py: Permission denied
+
+.. code-block:: console
+
   $ chmod a+x step0.py   # set the executable bit
+
   $ ls -al step0.py      # executable bit is set
   -rwxr-xr-x  1 yungyuc  staff  574 Apr  7 22:18 step0.py*
+
   $ ./step0.py pstake.py # properly it runs
   811 lines in pstake.py
 
-* Scripts usually are for automating repetitive work.
-* Scripts should be short for quick implementation.
+If we do not need to run the script like an executable, it can be run by
+explicitly calling Python:
 
-The leading line in a script that starts with `#!` is called the *shebang*.  It tells the program loader which executable to run for the script.
+.. code-block:: console
+
+  $ chmod u-x step0.py
+
+  $ python3 step0.py pstake.py
+  811 lines in pstake.py
+
+Python Script Shebang
+---------------------
+
+The leading line in a script that starts with ``#!`` is called the *shebang*.
+It tells the program loader which executable to run for the script.  For a
+Python script, `it is recommended
+<https://www.python.org/dev/peps/pep-0394/#for-python-script-publishers>`__ to
+use ``/usr/bin/env python3`` in the shebang.  It allows the interactive shell
+to search for the Python binary configured by the user.
 
 .. code-block:: python
 
   #!/usr/bin/env python3
   # ...
 
-It won't work if executable permission isn't set on the script.
+Modeline
+--------
 
-Example: line counting (step0)
-------------------------------
+At the end of the script we have the `vim modeline magic
+<https://vim.fandom.com/wiki/Modeline_magic>`__:
 
-This is the first example: :download:`step0.py <code/step0.py>`.  It counts the
-number of lines in the file specified with the first argument.
+.. code-block:: python
 
-.. code-block:: console
+  ...
+  # vim: set ff=unix fenc=utf8 ft=python et sw=4 ts=4 sts=4 tw=79:
 
-  $ chmod u+x step0.py
-  $ ./step0.py pstake.py
-  811 lines in pstake.py
+A script runs without it, but it may be used to specify how the file should be
+formatted in the editor.  Vim runs the command in the modeline when reading a
+file having it.  The modeline is useful to specify how the source code is
+formatted and provide the minimal information about the coding convention.  The
+modeline should not contain commands that changes the global or cosmetic
+behaviors, e.g., show or hide the line numbers.  The above example does the
+following:
 
-Another way, regardless the executable bit, to run the script is to explicitly
-call the Python executable.
+``ff=unix``
+  Use ``<LF>`` to for the end-of-line character.
 
-.. code-block:: console
+``fenc=utf8``
+  Use UTF-8 for file content encoding.
 
-  $ chmod u-x step0.py
-  $ python3 step0.py pstake.py
-  811 lines in pstake.py
+``ft=python``
+  Use Python syntax highlighting.
+
+``et``
+  Expand tab characters.
+
+``sw=4``
+  Number of spaces for each step of indent.
+
+``ts=4``
+  Number of spaces for a tab.
+
+``sts=4``
+  Number of spaces for a tab during editing.
+
+``tw=79``
+  Maximum number or characters in a line to be inserted.  `PEP-8
+  <https://www.python.org/dev/peps/pep-0008/>`__ recommends to use 79.
+
+Emacs has a similar feature called `file variable
+<https://www.gnu.org/software/emacs/manual/html_node/emacs/Specifying-File-Variables.html>`__:
+
+.. code-block:: lisp
+
+  ...
+  ;; -*- mode: Lisp; fill-column: 75; comment-column: 50; -*-
 
 One-Liner
 ---------
@@ -83,8 +157,46 @@ hard to read.
 Make a Module
 +++++++++++++
 
-See the example file :download:`step1.py <code/step1.py>`.  It factors out the
-line-counting code to a distinct function:
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
+A :term:`Python module <python:module>` is pretty much a Python source file.  A
+Python script is also a file containing Python code.  They differ in the way
+the code is invoked.  A script is used as a command.  A module is imported as a
+library.
+
+Can a script be used as a module?  It depends on how it is written.  For
+example, the script :ref:`step0.py <nsd-numpy-example-step0>` is not suitable
+for being imported as a module:
+
+.. code-block:: console
+
+  $ python3 -c 'import step0'
+  missing file name
+
+The :ref:`import <python:import>` statement runs the Python source code and
+puts the results in the module namespace.  However, the code in :ref:`step0.py
+<nsd-numpy-example-step0>` simply does the work without leaving anything useful
+in the module to be imported.
+
+We should modify the script to be make it suitable for a module.  See:
+:ref:`nsd-numpy-example-step1`.
+
+Because a module is not supposed to be run as a command, the file no longer has
+a shebang.  In addition to that, we made two changes.  First, the module file
+factors out the line-counting code from the script example:
+
+.. code-block:: python
+
+  if os.path.exists(fname):
+      with open(fname) as fobj:
+          lines = fobj.readlines()
+      sys.stdout.write('{} lines in {}\n'.format(len(lines), fname))
+  else:
+      sys.stdout.write('{} not found\n'.format(fname))
+
+into a function:
 
 .. code-block:: python
 
@@ -96,8 +208,7 @@ line-counting code to a distinct function:
       else:
           sys.stdout.write('{} not found\n'.format(fname))
 
-The other code is for processing command-line arguments.  It's only useful for
-a script, so we move it into an ``if`` test:
+Second, the rest of the code is moved into an ``if`` test:
 
 .. code-block:: python
 
@@ -110,61 +221,41 @@ a script, so we move it into an ``if`` test:
       else:
           count_line(sys.argv[1])
 
-Different Behaviors on :py:keyword:`python:import`
---------------------------------------------------
+.. note::
 
-Because :py:mod:`!step1` checks for ``__main__``, when it is imported as a module,
-nothing happens:
+  :py:mod:`__main__ <python:__main__>` is the name of the scope in which the
+  top-level code execute in Python.
+
+After the change, :py:mod:`!step1` acts like a module.  When it is imported,
+nothing happens in the calling site:
 
 .. code-block:: console
 
   $ python3 -c 'import step1'
 
-But importing :py:mod:`!step0` runs the code:
-
-.. code-block:: console
-
-  $ python3 -c 'import step0' pstake.py
-  811 lines in pstake.py
-
-To run the code defined in the :py:mod:`!step1` module can only be run by
-explicitly calling the function:
+To run the code defined in the :py:mod:`!step1` module, the function
+:py:func:`!count_line` should be explicitly called:
 
 .. code-block:: console
 
   $ python3 -c 'import step1 ; step1.count_line("pstake.py")'
+  811 lines in pstake.py
 
-But when running as a script, both behave the same:
+While modifying the file, we keep the capability to run the file as a script:
 
 .. code-block:: console
 
   $ python3 step0.py pstake.py
+  811 lines in pstake.py
   $ python3 step1.py pstake.py
-
-Run Module as Script
---------------------
-
-Python executable supports the ``-m`` argument.  It imports the script as a
-module, and still runs it as a script.
-
-.. code-block:: console
-
-  $ python3 -m step1 pstake.py
   811 lines in pstake.py
 
-With ``python -m``, :download:`step0.py <code/step0.py>` and
-:download:`step1.py <code/step1.py>` behave the same again:
+Move Everything inside Function
+-------------------------------
 
-.. code-block:: console
-
-  $ python3 -m step0 pstake.py
-  811 lines in pstake.py
-
-Make the Module More like a Library
------------------------------------
-
-It's common to further factor out the code for script to a :py:func:`!main`
-function.  See the example file :download:`step2.py <code/step2.py>`.
+We can improve the module by factoring out all code to functions.  See:
+:ref:`nsd-numpy-example-step2`.  It moves the argument-processing code to the
+function :py:func:`!main`:
 
 .. code-block:: python
 
@@ -181,19 +272,10 @@ function.  See the example file :download:`step2.py <code/step2.py>`.
   if __name__ == '__main__':
       main()
 
-The behavior is the same as :py:mod:`!step1`:
-
-.. code-block:: console
-
-  $ # run as a script
-  $ python3 step2.py pstake.py
-  811 lines in pstake.py
-
-.. code-block:: console
-
-  $ # run the module as a script
-  $ python3 -m step2 pstake.py
-  811 lines in pstake.py
+:ref:`step1.py <nsd-numpy-example-step1>` and :ref:`step2.py
+<nsd-numpy-example-step2>` have the same behavior, except :ref:`step2.py
+<nsd-numpy-example-step2>` has a :py:func:`!main` function, which allows it to
+behave like a script:
 
 .. code-block:: console
 
@@ -203,75 +285,129 @@ The behavior is the same as :py:mod:`!step1`:
   $ python3 -c 'import step2 ; step2.main()' pstake.py
   811 lines in pstake.py
 
+Run Module as Script
+--------------------
+
+If there is a module, Python allows to run the module as a script without
+knowing where the module file is.  The functionality is supported with the
+``-m`` argument.
+
+.. code-block:: console
+
+  $ python3 -m step1 pstake.py
+  811 lines in pstake.py
+
 Make a Package
 ++++++++++++++
 
-When the code grows to a point, you may need a directory to house it.  Let's
-use our simple example to show how to make a package:
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
+When the code grows to a point that a single file is not enough to house
+everything, we should split the code into multiple files and put them in a
+directory.  Python :term:`package <python:package>` provides a framework to
+organize source-code files in a directory and allows them to be imported like a
+module.  Now we will turn the line-counting example code into a package.  Make
+a directory with the following layout:
 
 * ``step3/``
 
-  * :download:`__init__.py <code/step3/__init__.py>`
-  * :download:`__main__.py <code/step3/__main__.py>`
-  * :download:`_core.py <code/step3/_core.py>`
+  * ``__init__.py``: :ref:`nsd-numpy-example-step3-init`
+  * ``_core.py``: :ref:`nsd-numpy-example-step3-core`
+  * ``__main__.py``: :ref:`nsd-numpy-example-step3-main`
 
-No file in the package version :py:mod:`!step3` can be run as a script.
+Python recognizes a directory containing an ``__init__.py`` file as a package.
+The :ref:`__init__.py <nsd-numpy-example-step3-init>` file usually just takes
+functions (or classes) from the internal modules via relative import:
+
+.. code-block:: python
+
+  from ._core import count_line
+  from ._core import main
+
+Code that does the real work is put in :ref:`_core.py
+<nsd-numpy-example-step3-core>`:
+
+.. code-block:: python
+
+  def count_line(fname):
+      if os.path.exists(fname):
+          with open(fname) as fobj:
+              lines = fobj.readlines()
+          sys.stdout.write('{} lines in {}\n'.format(len(lines), fname))
+      else:
+          sys.stdout.write('{} not found\n'.format(fname))
+
+
+  def main():
+      if len(sys.argv) < 2:
+          sys.stdout.write('missing file name\n')
+      elif len(sys.argv) > 2:
+          sys.stdout.write('only one argument is allowed\n')
+      else:
+          count_line(sys.argv[1])
+
+For simple and short code like the example we are showing, it doesn't matter
+how to organize the code.  But if there are 10,000 lines of Python, the
+directory structure becomes handy.  The import statements in the
+:ref:`__init__.py <nsd-numpy-example-step3-init>` serves as documentation for
+where to find the implementation.  The real code in implementation files
+(:ref:`_core.py <nsd-numpy-example-step3-core>`) may be organized differently,
+but users don't need to know the detail.
+
+While having the code implemented in :ref:`_core.py
+<nsd-numpy-example-step3-core>`, the package :py:mod:`!step3` allows users to
+run the code directly from its top-level namespace:
+
+.. code-block:: console
+  :caption: Call :py:func:`!count_line`
+
+  $ # This works just like a module.
+  $ python3 -c 'import step3 ; step3.count_line("pstake.py")'
+  811 lines in pstake.py
+
+.. code-block:: console
+  :caption: Call :py:func:`!main`
+
+  $ # This also works just like a module.
+  $ python3 -c 'import step3 ; step3.main()' pstake.py
+  811 lines in pstake.py
+
+Since the package is a directory, and no file in the directory contains the
+complete code to do all the work, we cannot run the package as a script:
 
 .. code-block:: console
 
-  $ # The package __init__.py doesn't work like a module.
-  $ python3 step3/__init__.py numpy.ipynb
+  $ python3 step3/__init__.py pstake.py
   Traceback (most recent call last):
-    File "step3/__init__.py", line 11, in <module>
+    File "/Users/yungyuc/work/web/ynote/nsd/02numpy/code/step3/__init__.py", line 12, in <module>
       from ._core import count_line
   ImportError: attempted relative import with no known parent package
 
-Everything else remains working, including the ``-m`` option of Python
-executable.
+But the ``-m`` option still works, because we have added :ref:`__main__.py
+<nsd-numpy-example-step3-main>`:
 
 .. code-block:: console
 
-  $ python3 -m step3 numpy.ipynb
-  1512 lines in numpy.ipynb
-  $ python3 -c 'import step3 ; step3.main()' numpy.ipynb
-  1512 lines in numpy.ipynb
+  $ python3 -m step3 pstake.py
+  811 lines in pstake.py
 
 A Real Useful Script
 ++++++++++++++++++++
 
-Here is a real-world example (:download:`pstake.py <code/pstake.py>`) for how
-to write a useful script: convert `pstricks
-<http://tug.org/PSTricks/main.cgi/>`__ to an image file.
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
 
-.. code-block:: tex
-  :caption: Example PSTricks TeX file :download:`code/cce.tex`.
-
-  \psset{unit=2cm}
-  \begin{pspicture}(-3,-.5)(3,1.5)
-    \psset{linewidth=1pt}
-    \psset{linecolor=black}
-    \psframe(-1,0)(1,1)
-    \psline[linestyle=dashed](0,0)(0,1)
-    \psframe[linestyle=dotted,linecolor=blue](-0.95,0.05)(-0.05,0.95)
-    \rput[t](-0.5,0.9){$\mathrm{CE}_-$}
-    \psframe[linestyle=dotted,linecolor=blue](0.05,0.05)(0.95,0.95)
-    \rput[t](0.5,0.9){$\mathrm{CE}_+$}
-    \psframe[linestyle=dotted,linecolor=red](-1.05,-0.05)(1.05,1.05)
-    \rput[tr](-1.1,0.9){$\mathrm{CE}$}
-    \psdots[dotstyle=*](0,1)(-1,1)(-1,0)(0,0)(1,0)(1,1)(0,1)
-    \uput{0.1}[u](0,1){A $(x_j,t^n)$}
-    \uput{0.1}[ul](-1,1){B}
-    \uput{0.1}[dl](-1,0){$(x_{j-\frac{1}{2}},t^{n-\frac{1}{2}})$ C}
-    \uput{0.1}[d](0,0){D}
-    \uput{0.1}[dr](1,0){E $(x_{j+\frac{1}{2}},t^{n-\frac{1}{2}})$}
-    \uput{0.1}[ur](1,1){F}
-    \psline[linestyle=dashed](0,0)(0,1)
-  \end{pspicture}
+Here is a real-world example: :ref:`nsd-numpy-example-pstake`.  It converts
+`pstricks <http://tug.org/PSTricks/main.cgi/>`__ commands (see:
+:ref:`nsd-numpy-example-cce`) to an image file.
 
 .. code-block:: console
 
   $ rm -f cce.png
-  $ ./pstake.py cce.tex cce.png 2>&1 > /dev/null
+  $ ./pstake.py cce.tex cce.png > /dev/null 2>&1
 
 .. figure:: image/cce.png
   :align: center
@@ -279,115 +415,310 @@ to write a useful script: convert `pstricks
 Numpy for Array-Centric Code
 ============================
 
-* Arrays are the best container to manage homogeneous data.
-* The `numpy <http://www.numpy.org/>`__ library provides everything we need for
-  arrays in Python.
-* Arrays use contiguous memory, sequences don't.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Arrays offer the highest performance when dealing with homogeneous data.  In
+Python, the `numpy <http://www.numpy.org/>`__ library provides everything we
+need for arrays.
+
+Arrays use contiguous memory.  Python provides a different set of sequential
+data: :ref:`python:typesseq`, which do not require contiguity.
 
 .. code-block:: pycon
+  :caption: Make a list (one of Python sequence types) of integers
 
-  >>> # Make a list (one type of Python sequence) of integers.
   >>> lst = [1, 1, 2, 3, 5]
   >>> print('A list:', lst)
   A list: [1, 1, 2, 3, 5]
-  >>> # Import the numpy library. It's a universal convention to alias it to "np".
+
+When using Python, it is conventional to alias it as :py:mod:`np
+<numpy:numpy>`:
+
+.. code-block:: pycon
+  :caption: Import :py:mod:`numpy:numpy` and alias it to :py:mod:`!np`
+
   >>> import numpy as np
-  >>> # Make an array from the sequence.
+
+There are many ways to create a numpy array.  But in pure Python code, the most
+common approach is to convert from a sequence:
+
+.. code-block:: pycon
+  :caption: Make an array from a sequence
+
   >>> array = np.array(lst)
   >>> print('An array:', np.array(array))
   An array: [1 1 2 3 5]
 
-Key Meta-Data
-+++++++++++++
+.. note::
+
+  It should be obvious that the created array uses a copy of the input
+  sequence:
+
+  .. code-block:: pycon
+
+    >>> array[2] = 8
+    >>> print(array)  # The array changes.
+    [1 1 8 3 5]
+    >>> print(lst)  # The input sequence is not changed.
+    [1, 1, 2, 3, 5]
+
+Basic Meta-Data
++++++++++++++++
+
+A numpy array object contains two data: the contiguous data buffer for the
+array elements, and the meta-data describing the buffer.  Here is a list of
+some frequently used meta-data.
+
+.. contents::
+  :local:
+  :depth: 1
+
+.. _nsd-numpy-shape:
+
+:py:attr:`!shape`
+-----------------
+
+:py:attr:`numpy:numpy.ndarray.shape` returns a tuple for array dimensions:
+
+.. code-block:: pycon
+
+  >>> array = np.array([0, 1, 2, 3, 4, 5])
+  >>> print("shape:", array.shape)
+  shape: (6,)
+  >>> array = np.array([[0, 1, 2], [3, 4, 5]])
+  >>> print("shape:", array.shape)
+  shape: (2, 3)
+
+.. _nsd-numpy-size:
+
+:py:attr:`!size`
+----------------
+
+:py:attr:`numpy:numpy.ndarray.size` returns the number of elements in an
+array:
+
+.. code-block:: pycon
+
+  >>> array = np.array([0, 1, 2, 3])
+  >>> print("size:", array.size)
+  size: 4
+  >>> array = np.array([[0, 1, 2], [3, 4, 5]])
+  >>> print("size:", array.size)
+  size: 6
+
+.. _nsd-numpy-dtype:
+
+:py:attr:`!dtype`
+-----------------
+
+:py:attr:`numpy:numpy.ndarray.dtype` returns the data type of the array's
+elements.
 
 .. code-block:: pycon
 
   >>> array = np.array([[0, 1, 2], [3, 4, 5]])
-  >>> print("shape:", array.shape)
-  shape: (2, 3)
-  >>> print("size:", array.size)
-  size: 6
-  >>> print("nbytes:", array.nbytes)
-  nbytes: 48
-  >>> print("itemsize:", array.itemsize)
-  itemsize: 8
   >>> print("dtype:", array.dtype)
   dtype: int64
 
-Data Type
-+++++++++
-
-The numpy array is of type :py:class:`numpy:numpy.ndarray`.  It has a property
-:py:attr:`~numpy:numpy.ndarray.dtype` for the data type the array uses:
+When creating an :py:class:`~numpy:numpy.ndarray`, the factory function
+:py:func:`numpy:numpy.array` uses the input sequence to determine the
+appropriate :py:class:`~numpy:numpy.dtype` for the constructed array:
 
 .. code-block:: pycon
+  :caption: All-integer input results in an integer array
 
-  >>> print(type(array))
-  <class 'numpy.ndarray'>
-  >>> print(array.dtype)
-  int64
-
-:py:func:`numpy:numpy.array` is the most basic constructor (factor function)
-for :py:class:`~numpy:numpy.ndarray`.  It detects the types in the input
-sequence data and choose the appropriate :py:class:`~numpy:numpy.dtype` for the
-constructed array.
-
-.. code-block:: pycon
-
-  >>> array1 = np.array([1, 1, 2, 3, 5]) # only integer
+  >>> array1 = np.array([1, 1, 2, 3, 5])
   >>> print("only int:", array1, type(array1), array1.dtype)
   only int: [1 1 2 3 5] <class 'numpy.ndarray'> int64
-  >>> array2 = np.array([1.0, 1.0, 2.0, 3.0, 5.0]) # only real
+
+.. code-block:: pycon
+  :caption: All-real input results in a real array
+
+  >>> array2 = np.array([1.0, 1.0, 2.0, 3.0, 5.0])
   >>> print("only real:", array2, type(array2), array2.dtype)
   only real: [1. 1. 2. 3. 5.] <class 'numpy.ndarray'> float64
-  >>> array3 = np.array([1, 1, 2, 3, 5.0]) # integer and real
+
+.. code-block:: pycon
+  :caption: Input mixed with integer and real number result in a real array
+
+  >>> array3 = np.array([1, 1, 2, 3, 5.0])
   >>> print("int and real:", array3, type(array3), array3.dtype)
   int and real: [1. 1. 2. 3. 5.] <class 'numpy.ndarray'> float64
 
-* A Python list doesn't know the type it contains, but an array does.
-* The type information allows numpy to process the array data using
-  pre-compiled C code.
+This shows a difference between a Python list (or sequence) and an array.  A
+list does not know the type of the data it contains, but the array does.  The
+type information allows numpy to process the array data using pre-compiled C
+code.
+
+.. _nsd-numpy-itemsize:
+
+:py:attr:`!itemsize`
+--------------------
+
+:py:attr:`numpy:numpy.ndarray.itemsize` is the length of one array element in
+bytes.
+
+.. code-block:: pycon
+
+  >>> array = np.array([[0, 1, 2], [3, 4, 5]])
+  >>> print("itemsize:", array.itemsize)
+  itemsize: 8
+
+.. _nsd-numpy-nbytes:
+
+:py:attr:`!nbytes`
+------------------
+
+:py:attr:`numpy:numpy.ndarray.nbytes` is the total bytes consumed by the
+elements of the array:
+
+.. code-block:: pycon
+
+  >>> array = np.array([[0, 1, 2], [3, 4, 5]])
+  >>> print("nbytes:", array.nbytes)
+  nbytes: 48
 
 Construction
 ++++++++++++
 
-Numpy provides a lot of helpers to construct arrays (see
-:doc:`numpy:reference/routines.array-creation`).  The 3 most common
-constructors are :py:func:`numpy:numpy.empty`, :py:func:`numpy:numpy.zeros`,
-and :py:func:`numpy:numpy.ones`:
+There are several ways to construct numpy arrays.
+
+.. contents::
+  :local:
+  :depth: 1
+
+.. note::
+
+  See :doc:`numpy:reference/routines.array-creation` for more complete
+  information.
+
+:py:func:`!empty`
+-----------------
+
+:py:func:`numpy:numpy.empty` allocates memory but does not initialize the
+elements.  After the empty array object is created, the value garbage:
 
 .. code-block:: pycon
 
   >>> empty_array = np.empty(4)
-  >>> print("It will contain garbage, but it doesn't waste time to initialize:", empty_array)
-  It will contain garbage, but it doesn't waste time to initialize: [9.26744491e+242 3.74168445e+233 1.94950106e-057 3.47526968e-309]
-  >>> zeroed_array = np.zeros(4)
-  >>> print("The contents are cleared with zeros:", zeroed_array)
-  The contents are cleared with zeros: [0. 0. 0. 0.]
-  >>> unity_array = np.ones(4)
-  >>> print("Instead of zeros, fill it with ones:", unity_array)
-  Instead of zeros, fill it with ones: [1. 1. 1. 1.]
-  >>> print("All of their data types are float64 (double-precision floating-point):",
-  ...       empty_array.dtype, zeroed_array.dtype, unity_array.dtype)
-  All of their data types are float64 (double-precision floating-point): float64 float64 float64
+  >>> print(empty_array)
+  [0.0e+000 4.9e-324 9.9e-324 1.5e-323]
 
-:py:func:`numpy:numpy.full` is a shorthand for :py:func:`~numpy:numpy.empty`
-and :py:meth:`numpy:numpy.ndarray.fill`:
+:py:meth:`numpy:numpy.ndarray.fill` can be used to fill the value of the array
+object:
+
+.. code-block:: pycon
+
+  >>> empty_array.fill(7)
+  >>> print(empty_array)
+  [7. 7. 7. 7.]
+
+We can also fill the array using the :py:data:`ellipsis (...)
+<python:Ellipsis>`:
+
+.. code-block:: pycon
+
+  >>> empty_array[...] = 11
+  >>> print(empty_array)
+  [11. 11. 11. 11.]
+
+For one-dimensional arrays, ``[:]`` can also be used to assign value of the
+full array:
+
+.. code-block:: pycon
+
+  >>> empty_array[:] = 13
+  >>> print(empty_array)
+  [13. 13. 13. 13.]
+
+If the keyword argument ``dtype`` is not specified, the array is assumed to be
+double-precision floating point:
+
+.. code-block:: pycon
+
+  >>> print(np.empty(4).dtype)
+  float64
+
+For readability (not everyone knows or remembers the default data type), it is
+a good practice to always supply the ``dtype`` argument:
+
+.. code-block:: pycon
+
+  >>> print(np.empty(4, dtype='int32').dtype)
+  int32
+  >>> print(np.empty(4, dtype='float64').dtype)
+  float64
+
+:py:func:`!zeros`
+-----------------
+
+:py:func:`numpy:numpy.zeros` creates an array object and initialize the
+elements to 0:
+
+.. code-block:: pycon
+
+  >>> zeroed_array = np.zeros(4)
+  >>> print(zeroed_array)
+  [0. 0. 0. 0.]
+
+:py:func:`!ones`
+----------------
+
+:py:func:`numpy:numpy.ones` creates an array object and initialize the elements
+to 1:
+
+.. code-block:: pycon
+
+  >>> unity_array = np.ones(4)
+  >>> print(unity_array)
+  [1. 1. 1. 1.]
+
+:py:func:`!fulls`
+-----------------
+
+:py:func:`numpy:numpy.full` is a shorthand for :py:func:`numpy:numpy.empty`
+and then :py:meth:`numpy:numpy.ndarray.fill`:
 
 .. code-block:: pycon
 
   >>> empty_array = np.empty(4)
   >>> empty_array.fill(7)
-  >>> print("Create an empty array and fill the value:", empty_array)
-  Create an empty array and fill the value: [7. 7. 7. 7.]
-  >>> filled_array = np.full(4, 7)
-  >>> print("Build an array populated with an arbitrary value:", filled_array)
-  Build an array populated with an arbitrary value: [7 7 7 7]
+  >>> print(empty_array)
+  [7. 7. 7. 7.]
   >>> filled_real_array = np.full(4, 7.0)
-  >>> print("Build an array populated with an arbitrary real value:", filled_real_array)
-  Build an array populated with an arbitrary real value: [7. 7. 7. 7.]
+  >>> print(filled_real_array)
+  [7. 7. 7. 7.]
 
-:py:func:`numpy:numpy.arange` builds a monotonically increasing array:
+But :py:func:`numpy:numpy.full` uses the initial value to determine the data
+type of the constructed array:
+
+.. code-block:: pycon
+
+  >>> filled_int_array = np.full(4, 7)
+  >>> print(filled_int_array, filled_int_array.dtype)
+  [7 7 7 7] int64
+  >>> filled_real_array = np.full(4, 7.0)
+  >>> print(filled_real_array, filled_real_array.dtype)
+  [7. 7. 7. 7.] float64
+
+Although it may be convenient in interactive mode, it is suggested to
+explicitly add the ``dtype`` argument to improve readability:
+
+.. code-block:: pycon
+
+  >>> filled_int_array = np.full(4, 7, dtype='int64')
+  >>> print(filled_int_array, filled_int_array.dtype)
+  [7 7 7 7] int64
+  >>> filled_real_array = np.full(4, 7, dtype='float64')
+  >>> print(filled_real_array, filled_real_array.dtype)
+  [7. 7. 7. 7.] float64
+
+:py:func:`!arange`
+------------------
+
+:py:func:`numpy:numpy.arange` returns an array with the given step size:
 
 .. code-block:: pycon
 
@@ -398,38 +729,38 @@ and :py:meth:`numpy:numpy.ndarray.fill`:
   >>> print("Build with real range:", ranged_real_array)
   Build with real range: [0. 1. 2. 3.]
 
+:py:func:`!linspace`
+--------------------
+
 :py:func:`numpy:numpy.linspace` returns an array whose elements are evenly
 placed in a closed interval:
 
 .. code-block:: pycon
 
   >>> linear_array = np.linspace(11, 13, num=6)
-  >>> print("Create an equally-spaced array with 6 elements:", linear_array)
-  Create an equally-spaced array with 6 elements: [11.  11.4 11.8 12.2 12.6 13. ]
+  >>> print("6 evenly placed elements:", linear_array)
+  6 evenly placed elements: [11.  11.4 11.8 12.2 12.6 13. ]
 
 Multi-dimensional arrays
 ++++++++++++++++++++++++
 
-Multi-dimensional arrays are the building-block of matrices and linear algebra.
-Much more useful than one-dimensional arrays.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
-Create multi-dimensional arrays by stacking 1D:
+Multi-dimensional arrays are the building-block of matrices and linear algebra
+and much more useful than one-dimensional arrays.  We need to understand the
+memory layout needs to be understood before using them.  There are two ways to
+order the elements in the multi-dimensional arrays:
 
-.. code-block:: pycon
+1. Row-majoring, or the "C"-style in the numpy terminology.  In the row-major
+   arrays, the trailing index changes the fastest while looping in the memory
+   sequentially.
+2. Column-majoring, or the "F"-style in the numpy terminology.  It is also the
+   layout used by Fortran.  In the column-major arrays, the leading index
+   changes the fastest while loop in the memory sequentially.
 
-  >>> ranged_array = np.arange(10)
-  >>> print("A 1D array:", ranged_array)
-  A 1D array: [0 1 2 3 4 5 6 7 8 9]
-  >>> hstack_array = np.hstack([ranged_array, ranged_array])
-  >>> print("Horizontally stacked array:", hstack_array)
-  Horizontally stacked array: [0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]
-  >>> vstack_array = np.vstack([ranged_array, ranged_array+100])
-  >>> print("Vertically stacked array:", vstack_array)
-  Vertically stacked array: [[  0   1   2   3   4   5   6   7   8   9]
-   [100 101 102 103 104 105 106 107 108 109]]
-
-
-:py:class:`~numpy:numpy.ndarray` by default is row-majoring ("C"-style):
+:py:class:`~numpy:numpy.ndarray` by default uses row-majoring:
 
 .. math::
 
@@ -455,7 +786,7 @@ Create multi-dimensional arrays by stacking 1D:
   [[0 1 2]
    [3 4 5]]
 
-Column-majoring ("F"-style):
+We can reshape an array with column-majoring ("F"-style):
 
 .. code-block:: pycon
 
@@ -463,6 +794,28 @@ Column-majoring ("F"-style):
   reshaped 2D array:
   [[0 2 4]
    [1 3 5]]
+
+Stacking
+--------
+
+In addition to manipulating the shape, multi-dimensional arrays can also be
+created by stacking one-dimensional arrays:
+
+.. code-block:: pycon
+
+  >>> ranged_array = np.arange(10)
+  >>> print("A 1D array:", ranged_array)
+  A 1D array: [0 1 2 3 4 5 6 7 8 9]
+  >>> hstack_array = np.hstack([ranged_array, ranged_array])
+  >>> print("Horizontally stacked array:", hstack_array)
+  Horizontally stacked array: [0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]
+  >>> vstack_array = np.vstack([ranged_array, ranged_array+100])
+  >>> print("Vertically stacked array:", vstack_array)
+  Vertically stacked array: [[  0   1   2   3   4   5   6   7   8   9]
+   [100 101 102 103 104 105 106 107 108 109]]
+
+Higher Dimension
+----------------
 
 Example for 3D arrays:
 
@@ -472,9 +825,6 @@ Example for 3D arrays:
   >>> print("original 1D array:\n%s" % original_array)
   original 1D array:
   [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
-
-.. code-block:: pycon
-
   >>> reshaped_array = original_array.reshape((2,3,4))
   >>> print("reshaped 3D array:\n%s" % reshaped_array)
   reshaped 3D array:
@@ -486,87 +836,118 @@ Example for 3D arrays:
     [16 17 18 19]
     [20 21 22 23]]]
 
-For multi-dimensional arrays, operations can be done along any of the axes.
-
-For summing the above array of shape (2, 3, 4) along the 0-th axis, the
-calculation is:
+Numpy supports operations to be done along any axes of multi-dimensional
+arrays.  For example, to sum the above array of shape (2, 3, 4) along axis 0
 
 .. math::
 
   a_{jk} = \sum_{i=0}^1a_{ijk} ,\; j=0, 1, 2; \; k=0, 1, 2, 3
 
-The resulting array has shape (3, 4).
+the resulting array has shape (3, 4):
 
 .. code-block:: pycon
 
-  >>> print("Summation along 0th axis:\n%s" % reshaped_array.sum(axis=0))
-  Summation along 0th axis:
+  >>> summed = reshaped_array.sum(axis=0)
+  >>> print("Summation along axis 0:\n%s" % summed)
+  Summation along axis 0:
   [[12 14 16 18]
    [20 22 24 26]
    [28 30 32 34]]
 
-For summing the 1-st axis, the calculation is:
+For summing along axis 1
 
 .. math::
   a_{ik} = \sum_{j=0}^2a_{ijk} ,\; i=0, 1; \; k=0, 1, 2, 3
 
-The resulting array has shape (2, 4).
+the resulting array has shape (2, 4):
 
 .. code-block:: pycon
 
-  >>> print("Summation along 1st axis:\n%s" % reshaped_array.sum(axis=1))
-  Summation along 1st axis:
+  >>> summed = reshaped_array.sum(axis=1)
+  >>> print("Summation along axis 1:\n%s" % summed)
+  Summation along axis 1:
   [[12 15 18 21]
    [48 51 54 57]]
 
-Selection: Extract Sub-Array
-++++++++++++++++++++++++++++
+Sub-Array Extraction
+++++++++++++++++++++
 
-There are 3 ways to create sub-arrays:
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
-1. Slicing
-2. Integer indexing
-3. Boolean indexing
+:py:class:`numpy:numpy.ndarray` supports creation of sub-arrays through the
+bracket operator (``[]`` or :py:meth:`~python:object.__getitem__`).
 
 Slicing
-+++++++
+-------
 
-The array created from slicing shares the buffer of the original one:
+:ref:`Array slicing <numpy:arrays.indexing>` allows to create sub-arrays
+sharing the buffer of the original one by using the :py:class:`python:slice`
+object.  Here we demonstrate how it works.  First, create the original array:
 
 .. code-block:: pycon
 
   >>> array = np.arange(10)
   >>> print("This is the original array:", array)
   This is the original array: [0 1 2 3 4 5 6 7 8 9]
-  >>>
-  >>> sub_array = array[:5]
-  >>> print("This is the sub-array:", sub_array)
-  This is the sub-array: [0 1 2 3 4]
-  >>>
-  >>> sub_array[:] = np.arange(4, -1, -1)
-  >>> print("The sub-array is changed:", sub_array)
-  The sub-array is changed: [4 3 2 1 0]
-  >>>
-  >>> print("And the original array is changed too (!):", array)
-  And the original array is changed too (!): [4 3 2 1 0 5 6 7 8 9]
 
-New buffer can be created by copying the returned array:
+Calling :py:meth:`~python:object.__getitem__` to create a sub-array of the
+first half of the original array:
 
 .. code-block:: pycon
 
-  >>> array = np.arange(10.0)
-  >>> print("Recreate the original array to show how to avoid this:", array)
-  Recreate the original array to show how to avoid this: [0. 1. 2. 3. 4. 5. 6. 7. 8. 9.]
-  >>>
-  >>> # Make a copy from the slice.
+  >>> sub_array = array[:5]
+  >>> print("This is the sub-array:", sub_array)
+  This is the sub-array: [0 1 2 3 4]
+
+Try to write to the sub-array:
+
+.. code-block:: pycon
+
+  >>> sub_array[:] = np.arange(4, -1, -1)
+  >>> print("The sub-array is changed:", sub_array)
+  The sub-array is changed: [4 3 2 1 0]
+
+After that, we see the content of the original array is changed because both
+arrays share the same memory buffer:
+
+.. code-block:: pycon
+
+  >>> print("And the original array is changed too (!):", array)
+  And the original array is changed too (!): [4 3 2 1 0 5 6 7 8 9]
+
+We may also avoid sharing the buffer by copying after slicing:
+
+.. code-block:: pycon
+
   >>> sub_array = array[:5].copy()
+
+For convenience, in real code we usually write like the above one-liner, but it
+might not be the most clear way to show what really happened.  The two things
+it does can be expanded:
+
+.. code-block:: pycon
+
+  >>> # Get a slice from the original array.
+  >>> sub_array = array[:5]
+  >>> # Copy all elements of the sub-array to a new one.
+  >>> sub_array = sub_array.copy()
+
+Aided by :py:meth:`~numpy:numpy.ndarray.copy`, the new array uses a separate
+buffer.  Writing to the new array doesn't change the original array:
+
+.. code-block:: pycon
+
   >>> sub_array[:] = np.arange(4, -1, -1)
   >>> print("The sub-array is changed, again:", sub_array)
-  The sub-array is changed, again: [4. 3. 2. 1. 0.]
+  The sub-array is changed, again: [4 3 2 1 0]
   >>> print("But original array remains the same:", array)
-  But original array remains the same: [0. 1. 2. 3. 4. 5. 6. 7. 8. 9.]
+  But original array remains the same: [0 1 2 3 4 5 6 7 8 9]
 
-Slice one dimension in a multi-dimensional array:
+:ref:`Slicing <numpy:arrays.indexing>` works for multi-dimensional arrays as
+well.  This example take a one-dimensional sub-array from a three-dimensional
+array:
 
 .. code-block:: pycon
 
@@ -580,6 +961,13 @@ Slice one dimension in a multi-dimensional array:
    [[12 13 14 15]
     [16 17 18 19]
     [20 21 22 23]]]
+  >>> print(array[:,1,3].shape)
+  (2,)
+
+Set the values in the sliced array and see the original array changes:
+
+.. code-block:: pycon
+
   >>> array[:,1,3] = np.arange(300,302)
   >>> print("find 300, 301:\n%s" % array)
   find 300, 301:
@@ -591,21 +979,13 @@ Slice one dimension in a multi-dimensional array:
     [ 16  17  18 301]
     [ 20  21  22  23]]]
 
-Slice two dimensions in a multi-dimensional array:
+The same can be done to a two-dimensional sliced array:
 
 .. code-block:: pycon
 
-  >>> array = np.arange(24).reshape((2,3,4))
-  >>> print("orignal:\n%s" % array)
-  orignal:
-  [[[ 0  1  2  3]
-    [ 4  5  6  7]
-    [ 8  9 10 11]]
-
-   [[12 13 14 15]
-    [16 17 18 19]
-    [20 21 22 23]]]
   >>> array[:,0,:] = np.arange(200,208).reshape((2,4))
+  >>> print(array[:,0,:].shape)
+  (2, 4)
   >>> print("find the number [200,208):\n%s" % array)
   find the number [200,208):
   [[[200 201 202 203]
@@ -617,21 +997,92 @@ Slice two dimensions in a multi-dimensional array:
     [ 20  21  22  23]]]
 
 Integer Indexing
-++++++++++++++++
+----------------
+
+The second approach to create sub-arrays is to use an index array, which should
+contain integers.  Let's say we have an index array named ``slct`` (shorthand
+for "selector"):
+
+.. code-block:: pycon
+
+  >>> slct = np.array([1, 3])
 
 .. code-block:: pycon
 
   >>> array = np.arange(100, 106)
-  >>> slct = np.array([1, 3])
   >>> print("select by indice 1, 3:", array[slct])
   select by indice 1, 3: [101 103]
+
+The statement ``array[slct]`` works like a loop:
+
+.. code-block:: pycon
+
+  >>> new_array = np.empty(slct.shape, dtype=array.dtype)
+  >>> for it, idx in enumerate(slct):
+  ...   new_array[it] = array[idx]
+  ...
+  >>> print("select by looping:", new_array)
+  select by looping: [101 103]
+
+.. note::
+
+  Looping in Python gives horrible performance.  Later it will be discussed in
+  :doc:`../11arraydesign/arraydesign`.  Be alarming to the slow Python loops in
+  your high-performance code.
+
+Sub-arrays created by the indexing array may be of any size and possibly longer
+than the source array:
+
+.. code-block:: pycon
+
   >>> slct = np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5])
   >>> print("new array is bigger than the old one:", array[slct])
   new array is bigger than the old one: [100 100 101 101 102 102 103 103 104 104 105 105]
-  >>> array2 = array.reshape((2,3))
+
+The selected new array must use a different buffer than the original one.
+Value written to the sub-array has nothing to do with the original array:
+
+.. code-block:: pycon
+
+  >>> array = np.arange(100, 106)
+  >>> new_array = array[slct]
+  >>> new_array = -10
+  >>> print("original array remains unchanged:", array)
+  original array remains unchanged: [100 101 102 103 104 105]
+
+But don't be confused with the following code, which changes the original
+arrays by calling :py:meth:`~python:object.__setitem__`:
+
+.. code-block:: pycon
+
+  >>> array = np.arange(100, 106)
+  >>> array[slct] = -10
+  >>> print("directly change the original array:", array)
+  directly change the original array: [100 -10 102 -10 104 105]
+
+.. note::
+
+  ``array[key]`` invokes :py:meth:`~python:object.__getitem__`, while
+  ``array[key] = value`` invokes :py:meth:`~python:object.__setitem__`.
+
+Index arrays work with multi-dimensional arrays.  If the index array is
+one-dimensional and the original array is two-dimensional, the resulting array
+will be two-dimensional:
+
+.. code-block:: pycon
+
+  >>> array2 = np.arange(100, 106).reshape((2, 3))
   >>> slct = np.array([1])
+  >>> print(array2[slct].shape)
+  (1, 3)
   >>> print("select by indice 1:", array2[slct])
   select by indice 1: [[103 104 105]]
+
+To get one-dimensional output, create a two-dimensional array and feed it to
+:py:meth:`~python:object.__getitem__` in different axis:
+
+.. code-block:: pycon
+
   >>> slct = np.array([[0,0], [0,1], [1,2]])
   >>> print("select by indice (0,0), (0,1), (1,2):", array2[slct[:,0], slct[:,1]],
   ...       "using", slct)
@@ -640,45 +1091,84 @@ Integer Indexing
    [1 2]]
 
 Boolean Selection
-+++++++++++++++++
+-----------------
 
-The Boolean arrays filter wanted or unwanted elements in another array.
+The third approach to create sub-arrays is to use a Boolean array (an
+:py:class:`~numpy:numpy.ndarray` of :py:class:`~numpy:numpy.dtype` ``bool``).
+A Boolean array for selection is similar to index arrays.
 
 .. code-block:: pycon
 
+  >>> ranged_array = np.arange(10)
   >>> less_than_5 = ranged_array < 5
   >>> print("The mask for less than 5:", less_than_5)
   The mask for less than 5: [ True  True  True  True  True False False False False False]
   >>> print("The values that are less than 5", ranged_array[less_than_5])
   The values that are less than 5 [0 1 2 3 4]
-  >>>
+
+Unlike index array, Boolean array cannot make arrays larger than the original
+one.  The most we can get is to select all elements from the original:
+
+.. code-block:: pycon
+
   >>> all_on_mask = np.ones(10, dtype='bool')
   >>> print("All on mask:", all_on_mask)
   All on mask: [ True  True  True  True  True  True  True  True  True  True]
-  >>>
+  >>> print(ranged_array[all_on_mask].shape)
+  (10,)
+  >>> print("Everything:", ranged_array[all_on_mask])
+  Everything: [0 1 2 3 4 5 6 7 8 9]
+
+If the mask is all-false, the resulting array will have zero length:
+
+.. code-block:: pycon
+
   >>> all_off_mask = np.zeros(10, dtype='bool')
   >>> print("All off mask:", all_off_mask)
   All off mask: [False False False False False False False False False False]
+  >>> print(ranged_array[all_off_mask].shape)
+  (0,)
+  >>> print("Nothing:", ranged_array[all_off_mask])
+  Nothing: []
+
+In the same way as index array, Boolean array always copies the original array:
+
+.. code-block:: pycon
+
+  >>> new_array = ranged_array[all_on_mask]
+  >>> new_array[:] = -1
+  >>> print(ranged_array)
+  [0 1 2 3 4 5 6 7 8 9]
+
+:py:meth:`~python:object.__setitem__` may also take a Boolean array to set the
+original array:
+.. code-block:: pycon
+
+  >>> ranged_array[all_on_mask] = -1
+  >>> print(ranged_array)
+  [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1]
 
 Broadcasting
 ++++++++++++
 
-:ref:`Broadcasting <numpy:ufuncs.broadcasting>` handles arrays of different
-shapes participating in an operation.
-
-1. All input arrays with number of dimension smaller than the input array of largest number of dimension, have 1’s prepended to their shapes.
-2. The size in each dimension of the output shape is the maximum of all the input sizes in that dimension.
-3. An input can be used in the calculation if its size in a particular dimension either matches the output size in that dimension, or has value exactly 1.
-4. If an input has a dimension size of 1 in its shape, the first data entry in that dimension will be used for all calculations along that dimension.
+Array arithmetic usually requires the participating arrays to have the same
+shape:
 
 .. code-block:: pycon
 
-  >>> a = np.arange(2); print("a =", a)
+  >>> a = np.arange(2)
+  >>> print("a =", a)
   a = [0 1]
-  >>> b = np.arange(10,12); print("b =", b)
+  >>> b = np.arange(10,12):
+  >>> print("b =", b)
   b = [10 11]
   >>> print("a+b =", a+b) # good: same shape
   a+b = [10 12]
+
+When two arrays have different shapes, the operation fails:
+
+.. code-block:: pycon
+
   >>> c = np.arange(3); print("c =", c)
   c = [0 1 2]
   >>> print(a+c) # bad: different shape
@@ -686,22 +1176,53 @@ shapes participating in an operation.
     File "<stdin>", line 1, in <module>
   ValueError: operands could not be broadcast together with shapes (2,) (3,)
 
+But :ref:`broadcasting <numpy:ufuncs.broadcasting>` may make arrays of
+different shapes participate in one operation.  For example, set up two arrays
+of shapes ``2x1`` and ``1x3``, respectively:
+
 .. code-block:: pycon
 
   >>> a = np.arange(5,7).reshape((2,1))
-  >>> b = np.arange(10,13).reshape((1,3))
   >>> print("a:\n%s, shape=%s" % (a, a.shape))
   a:
   [[5]
    [6]], shape=(2, 1)
+  >>> b = np.arange(10,13).reshape((1,3))
   >>> print("b:\n%s, shape=%s" % (b, b.shape))
   b:
   [[10 11 12]], shape=(1, 3)
+
+Now the two array of different shapes may add:
+
+.. code-block:: pycon
+
+  >>> r = a+b
+  >>> print("a+b:\n%s, shape=%s" % (r, r.shape))
+  a+b:
+  [[15 16 17]
+   [16 17 18]], shape=(2, 3)
+
+and multiply:
+
+.. code-block:: pycon
+
   >>> r = a*b
   >>> print("a*b:\n%s, shape=%s" % (r, r.shape))
   a*b:
   [[50 55 60]
    [60 66 72]], shape=(2, 3)
+
+:ref:`Broadcasting <numpy:ufuncs.broadcasting>` uses the following rules:
+
+1. All input arrays with number of dimension smaller than the input array of
+   largest number of dimension, have 1’s prepended to their shapes.
+2. The size in each dimension of the output shape is the maximum of all the
+   input sizes in that dimension.
+3. An input can be used in the calculation if its size in a particular
+   dimension either matches the output size in that dimension, or has value
+   exactly 1.
+4. If an input has a dimension size of 1 in its shape, the first data entry in
+   that dimension will be used for all calculations along that dimension.
 
 .. note::
 
@@ -712,6 +1233,10 @@ shapes participating in an operation.
 
 Python Tools for Numerical Analysis
 ===================================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 There are two equally important activities for software development.  One is to
 write code.  We will need to learn some basic concepts to write meaningful
@@ -728,6 +1253,10 @@ you may use throughout the course and your future work.
 
 Drawing Using Matplotlib
 ++++++++++++++++++++++++
+
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
 
 `Matplotlib <https://matplotlib.org>`__ is a library for 2D plotting.  It can
 be used standalone or integrated with Jupyter notebook.
@@ -791,6 +1320,10 @@ https://matplotlib.org/gallery/lines_bars_and_markers/multicolored_line.html#sph
 Linear Algebra with Numpy
 +++++++++++++++++++++++++
 
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
 Numpy provides wrappers for BLAS and LAPACK and can readily be used for solving
 linear systems.  For example, consider the system:
 
@@ -815,6 +1348,10 @@ See also :doc:`numpy:references/routines.linalg`.
 Package Managers
 ++++++++++++++++
 
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
 To write code we need a runtime environment that has the dependency software
 installed.  Although manually building all the dependencies from source is
 sometimes unavoidable, it's too time-consuming to do it always.
@@ -836,7 +1373,7 @@ of packages:
 
 In addition to conda, `pip <https://pip.pypa.io/>`__ is another popular choice.
 pip is the package installer for Python.  You can use pip to install packages
-from the `Python Package Index <https://pypi.org/`__ and other indexes.
+from the `Python Package Index <https://pypi.org/>`__ and other indexes.
 
 Exercises
 =========
@@ -852,8 +1389,8 @@ Exercises
 References
 ==========
 
-.. [1] [Broadcasting arrays in
-   Numpy](https://eli.thegreenplace.net/2015/broadcasting-arrays-in-numpy/) by
-   Eli Bendersky
+.. [1] `Broadcasting arrays in Numpy
+   <https://eli.thegreenplace.net/2015/broadcasting-arrays-in-numpy/>`__ by Eli
+   Bendersky
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

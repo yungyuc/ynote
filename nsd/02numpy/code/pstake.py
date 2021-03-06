@@ -808,4 +808,4 @@ if HAS_SPHINX:
 if __name__ == '__main__':
     sys.exit(main())
 
-# vim: set et sw=4 ts=4 tw=79:
+# vim: set ff=unix fenc=utf8 ft=python et sw=4 ts=4 sts=4 tw=79:

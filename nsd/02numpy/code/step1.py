@@ -1,7 +1,6 @@
 """
-At step 1, the script is made into a module, so that when it is imported as a
-module the code doesn't get executed immediately. But we are not totally sure
-how to the interface should be exposed at this point.
+The line-counting code is made as a module, so that when it is imported as a
+module the code doesn't get executed immediately.
 """
 
 
@@ -33,3 +32,5 @@ if __name__ == '__main__':
         sys.stdout.write('only one argument is allowed\n')
     else:
         count_line(sys.argv[1])
+
+# vim: set ff=unix fenc=utf8 ft=python et sw=4 ts=4 sts=4 tw=79:
