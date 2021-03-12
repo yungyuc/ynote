@@ -9,3 +9,4 @@ int main(int, char **)
     std::cout << "x \\dot y = " << cblas_ddot(2, vx, 1, vy, 1) << std::endl;
     return 0;
 }
+// vim: set sw=4 ts=4 sts=4 et:

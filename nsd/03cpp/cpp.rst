@@ -2,67 +2,94 @@
 C++ and Computer Architecture
 =============================
 
-C++ is particularly difficult to learn and use.  There were attempts to invent
-an easier language running equally fast for numerical calculation, but they
-were not very close to success.
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
 
-Two reasons render the new-language approach incomplete.  The first one is
-speed.  It's just difficult to invent something that is as fast as C++ in all
-aspects.  C++ is compatible to the language of operating system and accesses
-assembly easily.  Other languages may outperform C++ in some occasions, but not
-most.
+C++ is particularly difficult, but it is still a preferred language to
+implement the numerical methods for speed.
+
+There are attempts to invent an easier language running equally fast for
+numerical calculation, but they are not very close to success.  There are two
+reasons.  The first is speed.  C++ is able to resort to assembly in a flexible
+way, and almost always can be optimized to obtain the best performance from the
+hardware.
 
 The second is maintenance.  A numerical system usually takes years to develop.
 When proven useful, it will be maintained for decades.  Such a long-living
-system needs a lot of support from the compiler, which is offered by C++.
+system needs extensive support from the compiler.  C++ offers it.
 
 Compile and Link
 ================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Compiler is a complex system.  The most common way to use it is to execute the
 compiler driver from the command-line.  For example, of GCC, the C++ compiler
-driver is ``g++``.  It accepts a lot of command-line arguments.  But the
-simplest for is to supply an input and an output.
+driver is ``g++``.  It accepts a lot of command-line arguments.  The simplest
+for is to supply an input and an output.
+
+Before run the compiler, assume the program file is:
+
+.. literalinclude:: code/helloworld.cpp
+  :name: nsd-cpp-example-helloworld-cpp
+  :caption:
+    A complete C++ file (:download:`helloworld.cpp <code/helloworld.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Run the compiler:
 
 .. code-block:: console
-  :caption: Make a binary executable
-  :linenos:
 
   $ g++ helloworld.cpp -o helloworld
+
+A binary named ``helloworld`` is produced by using the command-line argument
+``-o``.  The binary contains the executable code:
+
+.. code-block:: console
+
   $ ./helloworld
   hello, world
 
-When running the compiler with the argument ``-c``, it takes the source code and
-output the object file.  The object file contains the machine code, but doesn't
-include the functions not defined in the source file.
+The ``g++`` command does two things: compilation and then `linking
+<https://www.linuxjournal.com/article/6463>`__.  When running the compiler with
+the argument ``-c``, it performs only the compiling part to take the source
+code and output the object file.  The object file contains the machine code,
+but doesn't include the functions not defined in the source file.
 
-The argument ``-o`` is used to specify the output file name.
+.. admonition:: Useful tool: compiler explorer
+
+  When you want to test any code snippets or any command-line arguments in any
+  compilers on any platforms, check the compiler explorer website:
+  https://godbolt.org.
+
+The argument ``-o`` is also used to specify the output object file name:
 
 .. code-block:: console
-  :caption: Compile source file to object file
-  :linenos:
 
   $ g++ -c helloworld.cpp -o helloworld.o
   $ file helloworld.o
   helloworld.o: Mach-O 64-bit object x86_64
 
-An object file contains the compiled assembly code, but it may not be directly
-executed.
+Although an object file contains the compiled code, it may not be directly
+executed, because it is not linked yet:
 
 .. code-block:: console
-  :caption: Object file isn't executable yet
-  :linenos:
 
   $ chmod a+x helloworld.o
   $ ./helloworld.o
   -bash: ./helloworld.o: cannot execute binary file
+  $ file helloworld.o
+  helloworld.o: Mach-O 64-bit object x86_64
 
 By dropping the ``-c`` argument, and supplying the object file as the input,
-``g++`` will link the object file and necessary libraries into the executable.
+``g++`` will link the object file and necessary libraries into the executable:
 
 .. code-block:: console
-  :caption: Link into executable; dropping ``-c``
-  :linenos:
 
   $ g++ helloworld.o -o helloworld2
   $ file helloworld2
@@ -73,29 +100,36 @@ By dropping the ``-c`` argument, and supplying the object file as the input,
 Separate Compilation Units
 ++++++++++++++++++++++++++
 
-In a larger project, it is common to separate the declaration of functions to a
-header file.  The implementation of functions is in in the implementation file.
-Usually, a header file uses the extension name ``.h``, ``.hxx``, or ``.hpp``.
-An implementation file uses ``.cc``, ``.cxx``, or ``.cpp``.
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
+In a larger project, it is common to separate the declaration of functions to
+header files.  The code implementing the functions is put in the so-called
+implementation files.  Usually a header file uses the extension name ``.h``,
+``.hxx``, or ``.hpp``:
 
 .. literalinclude:: code/hello.hpp
-  :caption: Header file ``hello.hpp``
+  :name: nsd-cpp-example-hello-hpp
   :language: cpp
   :linenos:
   :end-before: // vim: set
+
+An implementation file uses ``.cc``, ``.cxx``, or ``.cpp``:
 
 .. literalinclude:: code/hello.cpp
-  :caption: Implementation file ``hello.cpp``
+  :name: nsd-cpp-example-hello-cpp
   :language: cpp
   :linenos:
   :end-before: // vim: set
 
-Because there is no ``main()`` defined in ``hello.cpp``, it cannot be built as
-a binary executable.
+Worker Code
+-----------
+
+Because the ``main()`` function is not defined in ``hello.cpp``, the file
+cannot be built as a binary executable:
 
 .. code-block:: console
-  :caption: There's no ``main()``; cannot link
-  :linenos:
 
   $ g++ hello.cpp -o hello
   Undefined symbols for architecture x86_64:
@@ -107,27 +141,24 @@ a binary executable.
 We need to build the object file using ``-c``.
 
 .. code-block:: console
-  :caption: There's no ``main()``; cannot link
-  :linenos:
 
   $ g++ -c hello.cpp -o hello
 
-.. rubric:: Main Program
+Main Program
+------------
 
-The separated header file allows us to put the function ``main()`` in another file.
+The function ``main()`` is implemented in another file ``hellomain.cpp``:
 
 .. literalinclude:: code/hellomain.cpp
-  :caption: Implementation file for ``main()``
+  :name: nsd-cpp-example-hellomain-cpp
   :language: cpp
   :linenos:
   :end-before: // vim: set
 
 If trying to build a binary executable solely with this file, we will receive a
-different linking error.
+different linking error:
 
 .. code-block:: console
-  :caption: Cannot link without ``hello()``
-  :linenos:
 
   $ g++ hellomain.cpp -o hellomain.o
   Undefined symbols for architecture x86_64:
@@ -136,38 +167,47 @@ different linking error.
   ld: symbol(s) not found for architecture x86_64
   clang: error: linker command failed with exit code 1 (use -v to see invocation)
 
-Building to object file is not a problem.
+We should also build ``hellomain.cpp`` as an object file:
 
 .. code-block:: console
-  :caption: Build object file and then link
-  :linenos:
 
   # hellomain.cpp also needs to be built as an object file
   $ g++ -c hellomain.cpp -o hellomain.o
-  # Link into executable
+
+Link Object Files
+-----------------
+
+Now we have two object files and we can call ``g++`` to link them to an
+executable and run it:
+
+.. code-block:: console
+
   $ g++ hello.o hellomain.o -o hellomain
-  # Then it can run
   $ ./hellomain
   hello with standalone compiling unit
 
 Include Syntax
 ++++++++++++++
 
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
 The directive ``#include`` may use two delimiters: ``""`` or ``<>``.  The
-former will search for the include file in the current directory and then the
-system directories.  The latter will search only in the system directories.
+former (see :ref:`above <nsd-cpp-example-hellomain-cpp>`) will search for the
+include file in the current directory and then the system directories.  The
+latter will search only in the system directories:
 
 .. literalinclude:: code/hellomain_sys.cpp
-  :caption: System include
+  :name: nsd-cpp-example-hellomain-sys-cpp
   :language: cpp
   :linenos:
   :end-before: // vim: set
 
-The above file cannot be built with the same command line.
+Since the *current directory* is not a system-search directory for the include
+file, the above file cannot be built with the same command line:
 
 .. code-block:: console
-  :caption: The ``<angled>`` include does not check the current directory
-  :linenos:
 
   $ g++ -c hellomain.cpp -o hellomain.o
   hellomain_sys.cpp:1:10: error: 'hello.hpp' file not found with <angled> include; use "quotes" instead
@@ -175,42 +215,150 @@ The above file cannot be built with the same command line.
            ^~~~~~~~~~~
            "hello.hpp"
 
-We need to tell the compiler frontend to search in the current directory by using ``-I.``.
+We need to tell the compiler frontend to search in the current directory by
+using ``-I.``:
 
 .. code-block:: console
-  :caption: The ``<angled>`` include does not check the current directory
-  :linenos:
 
   $ g++ -I. -c hellomain.cpp -o hellomain.o
 
-Static Library
-++++++++++++++
+Make Static Library
++++++++++++++++++++
+
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
+If we have multiple object files, they can be combined into a static library
+for linking later.  The following example uses the only object file we have to
+show how to do it:
 
 .. code-block:: console
-  :linenos:
+
+  $ g++ -c hello.cpp -o hello.o
+  $ ar rcs libhello.a hello.o
+
+To use the library file, tell ``g++`` using ``-l`` followed by the library name
+``hello``.  The path to search for the library files should be supplied with
+``-L`` followed by the path.
+
+.. code-block:: console
 
   $ g++ -c hellomain.cpp -o hellomain.o
-  $ ar rcs libhello.a hello.o
   $ g++ hellomain.o -L. -lhello -o hellomain2
+  $ ./hellomain2
+  hello with standalone compiling unit
 
-Shared Object
-+++++++++++++
+Make Shared Object
+++++++++++++++++++
+
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
+A shared object is a library that is linked when the program binary is loaded,
+not when it is built.  It is also called dynamically linked library (DLL).
+Before making a shared object, we need to tell the compiler to generate the
+position-independent code (PIC) with the command-line option ``-fPIC``:
 
 .. code-block:: console
-  :linenos:
 
   $ g++ -c -fPIC hello.cpp -o hello_pic.o
-  $ g++ -shared hello_pic.o -o libshared_hello.so
-  $ g++ hellomain.o -L. -lshared_hello -o hellomain3
+
+Then use ``-shared`` to create the shared object, which usually has the
+extension name ``.so``:
 
 .. code-block:: console
-  :linenos:
 
-  $ make distance
-  g++ distance.cpp -o distance -lcblas
+  $ g++ -shared hello_pic.o -o libshared_hello.so
+
+Then link to create the executable binary:
+
+.. code-block:: console
+
+  $ g++ hellomain.o -L. -lshared_hello -o hellomain3
+  $ ./hellomain3
+  hello with standalone compiling unit
+
+Compare the binary generated with linking statically and dynamically.  The
+latter is smaller than the former.
+
+.. code-block:: console
+
+  $ ls -l hellomain2 hellomain3
+  -rwxr-xr-x  1 yungyuc  staff  56000 Mar 12 14:43 hellomain2*
+  -rwxr-xr-x  1 yungyuc  staff  49432 Mar 12 14:43 hellomain3*
+
+Use Existing Library
+++++++++++++++++++++
+
+Usually we will use libraries that is prepared by someone else (third-party).
+In the following example, the code includes the header file (which is assumed
+to be in the header file search paths) for the `BLAS
+<http://www.netlib.org/blas/>`__ library:
+
+.. literalinclude:: code/distance.cpp
+  :name: nsd-cpp-example-distance-cpp
+  :caption:
+    Example code using `BLAS <http://www.netlib.org/blas/>`__
+    (:download:`distance.cpp <code/distance.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Although the compiler recognizes the functions declared in the header file
+``cblas.h``, the linker does not see it in object file:
+
+.. code-block:: console
+
+  $ g++ distance.cpp -o distance
+  Undefined symbols for architecture x86_64:
+    "_cblas_ddot", referenced from:
+        _main in distance-903338.o
+  ld: symbol(s) not found for architecture x86_64
+  clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+We need to tell the linker to link the library ``cblas`` (which is also assumed
+to be in the library search paths):
+
+.. code-block:: console
+
+  $ g++ distance.cpp -o distance -lcblas
+  $ ./distance
+  x = (1, 2)
+  y = (-2, 1)
+  x \dot y = 0
+
+.. note::
+
+  We are also responsible for making sure the header file and library file are
+  reachable by the compiler and linker.  The compiler shows error when not
+  finding the header file:
+
+  .. code-block:: console
+    :caption: Error message of missing header file
+
+    $ g++ distance.cpp -o distance
+    distance.cpp:2:10: fatal error: 'cblas.h' file not found
+    #include <cblas.h>
+             ^~~~~~~~~
+    1 error generated.
+
+  The linker error:
+
+  .. code-block:: console
+    :caption: Error message of missing library file
+
+    $ g++ distance.cpp -o distance -lcblas
+    ld: library not found for -lcblas
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
 
 C++ Integer Types
 =================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Width of the fundamental types is specified by the standard to assist writing
 portable code.
@@ -275,7 +423,7 @@ You can check the number of bytes of each of types using the example code
   sizeof(uint64_t): 8
 
 Signness
-========
+++++++++
 
 Care should be taken when signed and unsigned integers are both used in code.
 Comparison result between signed and unsigned integers is sometimes surprising.
@@ -315,6 +463,10 @@ It's such a common mistake that compiler provides a check.
 Pointer and Array Indexing
 ==========================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Example code.
 
 .. literalinclude:: code/arrays.cpp
@@ -342,6 +494,10 @@ Execution results:
 
 Floating-Point Value
 ====================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 x86 architecture follows the IEEE 754-1985 standard for floating-point.  A
 floating-point value uses 3 fields to represent: sign, exponent (biased)
@@ -520,6 +676,10 @@ Execution results:
 
 Object-Oriented Programming
 ===========================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Object-oriented programming (OOP) allows us to organize data with logic.  The
 organized entities are called objects.  The point of using OOP is to make it
@@ -777,8 +937,197 @@ Execution results:
   point 1: x = 1 y = 3
   point 2: x = 2 y = 5
 
+Standard Template Library (STL)
+===============================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Containers are essential to data processing.  The STL provides efficient
+implementation of commonly used containers.  They can be grouped in 3
+categories:
+
+1. Sequence containers: ``std::vector``, ``std::array``, ``std::list``,
+   ``std::forward_list``, ``std::deque``.
+2. Associative containers: ``std::map``, ``std::set``, ``std::multimap``,
+   ``std::multiset``.
+3. Unordered associated containers: ``std::unordered_map``,
+   ``std::unordered_set``, ``std::unordered_multimap``,
+   ``std::unordered_multiset``.
+
+We will make a quick recapitulation for those we always use in numerical code:
+``std::vector``, ``std::array``, ``std::list``, ``std::map``, ``std::set``,
+``std::unordered_map``, ``std::unordered_set``.
+
+``std::vector``
++++++++++++++++
+
+``std::vector`` is one of the most useful STL containers.  Whenever thinking of
+using one-dimensional, variable-length arrays, we should consider whether or
+not ``std::vector`` may be applicable.
+
+.. literalinclude:: code/vector.cpp
+  :caption: Example code for ``std::vector``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ vector.cpp -o vector --std=c++11
+  $ ./vector
+  sizeof(std::vector<int>) = 24
+  sizeof(std::vector<double>) = 24
+  sizeof(std::vector<std::vector<double>>) = 24
+  vec1 indices [20-25):
+    1020
+    1021
+    1022
+    1023
+    1024
+  out of range exception: vector
+  vec1 modified:
+    1020
+    1021
+    500
+    600
+    1024
+  &data.at(0) = 0x7fa868405c40
+  &data.at(0) = 0x7fa868406150
+  oops, address changes
+
+``std::array``
+++++++++++++++
+
+The class template ``array`` provides a type-safe alternate to C-style
+fixed-size arrays.
+
+.. literalinclude:: code/array.cpp
+  :caption: Example code for ``std::array``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ array.cpp -o array --std=c++11
+  $ ./array
+  sizeof(std::array<int, 3>) = 12
+  sizeof(std::array<int, 10>) = 40
+  arr1:
+    100
+    101
+    102
+
+``std::list``
++++++++++++++
+
+STL ``list`` supports constant time insertion and deletion of elements.  Unlike
+``vector``, iterators and references to an element in a ``list`` don't get
+invalidated by adding or removing other elements.  The price to pay, however,
+is the slow random access.
+
+``std::list`` is usually implemented as a doubly-linked list.
+
+.. literalinclude:: code/list.cpp
+  :caption: Example code for ``std::list``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ list.cpp -o list --std=c++11
+  $ ./list
+  lst1: 100 101 102
+  lst2: 202 201 200
+  lst2 (modified): 202 301 200
+  lst1 (after splice): 100
+  lst2 (after splice): 202 301 101 102 200
+
+``std::map`` and ``std::set``
++++++++++++++++++++++++++++++
+
+STL ``map`` is an ordered container for key-value pairs.  The keys are unique
+and don't allow duplication.  ``map`` is usually implemented as a red-black
+tree.
+
+STL ``set`` is a unique key container.  Like ``map``, it's usually implemented
+as a red-black tree.
+
+.. literalinclude:: code/map.cpp
+  :caption: Example code for ``std::map`` and ``std::set``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ map.cpp -o map --std=c++11
+  $ ./map
+  map1: (1,1) (2,0.5) (3,0.333333) (4,0.25) (5,0.2)
+  map1 has key 3
+  map1 does not have key 6
+  set1: 1 2 3 4 5
+  set1 has key 3
+  set1 does not have key 6
+
+``std::unordered_map`` and ``std::unordered_set``
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+STL ``unordered_map`` is also a container for key-value pairs.  While the keys
+are unique and don't allow duplication, they do not have order.
+``unordered_map`` is usually implemented using hash table.
+
+Search, insertion, and removal of elements in an ``unordered_map`` have
+constant time complexity.  On the other hand, those in a ``map`` have
+logarithmic time complexity.  While ``unordered_map`` usually offers faster
+runtime than ``map``, it tends to use more memory since red-black trees is very
+efficient in memory usage.
+
+Like ``set`` is a valueless version of ``map``, ``unordered_map`` also has a
+valueless version called ``unordered_set``.  STL ``unordered_set``, like
+``unordered_map``, is usually implemented using hash table.
+
+.. literalinclude:: code/unordered_map.cpp
+  :caption: Example code for ``std::unordered_map`` and ``std::unordered_set``
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+Execution results:
+
+.. code-block:: console
+  :linenos:
+
+  $ g++ unordered_map.cpp -o unordered_map --std=c++11
+  $ ./unordered_map
+  map1: (1,1) (2,0.5) (3,0.333333) (4,0.25) (5,0.2)
+  map1 has key 3
+  map1 does not have key 6
+  set1: 1 2 3 4 5
+  set1 has key 3
+  set1 does not have key 6
+
 Polymorphism
 ============
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 In C++, when a class has any member function that is virtual, it is
 polymorphic.  C++ compiler knows the object is polymorphic, and uses the type
@@ -905,7 +1254,7 @@ Therefore in high-performance numerical code we use polymorphism with great
 caution.
 
 Curiously Recursive Template Pattern (CRTP)
-===========================================
++++++++++++++++++++++++++++++++++++++++++++
 
 If we want to make a class hierarchy polymorphic without the runtime overhead,
 CRTP helps.  Usually the word polymorphism means _dynamic_ polymorphism, as we
@@ -991,187 +1340,6 @@ Execution results:
   sizeof(PolarPoint) = 8
   CartesianPoint(1,1)::dist() = 1.41421
   PolarPoint(1, pi/4)::dist() = 1
-
-Standard Template Library (STL)
-===============================
-
-Containers are essential to data processing.  The STL provides efficient
-implementation of commonly used containers.  They can be grouped in 3
-categories:
-
-1. Sequence containers: ``std::vector``, ``std::array``, ``std::list``,
-   ``std::forward_list``, ``std::deque``.
-2. Associative containers: ``std::map``, ``std::set``, ``std::multimap``,
-   ``std::multiset``.
-3. Unordered associated containers: ``std::unordered_map``,
-   ``std::unordered_set``, ``std::unordered_multimap``,
-   ``std::unordered_multiset``.
-
-We will make a quick recapitulation for those we always use in numerical code:
-``std::vector``, ``std::array``, ``std::list``, ``std::map``, ``std::set``,
-``std::unordered_map``, ``std::unordered_set``.
-
-``std::vector``
-===============
-
-``std::vector`` is one of the most useful STL containers.  Whenever thinking of
-using one-dimensional, variable-length arrays, we should consider whether or
-not ``std::vector`` may be applicable.
-
-.. literalinclude:: code/vector.cpp
-  :caption: Example code for ``std::vector``
-  :language: cpp
-  :linenos:
-  :end-before: // vim: set
-
-Execution results:
-
-.. code-block:: console
-  :linenos:
-
-  $ g++ vector.cpp -o vector --std=c++11
-  $ ./vector
-  sizeof(std::vector<int>) = 24
-  sizeof(std::vector<double>) = 24
-  sizeof(std::vector<std::vector<double>>) = 24
-  vec1 indices [20-25):
-    1020
-    1021
-    1022
-    1023
-    1024
-  out of range exception: vector
-  vec1 modified:
-    1020
-    1021
-    500
-    600
-    1024
-  &data.at(0) = 0x7fa868405c40
-  &data.at(0) = 0x7fa868406150
-  oops, address changes
-
-``std::array``
-==============
-
-The class template ``array`` provides a type-safe alternate to C-style
-fixed-size arrays.
-
-.. literalinclude:: code/array.cpp
-  :caption: Example code for ``std::array``
-  :language: cpp
-  :linenos:
-  :end-before: // vim: set
-
-Execution results:
-
-.. code-block:: console
-  :linenos:
-
-  $ g++ array.cpp -o array --std=c++11
-  $ ./array
-  sizeof(std::array<int, 3>) = 12
-  sizeof(std::array<int, 10>) = 40
-  arr1:
-    100
-    101
-    102
-
-``std::list``
-=============
-
-STL ``list`` supports constant time insertion and deletion of elements.  Unlike
-``vector``, iterators and references to an element in a ``list`` don't get
-invalidated by adding or removing other elements.  The price to pay, however,
-is the slow random access.
-
-``std::list`` is usually implemented as a doubly-linked list.
-
-.. literalinclude:: code/list.cpp
-  :caption: Example code for ``std::list``
-  :language: cpp
-  :linenos:
-  :end-before: // vim: set
-
-Execution results:
-
-.. code-block:: console
-  :linenos:
-
-  $ g++ list.cpp -o list --std=c++11
-  $ ./list
-  lst1: 100 101 102
-  lst2: 202 201 200
-  lst2 (modified): 202 301 200
-  lst1 (after splice): 100
-  lst2 (after splice): 202 301 101 102 200
-
-``std::map`` and ``std::set``
-=============================
-
-STL ``map`` is an ordered container for key-value pairs.  The keys are unique
-and don't allow duplication.  ``map`` is usually implemented as a red-black
-tree.
-
-STL ``set`` is a unique key container.  Like ``map``, it's usually implemented
-as a red-black tree.
-
-.. literalinclude:: code/map.cpp
-  :caption: Example code for ``std::map`` and ``std::set``
-  :language: cpp
-  :linenos:
-  :end-before: // vim: set
-
-Execution results:
-
-.. code-block:: console
-  :linenos:
-
-  $ g++ map.cpp -o map --std=c++11
-  $ ./map
-  map1: (1,1) (2,0.5) (3,0.333333) (4,0.25) (5,0.2)
-  map1 has key 3
-  map1 does not have key 6
-  set1: 1 2 3 4 5
-  set1 has key 3
-  set1 does not have key 6
-
-``std::unordered_map`` and ``std::unordered_set``
-=================================================
-
-STL ``unordered_map`` is also a container for key-value pairs.  While the keys
-are unique and don't allow duplication, they do not have order.
-``unordered_map`` is usually implemented using hash table.
-
-Search, insertion, and removal of elements in an ``unordered_map`` have
-constant time complexity.  On the other hand, those in a ``map`` have
-logarithmic time complexity.  While ``unordered_map`` usually offers faster
-runtime than ``map``, it tends to use more memory since red-black trees is very
-efficient in memory usage.
-
-Like ``set`` is a valueless version of ``map``, ``unordered_map`` also has a
-valueless version called ``unordered_set``.  STL ``unordered_set``, like
-``unordered_map``, is usually implemented using hash table.
-
-.. literalinclude:: code/unordered_map.cpp
-  :caption: Example code for ``std::unordered_map`` and ``std::unordered_set``
-  :language: cpp
-  :linenos:
-  :end-before: // vim: set
-
-Execution results:
-
-.. code-block:: console
-  :linenos:
-
-  $ g++ unordered_map.cpp -o unordered_map --std=c++11
-  $ ./unordered_map
-  map1: (1,1) (2,0.5) (3,0.333333) (4,0.25) (5,0.2)
-  map1 has key 3
-  map1 does not have key 6
-  set1: 1 2 3 4 5
-  set1 has key 3
-  set1 does not have key 6
 
 Exercises
 =========
