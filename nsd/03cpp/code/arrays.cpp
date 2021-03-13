@@ -2,9 +2,13 @@
 #include <cstdint>
 int main(int, char **)
 {
+    // C-style POD array.
     int32_t data[100];
+    // Make a pointer to the head address of the array.
     int32_t * pdata = data;
+    // Make another pointer to the 50-th element from the head of the array.
     int32_t * odata = pdata + 50;
+    // Initialize the array.
     for (size_t it=0; it<100; ++it) { data[it] = it + 5000; }
     std::cout << "data[10]: " << data[10] << std::endl;
     std::cout << "pdata[10]: " << pdata[10] << std::endl;

@@ -360,22 +360,59 @@ C++ Integer Types
   :local:
   :depth: 1
 
-Width of the fundamental types is specified by the standard to assist writing
-portable code.
+Basic Integer Types
++++++++++++++++++++
 
-* Boolean types: ``bool``
-* Integer (signed) types: ``short`` (16+ bits), ``int`` (16+ bits), ``long``
-  (32+ bits), ``long long`` (64+ bits)
+Width of `the fundamental types
+<https://en.cppreference.com/w/cpp/language/types>`__ is specified by the
+standard to assist writing portable code.
 
-  * Unsigned integer: ``unsigned short`` (16+ bits), ``unsigned int`` (16+
-    bits), ``unsigned long`` (32+ bits), ``unsigned long long`` (64+ bits)
-* Character type: ``char``, ``unsigned char`` (8 bits)
+.. list-table:: Integer size in C++ standard
+  :header-rows: 1
+  :align: center
+
+  * - Type
+    - Name
+    - Width
+  * - Boolean
+    - ``bool``
+    -
+  * - Signed integer
+    - ``short``
+    - at least 16 bits
+  * -
+    - ``int``
+    - at least 16 bits
+  * -
+    - ``long``
+    - at least 32 bits
+  * -
+    - ``long long``
+    - at least 64 bits
+  * - Unsigned integer
+    - ``unsigned short``
+    - at least 16 bits
+  * -
+    - ``unsigned int``
+    - at least 16 bits
+  * -
+    - ``unsigned long``
+    - at least 32 bits
+  * -
+    - ``unsigned long long``
+    - at least 64 bits
+  * - Character
+    - ``char``
+    - 8 bits
+  * - Unsigned character
+    - ``unsigned char``
+    - 8 bits
 
 You can check the number of bytes of each of types using the example code
-:download:`types.cpp <code/types.cpp>`:
+:ref:`types.cpp <nsd-cpp-example-types-cpp>`:
 
 .. code-block:: console
-  :linenos:
+  :caption: Size of C++ integer types
 
   $ g++ types.cpp -o types
   $ ./types
@@ -394,21 +431,49 @@ You can check the number of bytes of each of types using the example code
 Fixed-Width Integer Types
 +++++++++++++++++++++++++
 
-The C++ standard library provides the fixed-width (bit) integer types which are
-the same as C in the header file `<cstdint>`:
+The C++ standard library provides the `fixed-width (bit) integer types
+<https://en.cppreference.com/w/cpp/types/integer>`__ which are the same as C in
+the header file `<cstdint>`.  Fixed width matters for numerical code more than
+hardware architecture does.  It's easier for numerical code to break by changed
+width of indexing integer than by changed addressing space.
 
-* Signed integer: ``int8_t``, ``int16_t``, ``int32_t``, ``int64_t``.
-* Unsigned integer: ``uint8_t``, ``uint16_t``, ``uint32_t``, ``uint64_t``.
 
-Fixed width matters for numerical code more than hardware architecture does.
-It's easier for numerical code to break by changed width of indexing integer
-than by changed addressing space.
+.. list-table:: Fixed-width integer size in C++ standard
+  :header-rows: 1
+  :align: center
+
+  * - Type
+    - Name
+    - Width
+  * - Signed integer
+    - ``int8_t``
+    - 8 bits / 1 byte
+  * -
+    - ``int16_t``
+    - 16 bits / 2 byte
+  * -
+    - ``int32_t``
+    - 32 bits / 4 byte
+  * -
+    - ``int64_t``
+    - 64 bits / 8 byte
+  * - Unsigned integer
+    - ``uint8_t``
+    - 8 bits / 1 byte
+  * -
+    - ``uint16_t``
+    - 16 bits / 2 byte
+  * -
+    - ``uint32_t``
+    - 32 bits / 4 byte
+  * -
+    - ``uint64_t``
+    - 64 bits / 8 byte
 
 You can check the number of bytes of each of types using the example code
-:download:`types.cpp <code/cstdint.cpp>`:
+:ref:`cstdint.cpp <nsd-cpp-example-cstdint-cpp>`:
 
 .. code-block:: console
-  :linenos:
 
   $ g++ cstdint.cpp -o cstdint
   $ ./cstdint
@@ -427,20 +492,19 @@ Signness
 
 Care should be taken when signed and unsigned integers are both used in code.
 Comparison result between signed and unsigned integers is sometimes surprising.
-
-The common wisdom advises to not mixing signed and unsigned integer, but in
-numerical code negative indices are commonplace.  Be especially careful about
-the sign.  Check the example code:
+That's see what it is with the example code:
 
 .. literalinclude:: code/signness.cpp
+  :caption:
+    The example for the undesirable effect of mixing signed and unsigned value
+    (:download:`signness.cpp <code/signness.cpp>`)
   :language: cpp
   :linenos:
   :end-before: // vim: set
 
-It gives rather surprising results.
+It shows that the negative value is greater than the positive value:
 
 .. code-block:: console
-  :linenos:
 
   $ g++ signness.cpp -o signness
   $ ./signness
@@ -448,17 +512,23 @@ It gives rather surprising results.
   uint: 1
   sint > uint, although it can't be
 
-It's such a common mistake that compiler provides a check.
+It's such a common mistake that compiler provides a check:
 
 .. code-block:: console
-  :caption: Use ``-Wsign-compare`` or ``-Wall`` to highlight the comparison of signed and unsigned integers
-  :linenos:
 
   $ g++ signness.cpp -o signness -Wsign-compare -Werror
   signness.cpp:9:14: error: comparison of integers of different signs: 'long' and 'unsigned long' [-Werror,-Wsign-compare]
       if (sint > uint) { std::cout << "sint > uint, although it can't be" << std::endl; }
           ~~~~ ^ ~~~~
   1 error generated.
+
+.. note::
+
+  The common wisdom advises to not mixing signed and unsigned integer, but in
+  numerical code negative indices are commonplace.  On the other hand, STL
+  almost always uses unsigned integers for indexing.  It is unavoidable to mix
+  the signed and unsigned integer in some places.  When we are forced to write
+  it, make the reasons very clear in the code.
 
 Pointer and Array Indexing
 ==========================
@@ -467,30 +537,112 @@ Pointer and Array Indexing
   :local:
   :depth: 1
 
-Example code.
-
-.. literalinclude:: code/arrays.cpp
-  :language: cpp
-  :linenos:
-  :end-before: // vim: set
-
-Execution results:
+Integers are used extensively in array indexing.  It wouldn't surprise anyone
+for they are the only thing that can be used to index elements in arrays.  Here
+we use the example of ":ref:`nsd-cpp-example-arrays-cpp`" to explain how they
+are used.  The code is built with:
 
 .. code-block:: console
-  :linenos:
 
   $ g++ arrays.cpp -o arrays -Wall -Wextra -Werror
-  $ ./arrays
+
+The code creates a conventional C-style array :cpp:var:`!data`.  Two pointers
+:cpp:var:`!pdata` and :cpp:var:`!odata` are created for the array.
+
+.. code-block:: cpp
+
+  // C-style POD array.
+  int32_t data[100];
+  // Make a pointer to the head address of the array.
+  int32_t * pdata = data;
+  // Make another pointer to the 50-th element from the head of the array.
+  int32_t * odata = pdata + 50;
+  // Initialize the array.
+  for (size_t it=0; it<100; ++it) { data[it] = it + 5000; }
+
+Both :cpp:var:`!data` "the array" and :cpp:var:`!pdata` "the pointer" work like
+arrays when indexing.  It is shown by printing the 10-th element of
+:cpp:var:`!data` and :cpp:var:`!pdata`:
+
+.. code-block:: cpp
+
+  std::cout << "data[10]: " << data[10] << std::endl;
+  std::cout << "pdata[10]: " << pdata[10] << std::endl;
+
+Both show the same element:
+
+.. code-block:: console
+
   data[10]: 5010
   pdata[10]: 5010
+
+In the other way around, :cpp:var:`!data` works like a pointer:
+
+.. code-block:: cpp
+
+  std::cout << "*(data+20): " << *(data+20) << std::endl;
+  std::cout << "*(pdata+20): " << *(pdata+20) << std::endl;
+
+:cpp:var:`!data` and :cpp:var:`!pdata` point to the same address, and the 20-th
+offset element is the same:
+
+.. code-block:: console
+
   *(data+20): 5020
   *(pdata+20): 5020
+
+Now look at the pointer that is already offset by 50 element, :cpp:var:`!odata`:
+
+.. code-block:: cpp
+
+  std::cout << "data[50]: " << data[50] << std::endl;
+  std::cout << "odata[0]: " << odata[0] << std::endl;
+
+The two statements print the same element:
+
+.. code-block:: console
+
   data[50]: 5050
   odata[0]: 5050
+
+Now we show how negative index works:
+
+.. code-block:: cpp
+
+  std::cout << "data[40]: " << data[40] << std::endl;
+  std::cout << "odata[-10]: " << odata[-10] << std::endl;
+
+Since :cpp:var:`!odata` points to the 50-th element of :cpp:var:`!data`, the
+"-10"-th element of :cpp:var:`!odata` should be the 40-th of :cpp:var:`data`:
+
+.. code-block:: console
+
   data[40]: 5040
   odata[-10]: 5040
+
+The same can be done with pointer offset, which may look more reasonable
+although it works the same as array indexing:
+
+.. code-block:: cpp
+
+  std::cout << "*(data+40): " << *(data+40) << std::endl;
+  std::cout << "*(odata-10): " << *(odata-10) << std::endl;
+
+The output:
+
+.. code-block:: console
+
   *(data+40): 5040
   *(odata-10): 5040
+
+.. note::
+
+  Negative indices should only be used when we know they do not go out of
+  range.  That is why in the above example we set :cpp:var:`!odata` by
+  offsetting :cpp:var:`!data` by 50 elements.  Accessing memory out of range
+  may result in segmentation fault or corrupted memory.  The former crashes the
+  process immediately and the latter leads to unpredictable behaviors, which is
+  much harder to debug than the former.
 
 Floating-Point Value
 ====================
@@ -1346,9 +1498,9 @@ Exercises
 
 1. In `array.cpp`, what may happen if you write the following code?
 
-  .. code-block:: cpp
+   .. code-block:: cpp
 
-    data[-1] = 0;
+     data[-1] = 0;
 
 2. Given 2 single-precision floating-point values, 0.3 and -0.3.  Reinterpret
    (not integer to floating-point casting) their data (bits) as 32-bit unsigned
@@ -1360,7 +1512,7 @@ Exercises
 4. Reimplement the class ``Line`` by using STL containers instead of raw
    pointers (do not copy-n-paste the following code listing):
 
-  .. code-block:: cpp
+   .. code-block:: cpp
     :linenos:
 
     class Line

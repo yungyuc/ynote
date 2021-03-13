@@ -6,7 +6,10 @@ int main(int, char **)
     unsigned long uint = 1;
     std::cout << "sint: " << sint << std::endl;
     std::cout << "uint: " << uint << std::endl;
-    if (sint > uint) { std::cout << "sint > uint, although it can't be" << std::endl; }
+    if (sint > uint)
+    {
+        std::cout << "sint > uint, although it can't be" << std::endl;
+    }
     return 0;
 }
 // vim: set sw=4 ts=4 sts=4 et:
