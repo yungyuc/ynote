@@ -59,3 +59,5 @@ Example Code (Python and Numpy)
   :caption: Example PSTricks TeX file (:download:`cce.tex <code/cce.tex>`)
   :language: tex
   :linenos:
+
+.. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

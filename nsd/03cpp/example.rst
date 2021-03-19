@@ -22,8 +22,10 @@ Example Code (C++ and Computer Architecture)
 
 .. literalinclude:: code/arrays.cpp
   :name: nsd-cpp-example-arrays-cpp
-  :caption: 
+  :caption:
     Index arrays using integers (:download:`arrays.cpp <code/arrays.cpp>`)
   :language: cpp
   :linenos:
   :end-before: // vim: set
+
+.. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
