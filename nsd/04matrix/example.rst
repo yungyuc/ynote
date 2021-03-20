@@ -67,4 +67,32 @@ Example Code (Matrix Operations)
 
   $ g++ pod04_matrix_colmajor.cpp -o pod04_matrix_colmajor -std=c++17 -O3 -g -m64
 
+.. literalinclude:: code/ma01_matrix_class.cpp
+  :name: nsd-matrix-example-ma01-matrix-class
+  :caption:
+    Skeleton implementation for a C++ matrix class
+    (:download:`ma01_matrix_class.cpp <code/ma01_matrix_class.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :caption: Build ":ref:`nsd-matrix-example-ma01-matrix-class`"
+
+  $ g++ ma01_matrix_class.cpp -o ma01_matrix_class -std=c++17 -O3 -g -m64
+
+.. literalinclude:: code/ma02_matrix_vector.cpp
+  :name: nsd-matrix-example-ma02-matrix-vector
+  :caption:
+    Skeleton implementation for a C++ matrix class
+    (:download:`ma02_matrix_vector.cpp <code/ma02_matrix_vector.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :caption: Build ":ref:`nsd-matrix-example-ma02-matrix-vector`"
+
+  $ g++ ma02_matrix_vector.cpp -o ma02_matrix_vector -std=c++17 -O3 -g -m64
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

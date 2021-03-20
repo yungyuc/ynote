@@ -404,11 +404,12 @@ Keeping track of the stride can be error-prone.  Even if we stick to one
 majoring order (usually it's row-majoring), it's easy to lose track of it when
 the number of row and column is different, or it's higher-dimensional.
 
-A common practice in C++ is to use a class to keep track of the stride.
-Properly defined accessors significantly simplifies it.
+A common practice in C++ is to use a class to keep track of the stride and
+simply access:
 
 .. code-block:: cpp
   :linenos:
+  :emphasize-lines: 17-25
 
   class Matrix {
 
@@ -421,16 +422,20 @@ Properly defined accessors significantly simplifies it.
           m_buffer = new double[nelement];
       }
 
-      // TODO: copy and move constructors and assignment operators.
-
       ~Matrix()
       {
           delete[] m_buffer;
       }
 
       // No bound check.
-      double   operator() (size_t row, size_t col) const { return m_buffer[row*m_ncol + col]; }
-      double & operator() (size_t row, size_t col)       { return m_buffer[row*m_ncol + col]; }
+      double   operator() (size_t row, size_t col) const
+      {
+          return m_buffer[row*m_ncol + col];
+      }
+      double & operator() (size_t row, size_t col)
+      {
+          return m_buffer[row*m_ncol + col];
+      }
 
       size_t nrow() const { return m_nrow; }
       size_t ncol() const { return m_ncol; }
@@ -443,46 +448,52 @@ Properly defined accessors significantly simplifies it.
 
   };
 
-.. admonition:: Execution Results
+The key is the custom :cpp:func:`!operator()` added in lines 17--25.  It uses
+the stride information stored in the object to index the correct element.  The
+populating code is simplified by using the new accessor:
 
-  :download:`code/ma01_matrix_class.cpp`
+.. code-block:: cpp
+  :linenos:
 
-  .. code-block:: console
-    :caption: Build ``ma01_matrix_class.cpp``
+  /**
+   * Populate the matrix object.
+   */
+  void populate(Matrix & matrix)
+  {
+      for (size_t i=0; i<matrix.nrow(); ++i) // the i-th row
+      {
+          for (size_t j=0; j<matrix.ncol(); ++j) // the j-th column
+          {
+              matrix(i, j) = i*10 + j;
+          }
+      }
+  }
 
-    $ g++ ma01_matrix_class.cpp -o ma01_matrix_class -std=c++17 -O3 -g -m64
+The execution results are:
 
-  .. code-block:: console
-    :caption: Run ``ma01_matrix_class``
-    :linenos:
+.. code-block:: console
 
-    $ ./ma01_matrix_class
-    matrix:
-      00 01 02 03 04
-      10 11 12 13 14
-      20 21 22 23 24
-      30 31 32 33 34
-      40 41 42 43 44
+  $ ./ma01_matrix_class
+  matrix:
+    00 01 02 03 04
+    10 11 12 13 14
+    20 21 22 23 24
+    30 31 32 33 34
+    40 41 42 43 44
 
-Matrix-Vector Multiplication
-============================
+The full example code can be found in :ref:`ma01_matrix_class.cpp
+<nsd-matrix-example-ma01-matrix-class>`.
+
+Matrix Transpose
+================
 
 .. contents:: Contents in the section
   :local:
   :depth: 1
 
-BLAS level 2 includes matrix-vector operations.
-
-Operations of a matrix and a vector is much more interesting than vector
-operations.  What we really need to do is the matrix-vector multiplication
-
-.. math::
-
-  \mathbf{y} = \mathrm{A}\mathbf{x}
-
-But because a matrix is a 2D array, we should first discuss transpose.  Write a
-:math:`m\times n` (:math:`m` rows and :math:`n` columns) matrix
-:math:`\mathrm{A}`
+Before other operations related to a 2D array, we should first discuss matrix
+transpose.  Write a :math:`m\times n` (:math:`m` rows and :math:`n` columns)
+matrix :math:`\mathrm{A}`
 
 .. math::
 
@@ -506,15 +517,24 @@ and :math:`m` columns) matrix
     a_{1n} & a_{2n} & a_{3n} & \cdots & a_{mn}
   \end{array}\right)_{n\times m}
 
-Fast transpose can be done by taking advantage of majoring.  The key is the
-formula :math:`\mathrm{A}^t = [a_{ji}]` for :math:`\mathrm{A} = [a_{ij}]`.  The
-code is like:
+In computer code, transposing may be implementing by creating two memory
+buffers and copy from the source to the destination.  An alternate and faster
+approach is to take advantage of majoring.
+
+The fast transpose uses the formula :math:`\mathrm{A}^t = [a_{ji}]` for
+:math:`\mathrm{A} = [a_{ij}]`.  The code is like:
 
 .. code-block:: cpp
   :linenos:
 
-  double   operator() (size_t row, size_t col) const { return m_buffer[index(row, col)]; }
-  double & operator() (size_t row, size_t col)       { return m_buffer[index(row, col)]; }
+  double   operator() (size_t row, size_t col) const
+  {
+      return m_buffer[index(row, col)];
+  }
+  double & operator() (size_t row, size_t col)
+  {
+      return m_buffer[index(row, col)];
+  }
 
   bool is_transposed() const { return m_transpose; }
 
@@ -537,6 +557,21 @@ the indexing helper.
       else             { return row * m_ncol + col         ; }
   }
 
+Matrix-Vector Multiplication
+============================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Operations of a matrix and a vector make coding for matrices more interesting.
+To show how it works, let us use a concrete operation of matrix-vector
+multiplication
+
+.. math::
+
+  \mathbf{y} = \mathrm{A}\mathbf{x}
+
 Come back to the matrix-vector multiplication, :math:`\mathbf{y} =
 \mathrm{A}\mathbf{x}`.  The calculation is easy by using the index form of the
 matrix and vector.
@@ -545,14 +580,13 @@ matrix and vector.
 
   y_i = \sum_{j=1}^n A_{ij} x_j, \quad i = 1, \ldots, m
 
-
-Sometimes, when Einstein's summation convention is applied, the summation sign
-may be suppressed, and the repeated indices imply summation
+By applying `Einstein's summation convention
+<https://mathworld.wolfram.com/EinsteinSummation.html>`__ [7]_, the summation
+sign may be suppressed to use the repeated indices for summation
 
 .. math::
 
   y_i = A_{ij} x_j, \quad i = 1, \ldots, m, \; j = 1, \ldots, n
-
 
 It can be shown that the index form of :math:`\mathbf{y}' =
 \mathrm{A}^t\mathbf{x}'` is
@@ -561,7 +595,8 @@ It can be shown that the index form of :math:`\mathbf{y}' =
 
   y'_j = A_{ji} x'_i, \quad i = 1, \ldots, m, \; j = 1, \ldots, n
 
-Implement a naive matrix-vector multiplication:
+Aided by the above equations, we may implement a naive matrix-vector
+multiplication:
 
 .. code-block:: cpp
   :linenos:
@@ -588,54 +623,190 @@ Implement a naive matrix-vector multiplication:
       return ret;
   }
 
-.. admonition:: Execution Results
+Full example code can be found in :ref:`ma02_matrix_vector.cpp
+<nsd-matrix-example-ma02-matrix-vector>`.  In the rest of the section, we will
+analyze the multiplication code with several different configurations.
 
-  :download:`code/ma02_matrix_vector.cpp`
+Square Matrix
++++++++++++++
 
-  .. code-block:: console
-    :caption: Build ``ma02_matrix_vector.cpp``
+First we test the simple case.  Multiplying a :math:`5\times5` square matrix by
+a math:`5\times1` vector:
 
-    $ g++ ma02_matrix_vector.cpp -o ma02_matrix_vector -std=c++17 -O3 -g -m64
+.. code-block:: cpp
+  :linenos:
 
-  .. code-block:: console
-    :caption: Run ``ma02_matrix_vector``
-    :linenos:
+  size_t width = 5;
 
-    $ ./ma02_matrix_vector
-    >>> square matrix-vector multiplication:
-    matrix A:
-       1  0  0  0  0
-       0  1  0  0  0
-       0  0  1  0  0
-       0  0  0  1  0
-       0  0  0  0  1
-    vector b: 1 0 0 0 0
-    A*b = 1 0 0 0 0
-    >>> m*n matrix-vector multiplication:
-    matrix A:
-       1  2  3
-       4  5  6
-    vector b: 1 2 3
-    A*b = 14 32
-    >>> transposed matrix-vector multiplication:
-    matrix A:
-       1  4
-       2  5
-       3  6
-    matrix A buffer: 1 2 3 4 5 6
-    vector b: 1 2
-    A*b = 9 12 15
-    >>> copied transposed matrix-vector multiplication:
-    matrix A:
-       1  4
-       2  5
-       3  6
-    matrix A buffer: 1 4 2 5 3 6
-    vector b: 1 2
-    A*b = 9 12 15
+  std::cout << ">>> square matrix-vector multiplication:" << std::endl;
+  Matrix mat(width, width);
 
-The majoring may significantly affects the speed of matrix-vector
-multiplication.
+  for (size_t i=0; i<mat.nrow(); ++i) // the i-th row
+  {
+      for (size_t j=0; j<mat.ncol(); ++j) // the j-th column
+      {
+          mat(i, j) = i == j ? 1 : 0;
+      }
+  }
+
+  std::vector<double> vec{1, 0, 0, 0, 0};
+  std::vector<double> res = mat * vec;
+
+  std::cout << "matrix A:" << mat << std::endl;
+  std::cout << "vector b:" << vec << std::endl;
+  std::cout << "A*b =" << res << std::endl;
+
+The result is a :math:`5\times1` vector:
+
+.. code-block:: console
+
+  >>> square matrix-vector multiplication:
+  matrix A:
+     1  0  0  0  0
+     0  1  0  0  0
+     0  0  1  0  0
+     0  0  0  1  0
+     0  0  0  0  1
+  vector b: 1 0 0 0 0
+  A*b = 1 0 0 0 0
+
+Rectangular Matrix
+++++++++++++++++++
+
+Multiplying a :math:`2\times3` square matrix by a :math:`3\times1` vector:
+
+.. code-block:: cpp
+  :linenos:
+
+  std::cout << ">>> m*n matrix-vector multiplication:" << std::endl;
+  Matrix mat2(2, 3);
+
+  double v = 1;
+  for (size_t i=0; i<mat2.nrow(); ++i) // the i-th row
+  {
+      for (size_t j=0; j<mat2.ncol(); ++j) // the j-th column
+      {
+          mat2(i, j) = v;
+          v += 1;
+      }
+  }
+
+  std::vector<double> vec2{1, 2, 3};
+  std::vector<double> res2 = mat2 * vec2;
+
+  std::cout << "matrix A:" << mat2 << std::endl;
+  std::cout << "vector b:" << vec2 << std::endl;
+  std::cout << "A*b =" << res2 << std::endl;
+
+The result is a :math:`2\times1` vector:
+
+.. code-block:: console
+
+  >>> m*n matrix-vector multiplication:
+  matrix A:
+     1  2  3
+     4  5  6
+  vector b: 1 2 3
+  A*b = 14 32
+
+Transposed Matrix
++++++++++++++++++
+
+Apply the fast transpose to the :math:`2\times3` square matrix ``mat2`` to make
+it a :math:`3\times2` matrix, and multiply by a :math:`2\times1` vector:
+
+.. code-block:: cpp
+  :linenos:
+
+  std::cout << ">>> transposed matrix-vector multiplication:" << std::endl;
+  mat2.transpose();
+  std::vector<double> vec3{1, 2};
+  std::vector<double> res3 = mat2 * vec3;
+
+  std::cout << "matrix A:" << mat2 << std::endl;
+  std::cout << "matrix A buffer:" << mat2.buffer_vector() << std::endl;
+  std::cout << "vector b:" << vec3 << std::endl;
+  std::cout << "A*b =" << res3 << std::endl;
+
+The result is a :math:`3\times1` vector:
+
+.. code-block:: console
+  :emphasize-lines: 6
+
+  >>> transposed matrix-vector multiplication:
+  matrix A:
+     1  4
+     2  5
+     3  6
+  matrix A buffer: 1 2 3 4 5 6
+  vector b: 1 2
+  A*b = 9 12 15
+
+Because of the transpose, the matrix now uses column-majoring, as shown in the
+sixth line in the result above.
+
+New Buffer from Transpose
++++++++++++++++++++++++++
+
+Also try to copy the transposed matrix to a new matrix object which uses a new
+buffer.  Multiply the new matrix with the same vector:
+
+.. code-block:: cpp
+  :linenos:
+
+  std::cout << ">>> copied transposed matrix-vector multiplication:" << std::endl;
+  Matrix mat3 = mat2;
+  res3 = mat2 * vec3;
+
+  std::cout << "matrix A:" << mat3 << std::endl;
+  std::cout << "matrix A buffer:" << mat3.buffer_vector() << std::endl;
+  std::cout << "vector b:" << vec3 << std::endl;
+  std::cout << "A*b =" << res3 << std::endl;
+
+The copy assignment operator is implemented as:
+
+.. code-block:: cpp
+  :linenos:
+
+  Matrix & operator=(Matrix const & other)
+  {
+      if (this == &other) { return *this; }
+      if (m_nrow != other.m_nrow || m_ncol != other.m_ncol)
+      {
+          reset_buffer(other.m_nrow, other.m_ncol);
+      }
+      for (size_t i=0; i<m_nrow; ++i)
+      {
+          for (size_t j=0; j<m_ncol; ++j)
+          {
+              (*this)(i,j) = other(i,j);
+          }
+      }
+      return *this;
+  }
+
+The result is the same :math:`3\times1` vector:
+
+.. code-block:: console
+  :emphasize-lines: 6
+
+  >>> copied transposed matrix-vector multiplication:
+  matrix A:
+     1  4
+     2  5
+     3  6
+  matrix A buffer: 1 4 2 5 3 6
+  vector b: 1 2
+  A*b = 9 12 15
+
+The copied matrix uses row-majoring, as shown in the sixth line in the result
+above.
+
+.. note::
+
+  Although we do not analyze the runtime performance at this moment, the
+  majoring may significantly affects the speed of the multiplication for large
+  matrices.
 
 Matrix-Matrix Multiplication
 ============================
@@ -643,8 +814,6 @@ Matrix-Matrix Multiplication
 .. contents:: Contents in the section
   :local:
   :depth: 1
-
-BLAS level 3 includes matrix-matrix operations.
 
 Matrix-matrix multiplication, :math:`\mathrm{C} = \mathrm{A}\mathrm{B}`
 generally uses a :math:`O(n^3)` algorithm for :math:`O(n^2)` data.  The formula
@@ -1646,5 +1815,7 @@ References
 .. [6]
   C11 standard final draft N1570, C 6.7.6.2, April, 2011:
   http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
+
+.. [7] Einstein Summation: https://mathworld.wolfram.com/EinsteinSummation.html
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

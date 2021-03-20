@@ -20,8 +20,14 @@ public:
     }
 
     // No bound check.
-    double   operator() (size_t row, size_t col) const { return m_buffer[row*m_ncol + col]; }
-    double & operator() (size_t row, size_t col)       { return m_buffer[row*m_ncol + col]; }
+    double   operator() (size_t row, size_t col) const
+    {
+        return m_buffer[row*m_ncol + col];
+    }
+    double & operator() (size_t row, size_t col)
+    {
+        return m_buffer[row*m_ncol + col];
+    }
 
     size_t nrow() const { return m_nrow; }
     size_t ncol() const { return m_ncol; }
@@ -34,7 +40,10 @@ private:
 
 };
 
-void work(Matrix & matrix)
+/**
+ * Populate the matrix object.
+ */
+void populate(Matrix & matrix)
 {
     for (size_t i=0; i<matrix.nrow(); ++i) // the i-th row
     {
@@ -51,7 +60,7 @@ int main(int argc, char ** argv)
 
     Matrix matrix(width, width);
 
-    work(matrix);
+    populate(matrix);
 
     std::cout << "matrix:";
     for (size_t i=0; i<matrix.nrow(); ++i) // the i-th row

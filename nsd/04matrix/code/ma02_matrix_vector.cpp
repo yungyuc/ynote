@@ -50,15 +50,24 @@ public:
         reset_buffer(0, 0);
     }
 
-    double   operator() (size_t row, size_t col) const { return m_buffer[index(row, col)]; }
-    double & operator() (size_t row, size_t col)       { return m_buffer[index(row, col)]; }
+    double   operator() (size_t row, size_t col) const
+    {
+        return m_buffer[index(row, col)];
+    }
+    double & operator() (size_t row, size_t col)
+    {
+        return m_buffer[index(row, col)];
+    }
 
     size_t nrow() const { return m_nrow; }
     size_t ncol() const { return m_ncol; }
 
     size_t size() const { return m_nrow * m_ncol; }
     double buffer(size_t i) const { return m_buffer[i]; }
-    std::vector<double> buffer_vector() const { return std::vector<double>(m_buffer, m_buffer+size()); }
+    std::vector<double> buffer_vector() const
+    {
+        return std::vector<double>(m_buffer, m_buffer+size());
+    }
 
     bool is_transposed() const { return m_transpose; }
 
@@ -106,10 +115,10 @@ std::vector<double> operator*(Matrix const & mat, std::vector<double> const & ve
 
     std::vector<double> ret(mat.nrow());
 
-    for (size_t i=0; i<mat.nrow(); ++i)
+    for (size_t i=0; i<mat.nrow(); ++i) // the i-th row
     {
         double v = 0;
-        for (size_t j=0; j<mat.ncol(); ++j)
+        for (size_t j=0; j<mat.ncol(); ++j) // the j-th column
         {
             v += mat(i,j) * vec[j];
         }
@@ -121,10 +130,10 @@ std::vector<double> operator*(Matrix const & mat, std::vector<double> const & ve
 
 std::ostream & operator << (std::ostream & ostr, Matrix const & mat)
 {
-    for (size_t i=0; i<mat.nrow(); ++i)
+    for (size_t i=0; i<mat.nrow(); ++i) // the i-th row
     {
         ostr << std::endl << " ";
-        for (size_t j=0; j<mat.ncol(); ++j)
+        for (size_t j=0; j<mat.ncol(); ++j) // the j-th column
         {
             ostr << " " << std::setw(2) << mat(i, j);
         }
@@ -150,9 +159,9 @@ int main(int argc, char ** argv)
     std::cout << ">>> square matrix-vector multiplication:" << std::endl;
     Matrix mat(width, width);
 
-    for (size_t i=0; i<mat.nrow(); ++i)
+    for (size_t i=0; i<mat.nrow(); ++i) // the i-th row
     {
-        for (size_t j=0; j<mat.ncol(); ++j)
+        for (size_t j=0; j<mat.ncol(); ++j) // the j-th column
         {
             mat(i, j) = i == j ? 1 : 0;
         }
@@ -169,9 +178,9 @@ int main(int argc, char ** argv)
     Matrix mat2(2, 3);
 
     double v = 1;
-    for (size_t i=0; i<mat2.nrow(); ++i)
+    for (size_t i=0; i<mat2.nrow(); ++i) // the i-th row
     {
-        for (size_t j=0; j<mat2.ncol(); ++j)
+        for (size_t j=0; j<mat2.ncol(); ++j) // the j-th column
         {
             mat2(i, j) = v;
             v += 1;
