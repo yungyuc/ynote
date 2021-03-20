@@ -6,9 +6,7 @@ int main(int argc, char ** argv)
     constexpr size_t width = 5;
 
     double * buffer = new double[width*width];
-    double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
-    std::cout << "buffer address: " << buffer << std::endl
-              << "matrix address: " << matrix << std::endl;
+    std::cout << "buffer address: " << buffer << std::endl;
 
     // Populate a buffer (row-major 2D array).
     for (size_t i=0; i<width; ++i) // the i-th row
@@ -19,11 +17,15 @@ int main(int argc, char ** argv)
         }
     }
 
+    // Make a pointer to double[width].  Note width is a constexpr.
+    double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
+    std::cout << "matrix address: " << matrix << std::endl;
+
     std::cout << "matrix (row-major) elements as 2D array:";
-    for (size_t i=0; i<width; ++i)
+    for (size_t i=0; i<width; ++i) // the i-th row
     {
         std::cout << std::endl << " ";
-        for (size_t j=0; j<width; ++j)
+        for (size_t j=0; j<width; ++j) // the j-th column
         {
             std::cout << " " << std::setfill('0') << std::setw(2)
                       << matrix[i][j];

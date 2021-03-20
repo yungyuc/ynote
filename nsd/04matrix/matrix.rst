@@ -2,16 +2,70 @@
 Matrix Operations
 =================
 
-Matrices are everywhere in numerical analysis.  The fundamental data structure
-for matrices is array.  We will see how it is used for matrix-vector,
-matrix-matrix, and other linear algebraic operations.
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
+Matrices are broadly used in numerical analysis, and arrays are used to allow
+computer code to process matrices.  Arrays are also the data structure that is
+the closest to the fundamental types that are supported by hardware.
+
+Linear Algebra
+==============
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+One of the most frequent use of matrices and arrays is linear algebra.  BLAS_
+[1]_ and LAPACK_ [2]_ are the two most important libraries for numerical
+calculations for linear algebra.  BLAS stands for Basic Linear Algebra
+Subprograms, and LAPACK is Linear Algebra PACKage.  They were originally
+developed in Fortran_.  Although the Fortran code is still being maintained
+today, it serves more like a reference implementation.  Multiple vendors
+provide optimized implementation, e.g., Intel's Math Kernel Library (MKL) [3]_,
+Apple's vecLib [4]_, etc.
+
+BLAS is organized in 3 levels:
+
+* `Level 1 <http://www.netlib.org/blas/#_level_1>`__ is vector operations, e.g.,
+
+  * ``SAXPY()``: :math:`\mathbf{y} = a\mathbf{x} + \mathbf{y}`, constant times a
+    vector plus a vector.
+  * ``SDOT()``: :math:`\mathbf{x}\cdot\mathbf{y}`, dot product of two vectors.
+  * ``SNRM2()``: :math:`\sqrt{\mathbf{y}\cdot\mathbf{y}}`, Euclidean norm.
+* `Level 2 <http://www.netlib.org/blas/#_level_2>`__ is matrix-vector
+  operations, e.g., ``SGEMV()`` that performs the general matrix-vector
+  multiplication.
+* `Level 3 <http://www.netlib.org/blas/#_level_3>`__ is matrix-matrix
+  operations, e.g., ``SGEMM()`` that performs the general matrix-matrix
+  multiplication.
+
+.. note::
+
+  In the naming convention of BLAS, the leading character denotes the precision
+  of the data that is to be processed.  It may be one of ``S``, ``D``, ``C``,
+  and ``Z``, for single-precision real, double-precision real, single-precision
+  complex, and double-precision complex, respectively.
+
+LAPACK is designed to rely on the underneath BLAS, so the two libraries are
+usually used together.  While BLAS offers basic operations like matrix
+multiplication, LAPACK provides more versatile computation helpers or solvers,
+e.g., a system of linear equations, least square, and eigen problems.
+
+Both BLAS and LAPACK provide C API (no native C++ interface).  CBLAS is the C
+API for BLAS, and LAPACKE is that for LAPACK.
 
 POD Arrays
 ==========
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 The plain-old-data (POD) arrays are also called C-style arrays.  They are given
 the names because they are nothing more than just data and support no mechanism
-fancier than arithmetic.  We DO, oftentimes, wrap POD with fancy C++
+fancier than arithmetic.  We do, oftentimes, wrap POD with fancy C++
 constructs, but all the heavy-lifting numerical calculations still need to be
 done with POD.  That's how von Neumann computers work.  (It clearly reveals
 itself in the machine code.)
@@ -19,21 +73,28 @@ itself in the machine code.)
 Vector: 1D Array
 ++++++++++++++++
 
-A vector is stored as a (usually contiguous) memory buffer of sequetially
-ordered elements.
+We may use a 1D array (a contiguous memory buffer of sequentially ordered
+elements) to store a vector.  Small vectors may be created on the stack:
 
 .. code-block:: cpp
-  :linenos:
 
   constexpr size_t width = 5;
-
   double vector[width];
+
+It can be indexed and populated using the index:
+
+.. code-block:: cpp
 
   // Populate a vector.
   for (size_t i=0; i<width; ++i)
   {
       vector[i] = i;
   }
+
+It is common to use the index to manipulate the 1-D array.  The following code
+prints the contents:
+
+.. code-block:: cpp
 
   std::cout << "vector elements in memory:" << std::endl << " ";
   for (size_t i=0; i<width; ++i)
@@ -42,72 +103,61 @@ ordered elements.
   }
   std::cout << std::endl;
 
-.. admonition:: Execution Results
+The execution results are:
 
-  :download:`code/pod01_vector.cpp`
+.. code-block:: console
 
-  .. code-block:: console
-    :caption: Build ``pod01_vector.cpp``
+  $ ./pod01_vector
+  vector elements in memory:
+    0 1 2 3 4
 
-    $ g++ pod01_vector.cpp -o pod01_vector -std=c++17 -O3 -g -m64
-
-  .. code-block:: console
-    :caption: Run ``pod01_vector``
-    :linenos:
-
-    $ ./pod01_vector
-    vector elements in memory:
-      0 1 2 3 4
-
-BLAS
-++++
-
-BLAS (basic linear albegra subprograms) [1]_ is a standard set of array
-manipulation API) that defines vector operations as the 1st level.  A partial
-list of them:
-
-* ``SAXPY()``: :math:`\mathbf{y} = a\mathbf{x} + \mathbf{y}`, constant times a
-  vector plus a vector
-* ``SDOT()``: :math:`\mathbf{x}\cdot\mathbf{y}`, dot product of two vectors.
-* ``SNRM2()``: :math:`\sqrt{\mathbf{y}\cdot\mathbf{y}}`, Euclidean norm.
+The full example code can be found in :ref:`pod01_vector.cpp
+<nsd-matrix-example-pod01-vector>`.
 
 Matrix: 2D Array
 ++++++++++++++++
 
-See how to represent a :math:`5\times5` square matrix:
+In mathematics, we usually write a matrix like:
 
 .. math::
 
   \mathrm{A} = \left[ a_{ij} \right] = \left(\begin{array}{ccccc}
-  a_{11} & a_{12} & a_{13} & a_{14} & a_{15} \\
-  a_{21} & a_{22} & a_{23} & a_{24} & a_{25} \\
-  a_{31} & a_{32} & a_{33} & a_{34} & a_{35} \\
-  a_{41} & a_{42} & a_{43} & a_{44} & a_{45} \\
-  a_{51} & a_{52} & a_{53} & a_{54} & a_{55}
+    a_{11} & a_{12} & a_{13} & a_{14} & a_{15} \\
+    a_{21} & a_{22} & a_{23} & a_{24} & a_{25} \\
+    a_{31} & a_{32} & a_{33} & a_{34} & a_{35} \\
+    a_{41} & a_{42} & a_{43} & a_{44} & a_{45} \\
+    a_{51} & a_{52} & a_{53} & a_{54} & a_{55}
   \end{array}\right)
 
-:math:`i` is the row index (in the horizontal direction).  :math:`j` is the
-column index (in the vertical direction).  If we want to use the 0-based index,
-it can be rewritten as:
+It is a :math:`5\times5` square matrix.  :math:`i` is the row index (in the
+horizontal direction).  :math:`j` is the column index (in the vertical
+direction).
+
+However, computer code usually uses 0-based index, so the first index starts
+with 0, not 1.  It would make coding easier to rewrite the matrix using the
+0-based index:
 
 .. math::
 
   \mathrm{A} = \left[ a_{ij} \right] = \left(\begin{array}{ccccc}
-  a_{00} & a_{01} & a_{02} & a_{03} & a_{04} \\
-  a_{10} & a_{11} & a_{12} & a_{13} & a_{14} \\
-  a_{20} & a_{21} & a_{22} & a_{23} & a_{24} \\
-  a_{30} & a_{31} & a_{32} & a_{33} & a_{34} \\
-  a_{40} & a_{41} & a_{42} & a_{43} & a_{44}
+    a_{00} & a_{01} & a_{02} & a_{03} & a_{04} \\
+    a_{10} & a_{11} & a_{12} & a_{13} & a_{14} \\
+    a_{20} & a_{21} & a_{22} & a_{23} & a_{24} \\
+    a_{30} & a_{31} & a_{32} & a_{33} & a_{34} \\
+    a_{40} & a_{41} & a_{42} & a_{43} & a_{44}
   \end{array}\right)
 
-In C++ we can use an auto variable like below for the matrix:
+In C++ we can use an auto variable for the matrix:
 
 .. code-block:: cpp
-  :linenos:
 
   constexpr size_t width = 5;
 
   double amatrix[width][width];
+
+The elements are accessed through two consecutive operators ``[]``:
+
+.. code-block:: cpp
 
   // Populate the matrix on stack (row-major 2D array).
   for (size_t i=0; i<width; ++i) // the i-th row
@@ -119,10 +169,10 @@ In C++ we can use an auto variable like below for the matrix:
   }
 
   std::cout << "2D array elements:";
-  for (size_t i=0; i<width; ++i)
+  for (size_t i=0; i<width; ++i) // the i-th row
   {
       std::cout << std::endl << " ";
-      for (size_t j=0; j<width; ++j)
+      for (size_t j=0; j<width; ++j) // the j-th column
       {
           std::cout << " " << std::setfill('0') << std::setw(2)
                     << amatrix[i][j];
@@ -130,78 +180,83 @@ In C++ we can use an auto variable like below for the matrix:
   }
   std::cout << std::endl;
 
-.. admonition:: Execution Results
+The execution results are:
 
-  :download:`code/pod02_matrix_auto.cpp`
+.. code-block:: console
 
-  .. code-block:: console
-    :caption: Build ``pod02_matrix_auto.cpp``
+  $ ./pod02_matrix_auto
+  2D array elements:
+    00 01 02 03 04
+    10 11 12 13 14
+    20 21 22 23 24
+    30 31 32 33 34
+    40 41 42 43 44
 
-    $ g++ pod02_matrix_auto.cpp -o pod02_matrix_auto -std=c++17 -O3 -g -m64
+The full example code can be found in :ref:`pod02_matrix_auto.cpp
+<nsd-matrix-example-pod02-matrix-auto>`.
 
-  .. code-block:: console
-    :caption: Run ``pod02_matrix_auto``
-    :linenos:
+.. _nsd-vla:
 
-    $ ./pod02_matrix_auto
-    2D array elements:
-      00 01 02 03 04
-      10 11 12 13 14
-      20 21 22 23 24
-      30 31 32 33 34
-      40 41 42 43 44
+Variable-Length Array
++++++++++++++++++++++
 
 The C++ multi-dimensional array index is convenient, but it doesn't always work
-when the array size isn't known in the compile time.  ``g++`` accepts the
-following code, but ``clang++`` doesn't.
+when the array size is unknown in the compile time, which is also known as
+variable-length arrays (VLA).  VLA is included in the C standard [6]_, but not
+in the C++ standard.
+
+``g++`` accepts the following code for GCC provides the `VLA extension
+<https://gcc.gnu.org/onlinedocs/gcc/Variable-Length.html>`__ in C++:
 
 .. code-block:: cpp
-  :linenos:
 
   void work(double * buffer, size_t width)
   {
-      // This won't work since width isn't known in compile time.
+      // This should not work since width is unknown in compile time.
       double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
       
       //...
   }
 
-.. admonition:: Execution Results
+``clang++`` doesn't:
 
-  :download:`code/pod_bad_matrix.cpp`
+.. code-block:: console
 
-  .. code-block:: console
-    :caption: Build ``pod_bad_matrix.cpp``
+  $ clang++ pod_bad_matrix.cpp -o pod_bad_matrix -std=c++17 -O3 -g -m64
+  pod_bad_matrix.cpp:7:14: error: cannot initialize a variable of type 'double (*)[width]' with an rvalue of type 'double (*)[width]'
+      double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
+               ^                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  1 error generated.
+  make: *** [pod_bad_matrix] Error 1
 
-    $ g++ pod_bad_matrix.cpp -o pod_bad_matrix -std=c++17 -O3 -g -m64
-    pod_bad_matrix.cpp:7:14: error: cannot initialize a variable of type 'double (*)[width]' with an rvalue of type 'double (*)[width]'
-        double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
-                 ^                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    1 error generated.
-    make: *** [pod_bad_matrix] Error 1
+The full example code can be found in :ref:`pod_bad_matrix.cpp
+<nsd-matrix-example-pod-bad-matrix>`.
 
-Row-Major 2D Variable-Size Array
-++++++++++++++++++++++++++++++++
+Row-Major 2D Array
+++++++++++++++++++
 
 The elements of a row-major 2D array are stored so that the fastest changing
 index is the trailing index of the 2D array:
 
-.. math::
-
-  \mathrm{buffer} = [a_{00}, a_{01}, a_{02}, a_{03}, a_{04}, a_{10}, a_{11}, a_{12}, \ldots, a_{43}, a_{44}]
-
-When accessing the elements, all we need to do is to remember how long we need
-to *stride* per row (leading) index.
-
 .. code-block:: cpp
-  :linenos:
 
   constexpr size_t width = 5;
 
   double * buffer = new double[width*width];
-  double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
-  std::cout << "buffer address: " << buffer << std::endl
-            << "matrix address: " << matrix << std::endl;
+  std::cout << "buffer address: " << buffer << std::endl;
+
+.. math::
+
+  \mathrm{buffer} = [a_{00}, a_{01}, a_{02}, a_{03}, a_{04},
+    a_{10}, a_{11}, a_{12}, \ldots, a_{43}, a_{44}]
+
+When accessing the elements, what we need to do is to remember how long we need
+to *stride* per row (leading) index.  In the above case, it is ``i*width``.
+Then we can use the stride to calculate the correct index in the buffer (the
+following code populates the buffer):
+
+.. code-block:: cpp
+  :emphasize-lines: 6
 
   // Populate a buffer (row-major 2D array).
   for (size_t i=0; i<width; ++i) // the i-th row
@@ -212,11 +267,21 @@ to *stride* per row (leading) index.
       }
   }
 
+We may play the pointer trick (which didn't work for :ref:`VLA <nsd-vla>`) to
+use two consecutive operators ``[]`` for accessing the element:
+
+.. code-block:: cpp
+  :emphasize-lines: 12
+
+  // Make a pointer to double[width].  Note width is a constexpr.
+  double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
+  std::cout << "matrix address: " << matrix << std::endl;
+
   std::cout << "matrix (row-major) elements as 2D array:";
-  for (size_t i=0; i<width; ++i)
+  for (size_t i=0; i<width; ++i) // the i-th row
   {
       std::cout << std::endl << " ";
-      for (size_t j=0; j<width; ++j)
+      for (size_t j=0; j<width; ++j) // the j-th column
       {
           std::cout << " " << std::setfill('0') << std::setw(2)
                     << matrix[i][j];
@@ -224,53 +289,52 @@ to *stride* per row (leading) index.
   }
   std::cout << std::endl;
 
-.. admonition:: Execution Results
+The execution results are:
 
-  :download:`code/pod03_matrix_rowmajor.cpp`
+.. code-block:: console
 
-  .. code-block:: console
-    :caption: Build ``pod03_matrix_rowmajor.cpp``
+  $ ./pod03_matrix_rowmajor
+  buffer address: 0x7f88e9405ab0
+  matrix address: 0x7f88e9405ab0
+  matrix (row-major) elements as 2D array:
+    00 01 02 03 04
+    10 11 12 13 14
+    20 21 22 23 24
+    30 31 32 33 34
+    40 41 42 43 44
+  matrix (row-major) elements in memory:
+    00 01 02 03 04 10 11 12 13 14 20 21 22 23 24 30 31 32 33 34 40 41 42 43 44
+  row majoring: the fastest moving index is the trailing index
 
-    $ g++ pod03_matrix_rowmajor.cpp -o pod03_matrix_rowmajor -std=c++17 -O3 -g -m64
+The full example code can be found in :ref:`pod03_matrix_rowmajor.cpp
+<nsd-matrix-example-pod03-matrix-rowmajor>`.
 
-  .. code-block:: console
-    :caption: Run ``pod03_matrix_rowmajor``
-    :linenos:
-
-    $ ./pod03_matrix_rowmajor
-    buffer address: 0x7f88e9405ab0
-    matrix address: 0x7f88e9405ab0
-    matrix (row-major) elements as 2D array:
-      00 01 02 03 04
-      10 11 12 13 14
-      20 21 22 23 24
-      30 31 32 33 34
-      40 41 42 43 44
-    matrix (row-major) elements in memory:
-      00 01 02 03 04 10 11 12 13 14 20 21 22 23 24 30 31 32 33 34 40 41 42 43 44
-    row majoring: the fastest moving index is the trailing index
-
-Column-Major 2D Variable-Size Array
-+++++++++++++++++++++++++++++++++++
+Column-Major 2D Array
++++++++++++++++++++++
 
 The elements of a column-major 2D array are stored so that the fastest changing
 index is the leading index of the 2D array:
+
+.. code-block:: cpp
+
+  constexpr size_t width = 5;
+
+  double * buffer = new double[width*width];
+  std::cout << "buffer address: " << buffer << std::endl;
+
+The code is the same as that of the row-majoring since the number of column and
+row is the same.  But for column-majoring arrays, the elements order
+differently:
 
 .. math::
 
   \mathrm{buffer} = [a_{00}, a_{10}, a_{20}, a_{30}, a_{40}, a_{01}, a_{11}, a_{21}, \ldots, a_{34}, a_{44}]
 
-Similar to a row-major array, we need to know the stride.  But this time it's for the column (trailing) index.
+Similar to a row-major array, we need to know the stride.  But this time it's
+for the column (trailing) index:
 
 .. code-block:: cpp
-  :linenos:
-
-  constexpr size_t width = 5;
-
-  double * buffer = new double[width*width];
-  double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
-  std::cout << "buffer address: " << buffer << std::endl
-            << "matrix address: " << matrix << std::endl;
+  :emphasize-lines: 6
 
   // Populate a buffer (column-major 2D array).
   for (size_t i=0; i<width; ++i) // the i-th row
@@ -281,11 +345,22 @@ Similar to a row-major array, we need to know the stride.  But this time it's fo
       }
   }
 
+The same pointer trick allows to use two consecutive operators ``[]``, but it
+does not know the different stride needed by column-majoring, and does not work
+well.  We need to flip ``i`` and ``j`` to hack out the column-major stride:
+
+.. code-block:: cpp
+  :emphasize-lines: 12
+
+  // Make a pointer to double[width].  Note width is a constexpr.
+  double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
+  std::cout << "matrix address: " << matrix << std::endl;
+
   std::cout << "matrix (column-major) elements as 2D array:";
-  for (size_t i=0; i<width; ++i)
+  for (size_t i=0; i<width; ++i) // the i-th row
   {
       std::cout << std::endl << " ";
-      for (size_t j=0; j<width; ++j)
+      for (size_t j=0; j<width; ++j) // the j-th column
       {
           std::cout << " " << std::setfill('0') << std::setw(2)
                     << matrix[j][i];
@@ -293,34 +368,37 @@ Similar to a row-major array, we need to know the stride.  But this time it's fo
   }
   std::cout << std::endl;
 
-.. admonition:: Execution Results
+In the above code, to access the element :math:`a_{ij}` (at ``i``\ -th row and
+``j``\ -th column), the code needs to be written as ``matrix[j][i]``.  This
+does not look as straight-forward as that of the row-major array, which was
+``matrix[i][j]``.
 
-  :download:`code/pod04_matrix_colmajor.cpp`
+The execution results are:
 
-  .. code-block:: console
-    :caption: Build ``pod04_matrix_colmajor.cpp``
+.. code-block:: console
 
-    $ g++ pod04_matrix_colmajor.cpp -o pod04_matrix_colmajor -std=c++17 -O3 -g -m64
+  $ ./pod04_matrix_colmajor
+  buffer address: 0x7f926bc05ab0
+  matrix address: 0x7f926bc05ab0
+  matrix (column-major) elements as 2D array:
+    00 01 02 03 04
+    10 11 12 13 14
+    20 21 22 23 24
+    30 31 32 33 34
+    40 41 42 43 44
+  matrix (column-major) elements in memory:
+    00 10 20 30 40 01 11 21 31 41 02 12 22 32 42 03 13 23 33 43 04 14 24 34 44
+  column majoring: the fastest moving index is the leading index
 
-  .. code-block:: console
-    :caption: Run ``pod04_matrix_colmajor``
-    :linenos:
+The full example code can be found in :ref:`pod04_matrix_colmajor.cpp
+<nsd-matrix-example-pod04-matrix-colmajor>`.
 
-    $ ./pod04_matrix_colmajor
-    buffer address: 0x7f926bc05ab0
-    matrix address: 0x7f926bc05ab0
-    matrix (column-major) elements as 2D array:
-      00 01 02 03 04
-      10 11 12 13 14
-      20 21 22 23 24
-      30 31 32 33 34
-      40 41 42 43 44
-    matrix (column-major) elements in memory:
-      00 10 20 30 40 01 11 21 31 41 02 12 22 32 42 03 13 23 33 43 04 14 24 34 44
-    column majoring: the fastest moving index is the leading index
+C++ Class for Matrix
+====================
 
-C++ Class to Treat the Memory Buffer like Matrix
-================================================
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Keeping track of the stride can be error-prone.  Even if we stick to one
 majoring order (usually it's row-majoring), it's easy to lose track of it when
@@ -389,6 +467,10 @@ Properly defined accessors significantly simplifies it.
 Matrix-Vector Multiplication
 ============================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 BLAS level 2 includes matrix-vector operations.
 
 Operations of a matrix and a vector is much more interesting than vector
@@ -398,7 +480,7 @@ operations.  What we really need to do is the matrix-vector multiplication
 
   \mathbf{y} = \mathrm{A}\mathbf{x}
 
-But because a matrix is a 2D array, we should first discuss traspose.  Write a
+But because a matrix is a 2D array, we should first discuss transpose.  Write a
 :math:`m\times n` (:math:`m` rows and :math:`n` columns) matrix
 :math:`\mathrm{A}`
 
@@ -558,6 +640,10 @@ multiplication.
 Matrix-Matrix Multiplication
 ============================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 BLAS level 3 includes matrix-matrix operations.
 
 Matrix-matrix multiplication, :math:`\mathrm{C} = \mathrm{A}\mathrm{B}`
@@ -657,35 +743,12 @@ loss of runtime speed.  The reasonable size of dense matrices for a workstation
 is around :math:`10,000\times10,000`, i.e., 800 MB per matrix.  It's very
 limiting, but already facilitates a good number of applications.
 
-Linear Algebra
-==============
-
-After the matrix operations, it is time to introduce linear algebra in C++.
-There are two critically important software packages: BLAS and LAPACK [2]_.
-They were developed in FORTRAN.  Although the FORTRAN code is still being
-maintained today, it serves more like a reference implementation.  Multiple
-vendors provide optimized implementation, e.g., Intel's Math Kernel Library
-(MKL) [3]_, Apple's vecLib [4]_, etc.
-
-BLAS stands for Basic Linear Algebra Subprograms, and LAPACK is Linear Algebra
-PACKage.  LAPACK is designed to rely on the underneath BLAS, so the two
-libraries are usually used together.  For example, the general matrix-vector
-multiplication is defined as the ``?GEMV()`` function in BLAS level 2 (``?``
-can be one of ``S``, ``D``, ``C``, and ``Z``, for single-precision real,
-double-precision real, single-precision complex, and double-precision complex,
-respectively), and the general matrix-matrix multiplication is the ``?GEMM()``
-function in BLAS level 3.
-
-While BLAS offers basic operations like matrix multiplication, LAPACK provides
-more versatile computation helpers or solvers, e.g., a system of linear
-equations, least square, and eigen problems.
-
-Both BLAS and LAPACK provide C interface.  They don't native C++ interface, but
-the C interface is compatible to C++.  CBLAS is the C interface for BLAS, and
-LAPACKE is that for LAPACK.
-
 Linear System
 =============
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 LAPACK provides ``?GESV()`` functions to solve a linear system using a general
 (dense) matrix: :math:`\mathrm{A}\mathbf{x} = \mathbf{b}`.  Say we have a
@@ -713,7 +776,7 @@ It can be rewritten as :math:`\mathrm{A}\mathbf{x} = \mathbf{b}`, where
     x_1 \\ x_2 \\ x_3
   \end{array}\right)
 
-Note that the reference implementation of LAPACK is FORTRAN, which uses column
+Note that the reference implementation of LAPACK is Fortran, which uses column
 major.  The dimensional arguments of the LAPACK subroutines changes meaning
 when we call them from C with row-major matrices.
 
@@ -831,6 +894,10 @@ when we call them from C with row-major matrices.
 
 Eigenvalue Problems
 ===================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Eigenvalue problems and SVD are popular ways to factorize matrices.  The
 eigenvalue problems are to find the eigenvalues :math:`\lambda_1, \lambda_2,
@@ -1388,6 +1455,10 @@ Verify the result using numpy:
 Least Square
 ============
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Find a function of the form
 
 .. math::
@@ -1409,12 +1480,12 @@ Write
 
   \newcommand{\defeq}{\overset{\text{def}}{=}}
     f_i &= f(x_i) = (\mathrm{J}\mathbf{a})_i \\
-  \mathrm{J} &\defeq \left[\begin{array}{cccc}
+  \mathrm{J} &\defeq \left(\begin{array}{cccc}
     g_1(x_1) & g_2(x_1) & \ldots & g_n(x_1) \\
     g_1(x_2) & g_2(x_2) & \ldots & g_n(x_2) \\
     \vdots & & \ddots &\vdots \\
     g_1(x_m) & g_2(x_m) & \ldots & g_n(x_m)
-  \end{array}\right] \\
+  \end{array}\right) \\
   & = \left[g_j(x_i)\right], \; i=1, \ldots, m, \; j=1, \ldots, n
 
 The linear least-square problem can be expressed in the matrix-vector form
@@ -1456,20 +1527,20 @@ Given 4 data points :math:`(1, 17)`, :math:`(2, 58)`, :math:`(3, 165)`,
 
 .. math::
 
-  \mathrm{J} = \left[\begin{array}{ccc}
+  \mathrm{J} = \left(\begin{array}{ccc}
     1 & 1 & 1 \\
     8 & 4 & 2 \\
     27 & 9 & 3 \\
     64 & 16 & 4
-  \end{array}\right]
+  \end{array}\right)
 
 and the right-hand side is
 
 .. math::
 
-  \mathbf{y} = \left[\begin{array}{ccc}
+  \mathbf{y} = \left(\begin{array}{ccc}
     17 \\ 58 \\ 165 \\ 360
-  \end{array}\right]
+  \end{array}\right)
 
 The code:
 
@@ -1518,7 +1589,12 @@ The code:
   .. code-block:: console
     :caption: Build ``la05_gels.cpp``
 
-    $ g++ la05_gels.cpp -o la05_gels -std=c++17 -O3 -g -m64  -I/opt/intel/mkl/include /opt/intel/mkl/lib/libmkl_intel_lp64.a /opt/intel/mkl/lib/libmkl_sequential.a /opt/intel/mkl/lib/libmkl_core.a -lpthread -lm -ldl
+    $ g++ la05_gels.cpp -o la05_gels -std=c++17 -O3 -g -m64 \
+      -I/opt/intel/mkl/include \
+      /opt/intel/mkl/lib/libmkl_intel_lp64.a \
+      /opt/intel/mkl/lib/libmkl_sequential.a \
+      /opt/intel/mkl/lib/libmkl_core.a \
+      -lpthread -lm -ldl
 
   .. code-block:: console
     :caption: Run ``la05_gels``
@@ -1553,6 +1629,10 @@ Exercises
 References
 ==========
 
+.. _BLAS: http://www.netlib.org/blas/
+.. _LAPACK: http://www.netlib.org/lapack/
+.. _Fortran: https://fortran-lang.org
+
 .. [1] BLAS: http://www.netlib.org/blas/.
 
 .. [2] LAPACK: http://www.netlib.org/lapack/.
@@ -1562,5 +1642,9 @@ References
 .. [4] vecLib: https://developer.apple.com/documentation/accelerate/veclib.
 
 .. [5] G. Strang, Linear Algebra and Its Applications, 4th ed. Belmont, Calif: Thomson, Brooks/Cole, 2006.
+
+.. [6]
+  C11 standard final draft N1570, C 6.7.6.2, April, 2011:
+  http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

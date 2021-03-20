@@ -17,10 +17,10 @@ int main(int argc, char ** argv)
     }
 
     std::cout << "2D array elements:";
-    for (size_t i=0; i<width; ++i)
+    for (size_t i=0; i<width; ++i) // the i-th row
     {
         std::cout << std::endl << " ";
-        for (size_t j=0; j<width; ++j)
+        for (size_t j=0; j<width; ++j) // the j-th column
         {
             std::cout << " " << std::setfill('0') << std::setw(2)
                       << amatrix[i][j];
