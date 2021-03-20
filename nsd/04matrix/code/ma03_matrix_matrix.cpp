@@ -94,15 +94,24 @@ public:
         reset_buffer(0, 0);
     }
 
-    double   operator() (size_t row, size_t col) const { return m_buffer[index(row, col)]; }
-    double & operator() (size_t row, size_t col)       { return m_buffer[index(row, col)]; }
+    double   operator() (size_t row, size_t col) const
+    {
+        return m_buffer[index(row, col)];
+    }
+    double & operator() (size_t row, size_t col)
+    {
+        return m_buffer[index(row, col)];
+    }
 
     size_t nrow() const { return m_nrow; }
     size_t ncol() const { return m_ncol; }
 
     size_t size() const { return m_nrow * m_ncol; }
     double buffer(size_t i) const { return m_buffer[i]; }
-    std::vector<double> buffer_vector() const { return std::vector<double>(m_buffer, m_buffer+size()); }
+    std::vector<double> buffer_vector() const
+    {
+        return std::vector<double>(m_buffer, m_buffer+size());
+    }
 
 private:
 

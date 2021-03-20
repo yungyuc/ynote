@@ -815,9 +815,9 @@ Matrix-Matrix Multiplication
   :local:
   :depth: 1
 
-Matrix-matrix multiplication, :math:`\mathrm{C} = \mathrm{A}\mathrm{B}`
-generally uses a :math:`O(n^3)` algorithm for :math:`O(n^2)` data.  The formula
-is
+Matrix-matrix multiplication, :math:`\mathrm{C} = \mathrm{A}\mathrm{B}`, has
+more complexity in both time and space.  It generally uses a :math:`O(n^3)`
+algorithm for multiple copies of :math:`O(n^2)` data.  The formula is
 
 .. math::
 
@@ -829,10 +829,11 @@ or, by using Einstein's summation convention,
 
   C_{ik} = A_{ij}B_{jk}, \quad i = 1, \ldots, m, \; j = 1, \ldots, n, \; k = 1, \ldots, l
 
-A naive C++ implementation:
+Aided by the formula, we can write down the C++ code for the naive algorithm:
 
 .. code-block:: cpp
   :linenos:
+  :emphasize-lines: 12-23
 
   Matrix operator*(Matrix const & mat1, Matrix const & mat2)
   {
@@ -861,56 +862,88 @@ A naive C++ implementation:
       return ret;
   }
 
-.. admonition:: Execution Results
+The 3-level nested loops in lines 12--23 are the runtime hotspot.  The full
+example code can be found in :ref:`ma03_matrix_matrix.cpp
+<nsd-matrix-example-ma03-matrix-matrix>`.  We will examine two cases.  The
+first is to multiply a :math:`3\times2` matrix :math:`\mathrm{A}` by a
+:math:`2\times3` matrix :math:`\mathrm{B}`:
 
-  :download:`code/ma03_matrix_matrix.cpp`
+.. code-block:: cpp
+  :linenos:
 
-  .. code-block:: console
-    :caption: Build ``ma03_matrix_matrix.cpp``
+  std::cout << ">>> A(2x3) times B(3x2):" << std::endl;
+  Matrix mat1(2, 3, std::vector<double>{1, 2, 3, 4, 5, 6});
+  Matrix mat2(3, 2, std::vector<double>{1, 2, 3, 4, 5, 6});
 
-    $ g++ ma03_matrix_matrix.cpp -o ma03_matrix_matrix -std=c++17 -O3 -g -m64
+  Matrix mat3 = mat1 * mat2;
 
-  .. code-block:: console
-    :caption: Run ``ma03_matrix_matrix``
-    :linenos:
+  std::cout << "matrix A (2x3):" << mat1 << std::endl;
+  std::cout << "matrix B (3x2):" << mat2 << std::endl;
+  std::cout << "result matrix C (2x2) = AB:" << mat3 << std::endl;
 
-    $ ./ma03_matrix_matrix
-    >>> A(2x3) times B(3x2):
-    matrix A (2x3):
-       1  2  3
-       4  5  6
-    matrix B (3x2):
-       1  2
-       3  4
-       5  6
-    result matrix C (2x2) = AB:
-      22 28
-      49 64
-    >>> B(3x2) times A(2x3):
-    matrix B (3x2):
-       1  2
-       3  4
-       5  6
-    matrix A (2x3):
-       1  2  3
-       4  5  6
-    result matrix D (3x3) = BA:
-       9 12 15
-      19 26 33
-      29 40 51
+The result is a :math:`3\times3` matrix :math:`\mathrm{C}`:
 
-Matrix-matrix multiplication is intensive number-crunching.  The naive,
-brute-force, n-cube algorithm is basically what we need to do, without a way
-around.
+.. code-block:: console
+
+  $ ./ma03_matrix_matrix
+  >>> A(2x3) times B(3x2):
+  matrix A (2x3):
+     1  2  3
+     4  5  6
+  matrix B (3x2):
+     1  2
+     3  4
+     5  6
+  result matrix C (2x2) = AB:
+    22 28
+    49 64
+
+Then multiply :math:`\mathrm{B}` (:math:`{2\times3}`) by :math:`\mathrm{A}`
+(:math:`{3\times2}`):
+
+.. code-block:: cpp
+  :linenos:
+
+  std::cout << ">>> B(3x2) times A(2x3):" << std::endl;
+  Matrix mat4 = mat2 * mat1;
+  std::cout << "matrix B (3x2):" << mat2 << std::endl;
+  std::cout << "matrix A (2x3):" << mat1 << std::endl;
+  std::cout << "result matrix D (3x3) = BA:" << mat4 << std::endl;
+
+The result is a :math:`2\times2` matrix :math:`\mathrm{D}`:
+
+.. code-block:: console
+
+  >>> B(3x2) times A(2x3):
+  matrix B (3x2):
+     1  2
+     3  4
+     5  6
+  matrix A (2x3):
+     1  2  3
+     4  5  6
+  result matrix D (3x3) = BA:
+     9 12 15
+    19 26 33
+    29 40 51
+
+Matrix-matrix multiplication is intensive number-crunching.  We do not have a
+good way to work around the brute-force, N-cube algorithm.
+
+.. note::
+
+  An algorithm of slightly lower complexity in time is available [8]_, but not
+  discussed here.  We use the naive algorithm to focus the discussions on the
+  code development.
 
 It also demands memory.  A matrix of :math:`100,000\times100,000` takes
 10,000,000,000 (i.e., :math:`10^{10}`) elements, and with double-precision
 floating points, it takes 80 GB.  To perform multiplication, you need the
 memory for 3 of the matrices, and that's 240 GB.  The dense matrix
-multiplication generally cannot use distributed memory without significantly
-loss of runtime speed.  The reasonable size of dense matrices for a workstation
-is around :math:`10,000\times10,000`, i.e., 800 MB per matrix.  It's very
-limiting, but already facilitates a good number of applications.
+multiplication does not scale well with distributed-memory parallelism.  The
+reasonable size of dense matrices for a workstation is around
+:math:`10,000\times10,000`, i.e., 800 MB per matrix.  It's very limiting, but
+already facilitates a good number of applications.
 
 Linear System
 =============
@@ -1817,5 +1850,9 @@ References
   http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
 
 .. [7] Einstein Summation: https://mathworld.wolfram.com/EinsteinSummation.html
+
+.. [8]
+  Strassen, Volker, Gaussian elimination is not optimal, Numer. Math. 13, p.
+  354-356, 1969.  https://doi.org/10.1007/BF02165411
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

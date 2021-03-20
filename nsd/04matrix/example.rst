@@ -84,7 +84,7 @@ Example Code (Matrix Operations)
 .. literalinclude:: code/ma02_matrix_vector.cpp
   :name: nsd-matrix-example-ma02-matrix-vector
   :caption:
-    Skeleton implementation for a C++ matrix class
+    Example code for matrix-vector multiplication
     (:download:`ma02_matrix_vector.cpp <code/ma02_matrix_vector.cpp>`)
   :language: cpp
   :linenos:
@@ -94,5 +94,19 @@ Example Code (Matrix Operations)
   :caption: Build ":ref:`nsd-matrix-example-ma02-matrix-vector`"
 
   $ g++ ma02_matrix_vector.cpp -o ma02_matrix_vector -std=c++17 -O3 -g -m64
+
+.. literalinclude:: code/ma03_matrix_matrix.cpp
+  :name: nsd-matrix-example-ma03-matrix-matrix
+  :caption:
+    Example code for matrix-matrix multiplication
+    (:download:`ma03_matrix_matrix.cpp <code/ma03_matrix_matrix.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :caption: Build ":ref:`nsd-matrix-example-ma03-matrix-matrix`"
+
+  $ g++ ma03_matrix_matrix.cpp -o ma03_matrix_matrix -std=c++17 -O3 -g -m64
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
