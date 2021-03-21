@@ -1112,10 +1112,10 @@ Eigenvalue Problems
   :local:
   :depth: 1
 
-Eigenvalue problems and SVD are popular ways to factorize matrices.  The
-eigenvalue problems are to find the eigenvalues :math:`\lambda_1, \lambda_2,
-\ldots, \lambda_n` and the eigenvector matrix :math:`\mathrm{S}` of a matrix
-:math:`\mathrm{A}`, such that
+Eigenvalue problems and SVD (singular-value decomposition) are popular ways to
+factorize matrices.  The eigenvalue problems are to find the eigenvalues
+:math:`\lambda_1, \lambda_2, \ldots, \lambda_n` and the eigenvector matrix
+:math:`\mathrm{S}` of a matrix :math:`\mathrm{A}`, such that
 
 .. math::
 
@@ -1136,11 +1136,14 @@ equation
 
   u^h\mathrm{A} = \lambda u^h
 
-Use LAPACK's high-level ``?GEEV()`` driver for calculating the eigenvalues and
-eigenvectors:
+:math:`u^h` is the Hermitian (conjugate transpose) of :math:`u`.
+
+Now we can use the LAPACK high-level ``?GEEV()`` driver for calculating the
+eigenvalues and eigenvectors:
 
 .. code-block:: cpp
   :linenos:
+  :emphasize-lines: 16-29
 
   const size_t n = 3;
   int status;
@@ -1172,120 +1175,93 @@ eigenvectors:
     , vr.ncol() // lapack_int ldvr
   );
 
-.. admonition:: Execution Results
+The full example code can be found in :ref:`la02_geev.cpp
+<nsd-matrix-example-la02-geev>`.  The execution results are:
 
-  :download:`code/la02_geev.cpp`
+.. code-block::
 
-  .. code-block:: console
-    :caption: Build ``la02_geev.cpp``
+  >>> Solve Ax=lx (row major)
+  A:
+     3  5  2
+     2  1  3
+     4  3  2
+   data:   3  5  2  2  1  3  4  3  2
+  dgeev status: 0
+  eigenvalues:
+        (real)      (imag)
+  (   8.270757,   0.000000)
+  (  -1.135379,   1.221392)
+  (  -1.135379,  -1.221392)
+  left eigenvectors:
+      0.609288 ( -0.012827, -0.425749) ( -0.012827,  0.425749)
+      0.621953 (  0.652142,  0.000000) (  0.652142,  0.000000)
+      0.491876 ( -0.442811,  0.444075) ( -0.442811, -0.444075)
+  right eigenvectors:
+      0.649714 ( -0.668537,  0.000000) ( -0.668537,  0.000000)
+      0.435736 (  0.448552, -0.330438) (  0.448552,  0.330438)
+      0.622901 (  0.260947,  0.417823) (  0.260947, -0.417823)
 
-    $ g++ la02_geev.cpp -o la02_geev -std=c++17 -O3 -g -m64  -I/opt/intel/mkl/include /opt/intel/mkl/lib/libmkl_intel_lp64.a /opt/intel/mkl/lib/libmkl_sequential.a /opt/intel/mkl/lib/libmkl_core.a -lpthread -lm -ldl
+Let us verify the calculation.  We can use numpy for the verification.  To
+begin, input the matrix :math:`\mathrm{A}`:
 
-  .. code-block:: console
-    :caption: Run ``la02_geev``
-    :linenos:
+.. code-block:: pycon
 
-    $ ./la02_geev
-    >>> Solve Ax=lx (row major)
-    A:
-       3  5  2
-       2  1  3
-       4  3  2
-     data:   3  5  2  2  1  3  4  3  2
-    dgeev status: 0
-    eigenvalues:
-          (real)      (imag)
-    (   8.270757,   0.000000)
-    (  -1.135379,   1.221392)
-    (  -1.135379,  -1.221392)
-    left eigenvectors:
-        0.609288 ( -0.012827, -0.425749) ( -0.012827,  0.425749)
-        0.621953 (  0.652142,  0.000000) (  0.652142,  0.000000)
-        0.491876 ( -0.442811,  0.444075) ( -0.442811, -0.444075)
-    right eigenvectors:
-        0.649714 ( -0.668537,  0.000000) ( -0.668537,  0.000000)
-        0.435736 (  0.448552, -0.330438) (  0.448552,  0.330438)
-        0.622901 (  0.260947,  0.417823) (  0.260947, -0.417823)
+  >>> import numpy as np
+  >>> A = np.array([[3, 5, 2], [2, 1, 3], [4, 3, 2]], dtype='float64')
 
-Verify the calculation using numpy:
+Verify that for the first left eigenvector (real-valued) and its eigenvalue
+(8.270757), :math:`u_1^t\mathrm{A} = \lambda_1 u_1`:
 
-.. code-block:: python
-  :caption: Set up verification
-  :linenos:
+.. code-block:: pycon
 
-  import numpy as np
+  >>> ul = np.array([0.609288, 0.621953, 0.491876], dtype='float64')
+  >>> print("u^t A:", np.dot(ul, A))
+  u^t A: [5.039274 5.144021 4.068187]
+  >>> print("l u^t:", 8.270757*ul)
+  l u^t: [5.03927299 5.14402213 4.06818687]
 
-  A = np.array([[3, 5, 2], [2, 1, 3], [4, 3, 2]], dtype='float64')
+Verify that for the second left eigenvector (complex-valued) and its eigenvalue
+(:math:`-1.135379+1.221392i`), :math:`u_2^h\mathrm{A} = \lambda_2 u_2^h` (note
+that the complex-valued eigenvector needs Hermitian in the left-hand side to
+the equality sign):
 
-  xl = np.array([0.609288, 0.621953, 0.491876], dtype='float64')
-  print("Verify the left eigenvector with the first eigenvalue:")
-  print("  x^t A:", np.dot(xl, A))
-  print("  l x^t:", 8.27076*xl)
+.. code-block:: pycon
 
-.. code-block:: console
-  :caption: Result
+  >>> ul = np.array([-0.012827-0.425749j, 0.652142, -0.442811+0.444075j], dtype='complex64')
+  >>> print("u^h A:", np.dot(ul.conj(), A))
+  u^h A: [-0.50544107-0.49905294j -0.74042605+0.79652005j  1.04514994-0.03665197j]
+  >>> print("l u^h:", (-1.135379+1.221392j)*ul.conj())
+  l u^h: [-0.5054429 -0.49905324j -0.74042827+0.796521j    1.0451479 -0.03665245j]
 
-  Verify the left eigenvector with the first eigenvalue:
-    x^t A: [5.039274 5.144021 4.068187]
-    l x^t: [5.03927482 5.14402399 4.06818835]
+Verify that for the first right eigenvector (real-valued) and its eigenvalue
+(8.270757), :math:`\mathrm{A}v_1 = \lambda_1 v_1`:
 
-.. code-block:: python
-  :caption: Verify the left eigenvector with the second eigenvalue (complex-valued)
-  :linenos:
+.. code-block:: pycon
 
-  print("Verify the left eigenvector with the second eigenvalue (complex-valued):")
+  >>> vr = np.array([0.649714, 0.435736, 0.622901], dtype='float64')
+  >>> print("A v:", np.dot(A, vr))
+  A v: [5.373624 3.603867 5.151866]
+  >>> print("l v:", 8.270757*vr)
+  l v: [5.37362661 3.60386657 5.15186281]
 
-  xl = np.array([-0.012827-0.425749j, 0.652142, -0.442811+0.444075j], dtype='complex64')
-  # NOTE: the left eigenvector needs the conjugate.
-  print("  x^h A:", np.dot(xl.conj(), A))
-  print("  l x^h:", (-1.135379+1.221392j)*xl.conj())
+Verify that for the second right eigenvector (complex-valued) and its eigenvalue
+(:math:`-1.135379+1.221392i`), :math:`\mathrm{A} v_2 = \lambda_2 v_2` (note
+that the complex-valued eigenvector needs Hermitian in the left-hand side to
+the equality sign):
 
-.. code-block:: console
-  :caption: Result
+.. code-block:: pycon
 
-  Verify the left eigenvector with the second eigenvalue (complex-valued):
-    x^h A: [-0.50544107-0.49905294j -0.74042605+0.79652005j  1.04514994-0.03665197j]
-    l x^h: [-0.5054429 -0.49905324j -0.74042827+0.796521j    1.0451479 -0.03665245j]
-
-.. code-block:: python
-  :caption: Verify the right eigenvector with the first eigenvalue
-  :linenos:
-
-  print("Verify the right eigenvector with the first eigenvalue:")
-
-  xr = np.array([0.649714, 0.435736, 0.622901], dtype='float64')
-  print("  A x:", np.dot(A, xr))
-  print("  l x:", 8.27076*xr)
-
-.. code-block:: console
-  :caption: Result
-
-  Verify the right eigenvector with the first eigenvalue:
-    A x: [5.373624 3.603867 5.151866]
-    l x: [5.37362856 3.60386788 5.15186467]
-
-.. code-block:: python
-  :caption: Verify the right eigenvector with the second eigenvalue (complex-valued)
-  :linenos:
-
-  print("Verify the right eigenvector with the second eigenvalue (complex-valued):")
-
-  xr = np.array([-0.668537, 0.448552-0.330438j, 0.260947+0.417823j], dtype='complex64')
-  print("  A x:", np.dot(A, xr))
-  print("  l x:", (-1.135379+1.221392j)*xr)
-
-.. code-block:: console
-  :caption: Result
-
-  Verify the right eigenvector with the second eigenvalue (complex-valued):
-    A x: [ 0.75904298-0.81654397j -0.10568106+0.92303097j -0.80659807-0.15566799j]
-    l x: [ 0.75904286-0.8165458j  -0.10568219+0.92303026j -0.8065994 -0.15566885j]
+  >>> vr = np.array([-0.668537, 0.448552-0.330438j, 0.260947+0.417823j], dtype='complex64')
+  >>> print("A v:", np.dot(A, vr))
+  A v: [ 0.75904298-0.81654397j -0.10568106+0.92303097j -0.80659807-0.15566799j]
+  >>> print("l v:", (-1.135379+1.221392j)*vr)
+  l v: [ 0.75904286-0.8165458j  -0.10568219+0.92303026j -0.8065994 -0.15566885j]
 
 Symmetric Matrix
 ++++++++++++++++
 
-LAPACK's ``?SYEV()`` calculates the eigenvalues and eigenvectors for symmetric
-matrices.
+LAPACK provides special implementation with the ``?SYEV()`` functions to
+calculate the eigenvalues and eigenvectors faster for symmetric matrices.
 
 .. code-block:: cpp
   :linenos:
@@ -1293,7 +1269,7 @@ matrices.
   const size_t n = 3;
   int status;
 
-  std::cout << ">>> Solve Ax=lx (row major, A symmetrix)" << std::endl;
+  std::cout << ">>> Solve Ax=lx (row major, A symmetric)" << std::endl;
   Matrix mat(n, n, false);
   mat(0,0) = 3; mat(0,1) = 5; mat(0,2) = 2;
   mat(1,0) = 5; mat(1,1) = 1; mat(1,2) = 3;
@@ -1304,116 +1280,106 @@ matrices.
 
   status = LAPACKE_dsyev(
       LAPACK_ROW_MAJOR // int matrix_layout
-    , 'V' // char jobz; 'V' to compute both eigenvalues and eigenvectors, 'N' only eigenvalues
-    , 'U' // char uplo; 'U' use the upper triangular of input a, 'L' use the lower
+    , 'V' // char jobz;
+          // 'V' to compute both eigenvalues and eigenvectors,
+          // 'N' only eigenvalues
+    , 'U' // char uplo;
+          // 'U' use the upper triangular of input a,
+          // 'L' use the lower
     , n // lapack_int n
     , mat.data() // double * a
     , mat.ncol() // lapack_int lda
     , w.data() // double * w
   );
 
-.. admonition:: Execution Results
+The full example code can be found in :ref:`la03_syev.cpp
+<nsd-matrix-example-la03-syev>`.  The execution results are:
 
-  :download:`code/la03_syev.cpp`
+.. code-block::
 
-  .. code-block:: console
-    :caption: Build ``la03_syev.cpp``
+  >>> Solve Ax=lx (row major, A symmetric)
+  A:
+     3  5  2
+     5  1  3
+     2  3  2
+   data:   3  5  2  5  1  3  2  3  2
+  dsyev status: 0
+  eigenvalues:  -3.36105 0.503874 8.85717
+  eigenvectors:
+    -0.551825 -0.505745 -0.663107
+    0.798404 -0.0906812 -0.595255
+    -0.240916 0.857904 -0.453828
+   data:  -0.551825 -0.505745 -0.663107 0.798404 -0.0906812 -0.595255 -0.240916 0.857904 -0.453828
 
-    $ g++ la03_syev.cpp -o la03_syev -std=c++17 -O3 -g -m64  -I/opt/intel/mkl/include /opt/intel/mkl/lib/libmkl_intel_lp64.a /opt/intel/mkl/lib/libmkl_sequential.a /opt/intel/mkl/lib/libmkl_core.a -lpthread -lm -ldl
+Again, we use numpy to verify the results.  The input matrix
+:math:`\mathrm{A}`:
 
-  .. code-block:: console
-    :caption: Run ``la03_syev``
-    :linenos:
+.. code-block:: pycon
 
-    $ ./la03_syev
-    >>> Solve Ax=lx (row major, A symmetrix)
-    A:
-       3  5  2
-       5  1  3
-       2  3  2
-     data:   3  5  2  5  1  3  2  3  2
-    dsyev status: 0
-    eigenvalues:  -3.36105 0.503874 8.85717
-    eigenvectors:
-      -0.551825 -0.505745 -0.663107
-      0.798404 -0.0906812 -0.595255
-      -0.240916 0.857904 -0.453828
-     data:  -0.551825 -0.505745 -0.663107 0.798404 -0.0906812 -0.595255 -0.240916 0.857904 -0.453828
+  >>> A = np.array([[3, 5, 2], [5, 1, 3], [2, 3, 2]], dtype='float64')
 
-Verify the calculation using numpy:
+The spectral theorem tells us that the eigenvalues are all real-numbered.
+Verify that :math:`A v = \lambda v` for all the 3 distinct eigenvalues and
+their right eigenvectors:
 
-.. code-block:: python
-  :caption: Verify the right eigenvectors with the eigenvalues
-  :linenos:
+.. code-block:: pycon
+  :caption: The first eigenvalue and its right eigenvector
 
-  print("Verify the right eigenvectors with the eigenvalues:")
+  >>> v = np.array([-0.551825, 0.798404, -0.240916], dtype='float64')
+  >>> print("A v:", np.dot(A, v))
+  A v: [ 1.854713 -2.683469  0.80973 ]
+  >>> print("l v:", -3.36105*v)
+  l v: [ 1.85471142 -2.68347576  0.80973072]
 
-  A = np.array([[3, 5, 2], [5, 1, 3], [2, 3, 2]], dtype='float64')
+.. code-block:: pycon
+  :caption: The second eigenvalue and its right eigenvector
 
-  print("First eigenvalue:")
-  x = np.array([-0.551825, 0.798404, -0.240916], dtype='float64')
-  print("  A x:", np.dot(A, x))
-  print("  l x:", -3.36105*x)
+  >>> v = np.array([-0.505745, -0.0906812, 0.857904], dtype='float64')
+  >>> print("A v:", np.dot(A, v))
+  A v: [-0.254833  -0.0456942  0.4322744]
+  >>> print("l v:", 0.503874*v)
+  l v: [-0.25483176 -0.0456919   0.43227552]
 
-  print("Second eigenvalue:")
-  x = np.array([-0.505745, -0.0906812, 0.857904], dtype='float64')
-  print("  A x:", np.dot(A, x))
-  print("  l x:", 0.503874*x)
+.. code-block:: pycon
+  :caption: The third eigenvalue and its right eigenvector
 
-  print("Third eigenvalue:")
-  x = np.array([-0.663107, -0.595255, -0.453828], dtype='float64')
-  print("  A x:", np.dot(A, x))
-  print("  l x:", 8.85717*x)
+  >>> v = np.array([-0.663107, -0.595255, -0.453828], dtype='float64')
+  >>> print("A v:", np.dot(A, v))
+  A v: [-5.873252 -5.272274 -4.019635]
+  >>> print("l v:", 8.85717*v)
+  l v: [-5.87325143 -5.27227473 -4.01963175]
 
-.. code-block:: console
-  :caption: Result
+The spectral theorem tells us that the eigenvector matrix is orthonormal, so
+that the left eigenvectors are the row vectors of the eigenvector matrix.  Now
+we verify that :math:`u^t A = \lambda u^t` for all the 3 distinct eigenvalues
+and their right eigenvectors:
 
-  Verify the right eigenvectors with the eigenvalues:
-  First eigenvalue:
-    A x: [ 1.854713 -2.683469  0.80973 ]
-    l x: [ 1.85471142 -2.68347576  0.80973072]
-  Second eigenvalue:
-    A x: [-0.254833  -0.0456942  0.4322744]
-    l x: [-0.25483176 -0.0456919   0.43227552]
-  Third eigenvalue:
-    A x: [-5.873252 -5.272274 -4.019635]
-    l x: [-5.87325143 -5.27227473 -4.01963175]
+.. code-block:: pycon
+  :caption: The first eigenvalue and its left eigenvector
 
-.. code-block:: python
-  :caption: Verify the left eigenvectors with the eigenvalues
-  :linenos:
+  >>> u = np.array([-0.551825, 0.798404, -0.240916], dtype='float64')
+  >>> print("u^t A:", np.dot(u, A))
+  u^t A: [ 1.854713 -2.683469  0.80973 ]
+  >>> print("l u^t:", -3.36105*u)
+  l u^t: [ 1.85471142 -2.68347576  0.80973072]
 
-  # The eigenvector matrix is orthogonal; the right eigenvectors are also the left eigenvectors
-  print("Verify the left eigenvectors with the eigenvalues:")
+.. code-block:: pycon
+  :caption: The second eigenvalue and its left eigenvector
 
-  print("First (left) eigenvector:")
-  x = np.array([-0.551825, 0.798404, -0.240916], dtype='float64')
-  print("  x^t A:", np.dot(x, A))
-  print("  l x^t:", -3.36105*x)
+  >>> u = np.array([-0.505745, -0.0906812, 0.857904], dtype='float64')
+  >>> print("u^t A:", np.dot(u, A))
+  u^t A: [-0.254833  -0.0456942  0.4322744]
+  >>> print("l u^t:", 0.503874*u)
+  l u^t: [-0.25483176 -0.0456919   0.43227552]
 
-  print("Second (left) eigenvector:")
-  x = np.array([-0.505745, -0.0906812, 0.857904], dtype='float64')
-  print("  x^t A:", np.dot(x, A))
-  print("  l x^t:", 0.503874*x)
+.. code-block:: pycon
+  :caption: The third eigenvalue and its left eigenvector
 
-  print("Third (left) eigenvector:")
-  x = np.array([-0.663107, -0.595255, -0.453828], dtype='float64')
-  print("  x^t A:", np.dot(x, A))
-  print("  l x^t:", 8.85717*x)
-
-.. code-block:: console
-  :caption: Result
-
-  Verify the left eigenvectors with the eigenvalues:
-  First (left) eigenvector:
-    x^t A: [ 1.854713 -2.683469  0.80973 ]
-    l x^t: [ 1.85471142 -2.68347576  0.80973072]
-  Second (left) eigenvector:
-    x^t A: [-0.254833  -0.0456942  0.4322744]
-    l x^t: [-0.25483176 -0.0456919   0.43227552]
-  Third (left) eigenvector:
-    x^t A: [-5.873252 -5.272274 -4.019635]
-    l x^t: [-5.87325143 -5.27227473 -4.01963175]
+  >>> u = np.array([-0.663107, -0.595255, -0.453828], dtype='float64')
+  >>> print("u^t A:", np.dot(u, A))
+  u^t A: [-5.873252 -5.272274 -4.019635]
+  >>> print("l u^t:", 8.85717*u)
+  l u^t: [-5.87325143 -5.27227473 -4.01963175]
 
 Singular Value Decomposition (SVD)
 ++++++++++++++++++++++++++++++++++
@@ -1424,7 +1390,8 @@ value and the left and right singular vector matrix
 
 .. math::
 
-  \mathrm{A}_{m\times n} = \mathrm{U}_{m\times m}\mathrm{\Sigma}_{m\times n}\mathrm{V}_{n\times n}^t
+  \mathrm{A}_{m\times n} =
+    \mathrm{U}_{m\times m}\mathrm{\Sigma}_{m\times n}\mathrm{V}_{n\times n}^t
 
 where :math:`\mathrm{U}` is the eigenvector matrix of
 :math:`\mathrm{A}\mathrm{A}^t`, :math:`\mathrm{V}` the eigenvector matrix of
@@ -1437,10 +1404,12 @@ The singular values :math:`\sigma_1, \sigma_2, \ldots, \sigma_r` of
 SVD problem, the matrix :math:`\mathrm{A}` may be rectangular instead of
 square.
 
-Use LAPACK's ``?GESVD()`` to compute SVD:
+With the background in mind, we now use the LAPACK ``?GESVD()`` function to
+compute SVD:
 
 .. code-block:: cpp
   :linenos:
+  :emphasize-lines: 15-29
 
   const size_t m = 3, n = 4;
   int status;
@@ -1472,49 +1441,35 @@ Use LAPACK's ``?GESVD()`` to compute SVD:
     , superb.data() // double * superb
   );
 
-.. admonition:: Execution Results
+The full example code can be found in :ref:`la04_gesvd.cpp
+<nsd-matrix-example-la04-gesvd>`.  The execution results are:
 
-  :download:`code/la04_gesvd.cpp`
+.. code-block::
 
-  .. code-block:: console
-    :caption: Build ``la04_gesvd.cpp``
+  >>> SVD
+  A:
+             3          5          2          6
+             2          1          3          2
+             4          3          2          4
+   data:  3 5 2 6 2 1 3 2 4 3 2 4
+  dgesvd status: 0
+  singular values:  11.3795 2.45858 1.20947
+  u:
+     -0.745981  -0.530655   -0.40239
+     -0.324445   0.817251  -0.476274
+     -0.581591   0.224738   0.781822
+   data:  -0.745981 -0.530655 -0.40239 -0.324445 0.817251 -0.476274 -0.581591 0.224738 0.781822
+  vt:
+     -0.458123  -0.509612  -0.318862  -0.654787
+       0.38294  -0.472553   0.748366  -0.264574
+      0.799992  -0.118035  -0.553927  -0.198105
+    -0.0591054  -0.709265  -0.177316   0.679712
+   data:  -0.458123 -0.509612 -0.318862 -0.654787 0.38294 -0.472553 0.748366 -0.264574 0.799992 -0.118035 -0.553927 -0.198105 -0.0591054 -0.709265 -0.177316 0.679712
 
-    $ g++ la04_gesvd.cpp -o la04_gesvd -std=c++17 -O3 -g -m64  -I/opt/intel/mkl/include /opt/intel/mkl/lib/libmkl_intel_lp64.a /opt/intel/mkl/lib/libmkl_sequential.a /opt/intel/mkl/lib/libmkl_core.a -lpthread -lm -ldl
-
-  .. code-block:: console
-    :caption: Run ``la04_gesvd``
-    :linenos:
-
-    $ ./la04_gesvd
-    >>> SVD
-    A:
-               3          5          2          6
-               2          1          3          2
-               4          3          2          4
-     data:  3 5 2 6 2 1 3 2 4 3 2 4
-    dgesvd status: 0
-    singular values:  11.3795 2.45858 1.20947
-    u:
-       -0.745981  -0.530655   -0.40239
-       -0.324445   0.817251  -0.476274
-       -0.581591   0.224738   0.781822
-     data:  -0.745981 -0.530655 -0.40239 -0.324445 0.817251 -0.476274 -0.581591 0.224738 0.781822
-    vt:
-       -0.458123  -0.509612  -0.318862  -0.654787
-         0.38294  -0.472553   0.748366  -0.264574
-        0.799992  -0.118035  -0.553927  -0.198105
-      -0.0591054  -0.709265  -0.177316   0.679712
-     data:  -0.458123 -0.509612 -0.318862 -0.654787 0.38294 -0.472553 0.748366 -0.264574 0.799992 -0.118035 -0.553927 -0.198105 -0.0591054 -0.709265 -0.177316 0.679712
-
-Verify the result using numpy:
+Let us verify the result using numpy.  To begin, we input the computed data:
 
 .. code-block:: python
-  :caption: Verify SVD
   :linenos:
-
-  import pprint
-
-  print("Verify the results:")
 
   a = np.array(
       [
@@ -1545,35 +1500,28 @@ Verify the result using numpy:
       ], dtype='float64'
   )
 
-  print("A:")
-  pprint.pprint(a)
-  print("USV^t:")
-  pprint.pprint(np.dot(np.dot(u, s), vt))
-  print("error:")
-  pprint.pprint(np.abs(np.dot(np.dot(u, s), vt) - a))
+Perform the matrix multiplication and verify that the error is small:
 
-.. code-block:: console
-  :caption: Result
+.. code-block:: pycon
 
-  Verify the results:
-  A:
+  >>> import pprint
+  >>> pprint.pprint(a)
   array([[3., 5., 2., 6.],
          [2., 1., 3., 2.],
          [4., 3., 2., 4.]])
-  USV^t:
+  >>> pprint.pprint(np.dot(np.dot(u, s), vt))  # USV^t
   array([[3.00001146, 5.00000567, 2.00000761, 6.00000733],
          [2.00000598, 1.00000157, 3.00000366, 2.00000171],
          [4.00000932, 3.00000622, 2.00000865, 4.00000809]])
-  error:
+  >>> pprint.pprint(np.abs(np.dot(np.dot(u, s), vt) - a))  # error
   array([[1.14555417e-05, 5.66863979e-06, 7.61360053e-06, 7.32884776e-06],
          [5.97550818e-06, 1.57297897e-06, 3.66276266e-06, 1.71457387e-06],
          [9.32111966e-06, 6.21632203e-06, 8.64943021e-06, 8.09395774e-06]])
 
-.. code-block:: python
-  :caption: Keep the 2 most significant singular values
-  :linenos:
+We have 3 singular values ordered from large to small.  Let us try to drop the
+least significant one (i.e., keep the 2 most significant ones):
 
-  print("Keep the 2 most significant singular values:")
+.. code-block:: python
 
   smost = np.array(
       [
@@ -1582,31 +1530,25 @@ Verify the result using numpy:
           [      0,       0, 0, 0],
       ], dtype='float64'
   )
-  rebuilt = np.dot(np.dot(u, smost), vt)
-  print("USV^t:")
-  pprint.pprint(rebuilt)
-  print("error:")
-  pprint.pprint(np.abs(rebuilt - a))
-  print()
 
-.. code-block:: console
-  :caption: Result
+We will see the error increases significantly:
 
-  Keep the 2 most significant singular values:
-  USV^t:
+.. code-block:: pycon
+
+  >>> rebuilt = np.dot(np.dot(u, smost), vt)
+  >>> pprint.pprint(rebuilt)  # USV^t
   array([[3.38935047, 4.94256056, 1.73042318, 5.90359386],
          [2.46083266, 0.9320088 , 2.68092004, 1.88588549],
          [3.24354468, 3.11161896, 2.52379662, 4.18733425]])
-  error:
+  >>> pprint.pprint(np.abs(rebuilt - a))  # error
   array([[0.38935047, 0.05743944, 0.26957682, 0.09640614],
          [0.46083266, 0.0679912 , 0.31907996, 0.11411451],
          [0.75645532, 0.11161896, 0.52379662, 0.18733425]])
 
-.. code-block:: python
-  :caption: Keep the 2 least significant singular values
-  :linenos:
+The error will further increase if we drop the most significant singular value:
 
-  print("Keep the 2 least significant singular values:")
+.. code-block:: python
+
   sleast = np.array(
       [
           [0,       0,       0, 0],
@@ -1614,31 +1556,22 @@ Verify the result using numpy:
           [0,       0, 1.20947, 0],
       ], dtype='float64'
   )
-  rebuilt = np.dot(np.dot(u, sleast), vt)
-  print("USV^t:")
-  pprint.pprint(rebuilt)
-  print("error:")
-  pprint.pprint(np.abs(rebuilt - a))
 
-.. code-block:: console
-  :caption: Result
+.. code-block:: pycon
 
-  Keep the 2 least significant singular values:
-  USV^t:
+  >>> rebuilt = np.dot(np.dot(u, sleast), vt)
+  >>> pprint.pprint(rebuilt)  # USV^t
   array([[-0.88894466,  0.67396506, -0.70677708,  0.441592  ],
          [ 0.30860584, -0.88149708,  1.82275818, -0.41748621],
          [ 0.96805291, -0.37271546, -0.11028855, -0.33351291]])
-  error:
+  >>> pprint.pprint(np.abs(rebuilt - a))  # error
   array([[3.88894466, 4.32603494, 2.70677708, 5.558408  ],
          [1.69139416, 1.88149708, 1.17724182, 2.41748621],
          [3.03194709, 3.37271546, 2.11028855, 4.33351291]])
 
+Compare with the results of keeping only the most significant singular value:
 
 .. code-block:: python
-  :caption: Keep only the most significant singular values
-  :linenos:
-
-  print("Keep only the most significant singular values:")
 
   s1 = np.array(
       [
@@ -1647,20 +1580,14 @@ Verify the result using numpy:
           [      0, 0, 0, 0],
       ], dtype='float64'
   )
-  print("USV^t:")
-  pprint.pprint(np.dot(np.dot(u, s1), vt))
-  print("error:")
-  pprint.pprint(np.abs(np.dot(np.dot(u, s1), vt)-a))
 
-.. code-block:: console
-  :caption: Result
+.. code-block:: pycon
 
-  Keep only the most significant singular values:
-  USV^t:
+  >>> pprint.pprint(np.dot(np.dot(u, s1), vt))  # USV^t
   array([[3.88895612, 4.32604061, 2.70678469, 5.55841533],
          [1.69140014, 1.88149865, 1.17724548, 2.41748793],
          [3.03195641, 3.37272167, 2.1102972 , 4.333521  ]])
-  error:
+  >>> pprint.pprint(np.abs(np.dot(np.dot(u, s1), vt)-a))  # error
   array([[0.88895612, 0.67395939, 0.70678469, 0.44158467],
          [0.30859986, 0.88149865, 1.82275452, 0.41748793],
          [0.96804359, 0.37272167, 0.1102972 , 0.333521  ]])

@@ -19,7 +19,11 @@ public:
         reset_buffer(nrow, ncol);
     }
 
-    Matrix(size_t nrow, size_t ncol, bool column_major, std::vector<double> const & vec)
+    Matrix
+    (
+        size_t nrow, size_t ncol, bool column_major
+      , std::vector<double> const & vec
+    )
       : m_nrow(nrow), m_ncol(ncol), m_column_major(column_major)
     {
         reset_buffer(nrow, ncol);
@@ -47,7 +51,8 @@ public:
     }
 
     Matrix(Matrix const & other)
-      : m_nrow(other.m_nrow), m_ncol(other.m_ncol), m_column_major(other.m_column_major)
+      : m_nrow(other.m_nrow), m_ncol(other.m_ncol)
+      , m_column_major(other.m_column_major)
     {
         reset_buffer(other.m_nrow, other.m_ncol);
         for (size_t i=0; i<m_nrow; ++i)
@@ -77,7 +82,8 @@ public:
     }
 
     Matrix(Matrix && other)
-      : m_nrow(other.m_nrow), m_ncol(other.m_ncol), m_column_major(other.m_column_major)
+      : m_nrow(other.m_nrow), m_ncol(other.m_ncol)
+      , m_column_major(other.m_column_major)
     {
         reset_buffer(0, 0);
         std::swap(m_buffer, other.m_buffer);
@@ -99,15 +105,24 @@ public:
         reset_buffer(0, 0);
     }
 
-    double   operator() (size_t row, size_t col) const { return m_buffer[index(row, col)]; }
-    double & operator() (size_t row, size_t col)       { return m_buffer[index(row, col)]; }
+    double   operator() (size_t row, size_t col) const
+    {
+        return m_buffer[index(row, col)];
+    }
+    double & operator() (size_t row, size_t col)
+    {
+        return m_buffer[index(row, col)];
+    }
 
     size_t nrow() const { return m_nrow; }
     size_t ncol() const { return m_ncol; }
 
     size_t size() const { return m_nrow * m_ncol; }
     double buffer(size_t i) const { return m_buffer[i]; }
-    std::vector<double> buffer_vector() const { return std::vector<double>(m_buffer, m_buffer+size()); }
+    std::vector<double> buffer_vector() const
+    {
+        return std::vector<double>(m_buffer, m_buffer+size());
+    }
 
     double * data() const { return m_buffer; }
 
@@ -176,7 +191,7 @@ int main(int argc, char ** argv)
     const size_t n = 3;
     int status;
 
-    std::cout << ">>> Solve Ax=lx (row major, A symmetrix)" << std::endl;
+    std::cout << ">>> Solve Ax=lx (row major, A symmetric)" << std::endl;
     Matrix mat(n, n, false);
     mat(0,0) = 3; mat(0,1) = 5; mat(0,2) = 2;
     mat(1,0) = 5; mat(1,1) = 1; mat(1,2) = 3;
@@ -187,8 +202,12 @@ int main(int argc, char ** argv)
 
     status = LAPACKE_dsyev(
         LAPACK_ROW_MAJOR // int matrix_layout
-      , 'V' // char jobz; 'V' to compute both eigenvalues and eigenvectors, 'N' only eigenvalues
-      , 'U' // char uplo; 'U' use the upper triangular of input a, 'L' use the lower
+      , 'V' // char jobz;
+            // 'V' to compute both eigenvalues and eigenvectors,
+            // 'N' only eigenvalues
+      , 'U' // char uplo;
+            // 'U' use the upper triangular of input a,
+            // 'L' use the lower
       , n // lapack_int n
       , mat.data() // double * a
       , mat.ncol() // lapack_int lda

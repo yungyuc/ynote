@@ -118,4 +118,31 @@ Example Code (Matrix Operations)
   :linenos:
   :end-before: // vim: set
 
+.. literalinclude:: code/la02_geev.cpp
+  :name: nsd-matrix-example-la02-geev
+  :caption:
+    Example code for eigenvalue problems (:download:`la02_geev.cpp
+    <code/la02_geev.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. literalinclude:: code/la03_syev.cpp
+  :name: nsd-matrix-example-la03-syev
+  :caption:
+    Example code for eigenvalue problems for symmetric matrices
+    (:download:`la03_syev.cpp <code/la03_syev.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. literalinclude:: code/la04_gesvd.cpp
+  :name: nsd-matrix-example-la04-gesvd
+  :caption:
+    Example code for singular-value decomposition (:download:`la04_gesvd.cpp
+    <code/la04_gesvd.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
