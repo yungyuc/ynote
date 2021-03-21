@@ -109,4 +109,13 @@ Example Code (Matrix Operations)
 
   $ g++ ma03_matrix_matrix.cpp -o ma03_matrix_matrix -std=c++17 -O3 -g -m64
 
+.. literalinclude:: code/la01_gesv.cpp
+  :name: nsd-matrix-example-la01-gesv
+  :caption:
+    Example code for linear solver (:download:`la01_gesv.cpp
+    <code/la01_gesv.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

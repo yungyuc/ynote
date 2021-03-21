@@ -978,18 +978,17 @@ It can be rewritten as :math:`\mathrm{A}\mathbf{x} = \mathbf{b}`, where
     x_1 \\ x_2 \\ x_3
   \end{array}\right)
 
-Note that the reference implementation of LAPACK is Fortran, which uses column
-major.  The dimensional arguments of the LAPACK subroutines changes meaning
-when we call them from C with row-major matrices.
+We can write code to solve the sample problem above by calling LAPACK:
 
 .. code-block:: cpp
   :linenos:
+  :emphasize-lines: 5, 9, 19, 23, 26
 
   const size_t n = 3;
   int status;
 
   std::cout << ">>> Solve Ax=b (row major)" << std::endl;
-  Matrix mat(n, n, false);
+  Matrix mat(n, n, /* column_major */ false);
   mat(0,0) = 3; mat(0,1) = 5; mat(0,2) = 2;
   mat(1,0) = 2; mat(1,1) = 1; mat(1,2) = 3;
   mat(2,0) = 4; mat(2,1) = 3; mat(2,2) = 2;
@@ -1017,8 +1016,44 @@ when we call them from C with row-major matrices.
   std::cout << "solution x:" << b << std::endl;
   std::cout << "dgesv status: " << status << std::endl;
 
+.. note::
+
+  The reference implementation of LAPACK is Fortran, which uses column major.
+  The dimensional arguments of the LAPACK subroutines changes meaning when we
+  call them from C with row-major matrices.
+
+The execution results are:
+
+.. code-block:: console
+
+  $ ./la01_gesv
+  >>> Solve Ax=b (row major)
+  A:
+     3  5  2
+     2  1  3
+     4  3  2
+   data:   3  5  2  2  1  3  4  3  2
+  b:
+    57 23
+    22 12
+    41 84
+   data:  57 23 22 12 41 84
+  solution x:
+     2 38.3913
+     9 -11.3043
+     3 -17.8261
+   data:   2 38.3913  9 -11.3043  3 -17.8261
+  dgesv status: 0
+
+The code and results are for row-majoring matrix.  Now we test the same matrix
+but make it column-major:
+
+.. code-block:: cpp
+  :linenos:
+  :emphasize-lines: 2, 6, 15, 19, 22
+
   std::cout << ">>> Solve Ax=b (column major)" << std::endl;
-  Matrix mat2 = Matrix(n, n, true);
+  Matrix mat2 = Matrix(n, n, /* column_major */ true);
   mat2(0,0) = 3; mat2(0,1) = 5; mat2(0,2) = 2;
   mat2(1,0) = 2; mat2(1,1) = 1; mat2(1,2) = 3;
   mat2(2,0) = 4; mat2(2,1) = 3; mat2(2,2) = 2;
@@ -1045,54 +1080,30 @@ when we call them from C with row-major matrices.
   std::cout << "solution x:" << b2 << std::endl;
   std::cout << "dgesv status: " << status << std::endl;
 
-.. admonition:: Execution Results
+The execution results are:
 
-  :download:`code/la01_gesv.cpp`
+.. code-block:: console
 
-  .. code-block:: console
-    :caption: Build ``la01_gesv.cpp``
+  >>> Solve Ax=b (column major)
+  A:
+     3  5  2
+     2  1  3
+     4  3  2
+   data:   3  2  4  5  1  3  2  3  2
+  b:
+    57 23
+    22 12
+    41 84
+   data:  57 22 41 23 12 84
+  solution x:
+     2 38.3913
+     9 -11.3043
+     3 -17.8261
+   data:   2  9  3 38.3913 -11.3043 -17.8261
+  dgesv status: 0
 
-    $ g++ la01_gesv.cpp -o la01_gesv -std=c++17 -O3 -g -m64  -I/opt/intel/mkl/include /opt/intel/mkl/lib/libmkl_intel_lp64.a /opt/intel/mkl/lib/libmkl_sequential.a /opt/intel/mkl/lib/libmkl_core.a -lpthread -lm -ldl
-
-  .. code-block:: console
-    :caption: Run ``la01_gesv``
-    :linenos:
-
-    $ ./la01_gesv
-    >>> Solve Ax=b (row major)
-    A:
-       3  5  2
-       2  1  3
-       4  3  2
-     data:   3  5  2  2  1  3  4  3  2
-    b:
-      57 23
-      22 12
-      41 84
-     data:  57 23 22 12 41 84
-    solution x:
-       2 38.3913
-       9 -11.3043
-       3 -17.8261
-     data:   2 38.3913  9 -11.3043  3 -17.8261
-    dgesv status: 0
-    >>> Solve Ax=b (column major)
-    A:
-       3  5  2
-       2  1  3
-       4  3  2
-     data:   3  2  4  5  1  3  2  3  2
-    b:
-      57 23
-      22 12
-      41 84
-     data:  57 22 41 23 12 84
-    solution x:
-       2 38.3913
-       9 -11.3043
-       3 -17.8261
-     data:   2  9  3 38.3913 -11.3043 -17.8261
-    dgesv status: 0
+The full example code can be found in :ref:`la01_gesv.cpp
+<nsd-matrix-example-la01-gesv>`.
 
 Eigenvalue Problems
 ===================
