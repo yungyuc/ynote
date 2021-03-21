@@ -105,9 +105,8 @@ prints the contents:
 
 The execution results are:
 
-.. code-block:: console
+.. code-block:: none
 
-  $ ./pod01_vector
   vector elements in memory:
     0 1 2 3 4
 
@@ -182,9 +181,8 @@ The elements are accessed through two consecutive operators ``[]``:
 
 The execution results are:
 
-.. code-block:: console
+.. code-block:: none
 
-  $ ./pod02_matrix_auto
   2D array elements:
     00 01 02 03 04
     10 11 12 13 14
@@ -291,9 +289,8 @@ use two consecutive operators ``[]`` for accessing the element:
 
 The execution results are:
 
-.. code-block:: console
+.. code-block:: none
 
-  $ ./pod03_matrix_rowmajor
   buffer address: 0x7f88e9405ab0
   matrix address: 0x7f88e9405ab0
   matrix (row-major) elements as 2D array:
@@ -375,9 +372,8 @@ does not look as straight-forward as that of the row-major array, which was
 
 The execution results are:
 
-.. code-block:: console
+.. code-block:: none
 
-  $ ./pod04_matrix_colmajor
   buffer address: 0x7f926bc05ab0
   matrix address: 0x7f926bc05ab0
   matrix (column-major) elements as 2D array:
@@ -471,9 +467,8 @@ populating code is simplified by using the new accessor:
 
 The execution results are:
 
-.. code-block:: console
+.. code-block:: none
 
-  $ ./ma01_matrix_class
   matrix:
     00 01 02 03 04
     10 11 12 13 14
@@ -658,7 +653,7 @@ a math:`5\times1` vector:
 
 The result is a :math:`5\times1` vector:
 
-.. code-block:: console
+.. code-block:: none
 
   >>> square matrix-vector multiplication:
   matrix A:
@@ -700,7 +695,7 @@ Multiplying a :math:`2\times3` square matrix by a :math:`3\times1` vector:
 
 The result is a :math:`2\times1` vector:
 
-.. code-block:: console
+.. code-block:: none
 
   >>> m*n matrix-vector multiplication:
   matrix A:
@@ -730,7 +725,7 @@ it a :math:`3\times2` matrix, and multiply by a :math:`2\times1` vector:
 
 The result is a :math:`3\times1` vector:
 
-.. code-block:: console
+.. code-block:: none
   :emphasize-lines: 6
 
   >>> transposed matrix-vector multiplication:
@@ -787,7 +782,7 @@ The copy assignment operator is implemented as:
 
 The result is the same :math:`3\times1` vector:
 
-.. code-block:: console
+.. code-block:: none
   :emphasize-lines: 6
 
   >>> copied transposed matrix-vector multiplication:
@@ -883,9 +878,8 @@ first is to multiply a :math:`3\times2` matrix :math:`\mathrm{A}` by a
 
 The result is a :math:`3\times3` matrix :math:`\mathrm{C}`:
 
-.. code-block:: console
+.. code-block:: none
 
-  $ ./ma03_matrix_matrix
   >>> A(2x3) times B(3x2):
   matrix A (2x3):
      1  2  3
@@ -912,7 +906,7 @@ Then multiply :math:`\mathrm{B}` (:math:`{2\times3}`) by :math:`\mathrm{A}`
 
 The result is a :math:`2\times2` matrix :math:`\mathrm{D}`:
 
-.. code-block:: console
+.. code-block:: none
 
   >>> B(3x2) times A(2x3):
   matrix B (3x2):
@@ -1024,9 +1018,8 @@ We can write code to solve the sample problem above by calling LAPACK:
 
 The execution results are:
 
-.. code-block:: console
+.. code-block:: none
 
-  $ ./la01_gesv
   >>> Solve Ax=b (row major)
   A:
      3  5  2
@@ -1082,7 +1075,7 @@ but make it column-major:
 
 The execution results are:
 
-.. code-block:: console
+.. code-block:: none
 
   >>> Solve Ax=b (column major)
   A:
@@ -1178,7 +1171,7 @@ eigenvalues and eigenvectors:
 The full example code can be found in :ref:`la02_geev.cpp
 <nsd-matrix-example-la02-geev>`.  The execution results are:
 
-.. code-block::
+.. code-block:: none
 
   >>> Solve Ax=lx (row major)
   A:
@@ -1295,7 +1288,7 @@ calculate the eigenvalues and eigenvectors faster for symmetric matrices.
 The full example code can be found in :ref:`la03_syev.cpp
 <nsd-matrix-example-la03-syev>`.  The execution results are:
 
-.. code-block::
+.. code-block:: none
 
   >>> Solve Ax=lx (row major, A symmetric)
   A:
@@ -1444,7 +1437,7 @@ compute SVD:
 The full example code can be found in :ref:`la04_gesvd.cpp
 <nsd-matrix-example-la04-gesvd>`.  The execution results are:
 
-.. code-block::
+.. code-block:: none
 
   >>> SVD
   A:
@@ -1735,7 +1728,7 @@ Now we can write the code for solving the sample problem:
 The full example code can be found in :ref:`la05_gels.cpp
 <nsd-matrix-example-la05-gels>`.  The execution results are:
 
-.. code-block::
+.. code-block:: none
 
   >>> least square
   J:
