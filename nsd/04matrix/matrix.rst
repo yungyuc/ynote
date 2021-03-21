@@ -1599,14 +1599,14 @@ Least Square
   :local:
   :depth: 1
 
-Find a function of the form
+The linear least-square problem is to find a function of the form
 
 .. math::
 
   f(x) &= a_1g_1(x) + a_2g_2(x) + \ldots + a_ng_n(x) \\
    &= \sum_{j=1}^na_ng_n(x)
 
-that mininmizes the cost function
+that minimizes the cost function
 
 .. math::
 
@@ -1614,7 +1614,7 @@ that mininmizes the cost function
 
 for given points :math:`(x_i, y_i), \; i=1, 2, \ldots, m`.
 
-Write
+By writing
 
 .. math::
 
@@ -1628,7 +1628,7 @@ Write
   \end{array}\right) \\
   & = \left[g_j(x_i)\right], \; i=1, \ldots, m, \; j=1, \ldots, n
 
-The linear least-square problem can be expressed in the matrix-vector form
+we can express the linear least-square problem in the matrix-vector form
 
 .. math::
 
@@ -1656,14 +1656,21 @@ Rewrite in the vector form and obtain the normal equation for
 
   \mathrm{J}^t\mathrm{J}\mathbf{a} = \mathrm{J}^t\mathbf{y}
 
-Let's test the LAPACK ``?GELS()`` function, which find the approximated
+Now we have the equation for the linear least-square problem and can continue
+to see how to use the LAPACK ``?GELS()`` function, which find the approximated
 solution of an over- or under-determined linear system,
 :math:`\min(\mathrm{J}\mathbf{a}-\mathbf{y})^2`, where :math:`\mathbf{a}` is
 the unknown.
 
+Like the examples of other LAPACK subroutines, we use a simple configuration.
 Given 4 data points :math:`(1, 17)`, :math:`(2, 58)`, :math:`(3, 165)`,
-:math:`(4, 360)`.  We want to find the closest curve of the function
-:math:`f(x) = a_1x^3 + a_2x_2 + a_3x`.  The linear system is
+:math:`(4, 360)`.  We want to find the closest curve of a polynomial function
+
+.. math::
+
+  f(x) = a_1x^3 + a_2x_2 + a_3x
+
+The linear system is
 
 .. math::
 
@@ -1682,7 +1689,7 @@ and the right-hand side is
     17 \\ 58 \\ 165 \\ 360
   \end{array}\right)
 
-The code:
+Now we can write the code for solving the sample problem:
 
 .. code-block:: cpp
   :linenos:
@@ -1709,7 +1716,10 @@ The code:
 
   status = LAPACKE_dgels(
       LAPACK_ROW_MAJOR // int matrix_layout
-    , 'N' // transpose; 'N' is no transpose, 'T' is transpose, 'C' conjugate transpose
+    , 'N' // transpose;
+          // 'N' is no transpose,
+          // 'T' is transpose,
+          // 'C' conjugate transpose
     , m // number of rows of matrix
     , n // number of columns of matrix
     , 1 // nrhs; number of columns of RHS
@@ -1722,37 +1732,30 @@ The code:
   std::cout << "dgels status: " << status << std::endl;
   std::cout << "a: " << y << std::endl;
 
-.. admonition:: Execution Results
+The full example code can be found in :ref:`la05_gels.cpp
+<nsd-matrix-example-la05-gels>`.  The execution results are:
 
-  :download:`code/la05_gels.cpp`
+.. code-block::
 
-  .. code-block:: console
-    :caption: Build ``la05_gels.cpp``
+  >>> least square
+  J:
+             1          1          1
+             8          4          2
+            27          9          3
+            64         16          4
+   data:  1 1 1 8 4 2 27 9 3 64 16 4
+  y: 17 58 165 360
+  dgels status: 0
+  a:  5.35749 -2.04348 12.5266 -2.40772
 
-    $ g++ la05_gels.cpp -o la05_gels -std=c++17 -O3 -g -m64 \
-      -I/opt/intel/mkl/include \
-      /opt/intel/mkl/lib/libmkl_intel_lp64.a \
-      /opt/intel/mkl/lib/libmkl_sequential.a \
-      /opt/intel/mkl/lib/libmkl_core.a \
-      -lpthread -lm -ldl
+The last value in ``a:`` is garbage and should be ignored.  The results tell us
+the fitted polynomial function is
 
-  .. code-block:: console
-    :caption: Run ``la05_gels``
-    :linenos:
+.. math::
 
-    $ ./la05_gels
-    >>> least square
-    J:
-               1          1          1
-               8          4          2
-              27          9          3
-              64         16          4
-     data:  1 1 1 8 4 2 27 9 3 64 16 4
-    y: 17 58 165 360
-    dgels status: 0
-    a:  5.35749 -2.04348 12.5266 -2.40772
+  f(x) = 5.35749 x^3 - 2.04348 x_2 + 12.5266 x
 
-Plot the results:
+To make it clearer, we plot the fitted function along with the input points:
 
 .. figure:: image/la05_gels_plot.png
   :align: center
@@ -1792,5 +1795,8 @@ References
 .. [8]
   Strassen, Volker, Gaussian elimination is not optimal, Numer. Math. 13, p.
   354-356, 1969.  https://doi.org/10.1007/BF02165411
+
+.. [9]
+  :doc:`example`
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

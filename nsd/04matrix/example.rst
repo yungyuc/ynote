@@ -145,4 +145,22 @@ Example Code (Matrix Operations)
   :linenos:
   :end-before: // vim: set
 
+.. literalinclude:: code/la05_gels.cpp
+  :name: nsd-matrix-example-la05-gels
+  :caption:
+    Example code for linear least-square problems (:download:`la05_gels.cpp
+    <code/la05_gels.cpp>`)
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. literalinclude:: code/la05_gels_plot.py
+  :name: nsd-matrix-example-la05-gels-plot
+  :caption:
+    Script to plot the least-square sample problem
+    (:download:`la05_gels_plot.py <code/la05_gels_plot.py>`)
+  :language: python
+  :linenos:
+  :end-before: # vim: set
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
