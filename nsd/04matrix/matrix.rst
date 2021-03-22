@@ -626,7 +626,7 @@ Square Matrix
 +++++++++++++
 
 First we test the simple case.  Multiplying a :math:`5\times5` square matrix by
-a math:`5\times1` vector:
+a :math:`5\times1` vector:
 
 .. code-block:: cpp
   :linenos:
