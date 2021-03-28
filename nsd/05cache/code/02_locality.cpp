@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
     //for (size_t ncol=1024; ncol>0; ncol /= 2)
     {
 
-        // Prepopulation to cancel the effect of overcommit or delayed allocation.
+        // Pre-populate to cancel the effect of overcommit or delayed allocation.
         for (size_t i=0; i<nelem; ++i) { buffer[i] = nelem-i; }
 
         size_t nrow = nelem / ncol;
