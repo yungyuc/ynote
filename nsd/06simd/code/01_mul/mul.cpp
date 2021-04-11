@@ -161,10 +161,10 @@ int main(int argc, char ** argv)
     std::cout << "nelem: " << nelem << std::endl;
     std::cout << std::endl;
 
-    std::cout << "arr: 0x" << std::hex << arr << std::endl;
-    std::cout << "brr: 0x" << std::hex << brr << std::endl;
-    std::cout << "rrr1: 0x" << std::hex << rrr1 << std::endl;
-    std::cout << "rrr2: 0x" << std::hex << rrr2 << std::endl;
+    std::cout << "arr: " << std::hex << arr << std::endl;
+    std::cout << "brr: " << std::hex << brr << std::endl;
+    std::cout << "rrr1: " << std::hex << rrr1 << std::endl;
+    std::cout << "rrr2: " << std::hex << rrr2 << std::endl;
     std::cout << std::endl;
     std::cout << std::dec;
 

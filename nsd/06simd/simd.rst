@@ -2,34 +2,52 @@
 SIMD (Vector Processing)
 ========================
 
-Numerical software uses a lot of cycles to get the solutions.  We need to write
-fast code.  There are typically two means:
+Numerical software means a lot of computation for solutions.  The computation
+calls for a huge amount of cycles in the computer (processor).  Users always
+want shorter processing time.  The demand for faster speed keeps increasing at
+a faster pace than the advancement of the computer technologies.
+
+There are typically two ways to speed up:
 
 1. Use fewer computation: Code optimization.
 2. Do more computation concurrently: Parallelism.
 
 Parallelism appears in various levels, from high to low:
 
-1. Cluster or server farm: Multiple computers may be networked together to
-   solve one problem.
-2. Multiple threads: Multiple threads runs concurrently on the multiple cores
-   on a single computer host.
-3. Superscalar: Multiple instructions may be executed during the same clock
-   cycle on a single core.  This happens in the instruction level.
-4. Single instruction multiple data (SIMD): Computers offer special
-   instructions that can process multiple data at one time to achieve
-   instruction-level data parallelism.
+Cluster or server farm
+  Multiple computers are networked together to solve one problem.
+Multiple threads
+  Multiple threads runs concurrently on the multiple cores on a single computer
+  host.
+Single instruction multiple data (SIMD)
+  Computers offer special instructions that can process multiple data at one
+  time to achieve data parallelism.
 
-When speed is in need, we may do everything to run faster, but it is wise to
-begin with low-hanging fruit.  Instruction-level parallelism is generally
-easier than that in the higher level, because programmers should only take care
-of the details required by the architecture.
+.. note::
 
-In this chapter, we will discuss how to use SIMD.  It is also called *vector
-processing*.
+  There is also instruction-level parallelism (ILP) that enables execution of
+  multiple instructions in parallel on a single processor core.  It involves
+  the use of superscalar, pipelining, out-of-order execution, branch
+  prediction, etc.
 
-Types of Parallel Code Development
-==================================
+When speed is in need, we do everything to run faster, but it is wise to begin
+with low-hanging fruit.  Instruction-level parallelism is generally easier than
+that in the higher level, because programmers should only take care of the
+details required by the architecture.
+
+In this chapter, we will discuss the fundamental knowledge for bringing SIMD
+(which is also called *vector processing*) into a software system.
+
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
+Types of Parallel Software Development
+======================================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 The popular computer architecture is based on sequential processing.  The most
 fundamental processing unit executes instructions one by one.
@@ -82,6 +100,10 @@ for multiple data at once:
 
 SIMD Instructions
 =================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 CPU Capabilities
 ++++++++++++++++
@@ -153,9 +175,8 @@ presented here are not a complete guide to you, but show you one way to study
 and measure the benefits.  The measurement is important to assess whether or
 not you need the optimization.
 
-We will use the example, :download:`code/01_mul/mul.cpp`, to show how to use
-the 256-bit-wide AVX to perform vector multiplication for 8 single-precision
-floating-point values.
+We will use an example to show how to use the 256-bit-wide AVX to perform
+vector multiplication for 8 single-precision floating-point values:
 
 .. code-block:: cpp
 
@@ -163,109 +184,65 @@ floating-point values.
   constexpr const size_t repeat = 1024 * 1024;
   constexpr const size_t nelem = width * repeat;
 
-.. code-block:: console
+The data arrays are:
 
-  $ make -C code/01_mul run
-  g++  -std=c++17 -g -O3 -m64 -mavx  -c -o mul.o mul.cpp
-  g++  -std=c++17 -g -O3 -m64 -mavx   -o mul mul.o
-  ./mul
+.. code-block:: cpp
+
+  float * arr = (float *) aligned_alloc(32, nelem * sizeof(float));
+  float * brr = (float *) aligned_alloc(32, nelem * sizeof(float));
+  float * rrr1 = (float *) aligned_alloc(32, nelem * sizeof(float));
+  float * rrr2 = (float *) aligned_alloc(32, nelem * sizeof(float));
+
+.. code-block:: none
+  :caption: Runtime information of the multiplication test
+
   width: 8
   nelem: 8388608
 
-  arr: 0x0x7fbf40800000
-  brr: 0x0x7fbf42800000
-  rrr1: 0x0x7fbf44800000
-  rrr2: 0x0x7fbf46800000
+  arr: 0x7fbf40800000
+  brr: 0x7fbf42800000
+  rrr1: 0x7fbf44800000
+  rrr2: 0x7fbf46800000
 
-  Timing repeats for 20 times and takes the minimum
-
-  1 multiplication by loop takes: 0.00507986 sec
-  1 multiplication by simd takes: 0.00350077 sec
-
-  3 multiplication by loop takes: 0.0111593 sec
-  3 multiplication by simd takes: 0.00343282 sec
-
-  5 multiplication by loop takes: 0.0219515 sec
-  5 multiplication by simd takes: 0.00387762 sec
+The full example code can be found in :ref:`mul.cpp <nsd-simd-example-mul>`.
 
 Symbol Table
 ++++++++++++
 
-I use `radare2 <https://rada.re/n/>`__ to inspect the assembly of the generated
-image.  Before really checking the assembly, we need to identify what functions
-to be inspected from the symbol table.
+We will use `radare2 <https://rada.re/n/>`__ to inspect the assembly of the
+generated image.  As the first step, before really checking the assembly, we
+need to identify what functions to be inspected from the symbol table.
 
-.. code-block: console
+.. code-block:: console
+  :emphasize-lines: 3-8
 
-  $ make -C code/01_mul r2sym
-  r2 -Aqc "e scr.color=0 ; afl" mul
-  WARNING: No calling convention defined for this file, analysis may be inaccurate.
-  Warning: set your favourite calling convention in `e anal.cc=?`
-  0x100002640   32 3553 -> 3450 entry0
+  $ r2 -Aqc "e scr.color=0 ; afl" mul
+  ... some irrelevant prints ...
   0x100001720    3 178          sym.multiply1_loop_float__float__float_
   0x1000017e0    3 102          sym.multiply1_simd_float__float__float_
   0x100001850    3 354          sym.multiply3_loop_float__float__float_
   0x1000019c0    3 107          sym.multiply3_simd_float__float__float_
   0x100001a30    3 546          sym.multiply5_loop_float__float__float_
   0x100001c60    3 87           sym.multiply5_simd_float__float__float_
-  0x100001cc0   58 1723 -> 1641 sym.run_std::__1::function_void__float__float__float____float__float__float_
-  0x1000023a0    5 638          sym.check_float__float_
-  0x100003530    6 249          method.std::__1::basic_ostream_char__std::__1::char_traits_char____std::__1::__put_character_sequence_char__std::__1.char_traits_char____std::__1::basic_ostream_char__std::__1::char_traits_char_____char_const__unsigned_long_
-  0x1000038f6    1 6            sym.imp.std::__1::basic_ostream_char__std::__1::char_traits_char___::operator___unsigned_long_
-  0x1000038f0    1 6            sym.imp.std::__1::basic_ostream_char__std::__1::char_traits_char___::operator___float_
+  ... symbols that do not matter ...
+  ...
   0x1000038c0    1 6            sym.imp.std::__1::ios_base::getloc___const
-  0x1000038ba    1 6            sym.imp.std::__1::locale::use_facet_std::__1::locale::id__const
-  0x100003902    1 6            sym.imp.std::__1::locale::locale__
-  0x1000038cc    1 6            sym.imp.std::__1::basic_ostream_char__std::__1::char_traits_char___::put_char_
-  0x1000038d2    1 6            sym.imp.std::__1::basic_ostream_char__std::__1::char_traits_char___::flush__
-  0x1000016f0    1 33           sym._aligned_alloc
-  0x100003962    1 6            sym.imp.posix_memalign
-  0x100003430    1 16           sym.___clang_call_terminate
-  0x100003932    1 6            sym.imp.__cxa_begin_catch
-  0x10000391a    1 6            sym.imp.std::terminate__
-  0x10000392c    1 6            sym.imp.__cxa_allocate_exception
-  0x100003944    1 6            sym.imp.__cxa_throw
-  0x100003440    1 64           method.std::__1.__throw_bad_function_call__
-  0x100003480    1 10           method.std::__1::bad_function_call.bad_function_call__
-  0x100003490    1 28           sym.std::__1::bad_function_call::bad_function_call__
-  0x100003914    1 6            sym.imp.std::exception::exception__
-  0x1000034b0    1 71           method.std::__1.__throw_length_error_char_const_
-  0x100003500    1 42           method.std::length_error.length_error_char_const_
-  0x1000038c6    1 6            sym.imp.std::logic_error::logic_error_char_const_
-  0x10000393e    1 6            sym.imp.__cxa_free_exception
-  0x1000038ae    1 6            sym.imp._Unwind_Resume
-  0x100003690   18 311          method.std::__1::ostreambuf_iterator_char__std::__1::char_traits_char____std::__1::__pad_and_output_char__std::__1.char_traits_char____std::__1::ostreambuf_iterator_char__std::__1::char_traits_char_____char_const__char_const__char_const__std::__1::ios
-  0x1000037f0    1 6            method.std::__1::__function.__func_void____float__float__float___std::__1::allocator_void____float__float__float____void__float__float__float__::destroy__
-  0x100003800    1 10           method.std::__1::__function.__func_void____float__float__float___std::__1::allocator_void____float__float__float____void__float__float__float__::destroy_deallocate__
-  0x100003810    1 48           method.std::__1::__function.__func_void____float__float__float___std::__1::allocator_void____float__float__float____void__float__float__float__::__clone___const
-  0x100003926    1 6            sym.imp.operator_new_unsigned_long_
-  0x100003840    1 28           method.std::__1::__function.__func_void____float__float__float___std::__1::allocator_void____float__float__float____void__float__float__float__::__clone_std::__1::__function::__base_void__float__float__float____const
-  0x100003860    1 23           method.std::__1::__function.__func_void____float__float__float___std::__1::allocator_void____float__float__float____void__float__float__float__::operator___float__float__float_
-  0x100003880    1 27           method.std::__1::__function.__func_void____float__float__float___std::__1::allocator_void____float__float__float____void__float__float__float__::target_std::type_info_const__const
-  0x1000038a0    1 13           method.std::__1::__function.__func_void____float__float__float___std::__1::allocator_void____float__float__float____void__float__float__float__::target_type___const
-  0x100003d38    1 73           sym.GCC_except_table16
-  0x1000038b4    1 6            sym.imp.std::__1::__vector_base_common_true_::__throw_length_error___const
-  0x1000038d8    1 6            sym.imp.std::__1::basic_ostream_char__std::__1::char_traits_char___::sentry::sentry_std::__1::basic_ostream_char__std::__1::char_traits_char____
-  0x1000038de    1 6            sym.imp.std::__1::basic_ostream_char__std::__1::char_traits_char___::sentry::sentry__
-  0x1000038e4    1 6            sym.imp.std::__1::basic_ostream_char__std::__1::char_traits_char___::operator___void_const_
-  0x1000038ea    1 6            sym.imp.std::__1::basic_ostream_char__std::__1::char_traits_char___::operator___double_
-  0x1000038fc    1 6            sym.imp.std::__1::chrono::steady_clock::now__
-  0x100003908    1 6            sym.imp.std::__1::ios_base::__set_badbit_and_consider_rethrow__
-  0x10000390e    1 6            sym.imp.std::__1::ios_base::clear_unsigned_int_
-  0x100003920    1 6            sym.imp.operator_delete_void_
-  0x100003938    1 6            sym.imp.__cxa_end_catch
-  0x10000394a    1 6            sym.imp.__stack_chk_fail
-  0x100003950    1 6            sym.imp.free
-  0x100003956    1 6            sym.imp.memcpy
-  0x10000395c    1 6            sym.imp.memset
+  ...
 
 1 Multiplication
 ++++++++++++++++
 
 To demonstrate the effect of different ratio of calculations to memory access,
-I use 3 sets of multiplication.  The first set uses 1 multiplication:
+I use 3 sets of multiplication.  The first set uses 1 multiplication.  We
+compare the two versions of the code to see that SIMD does not help much with
+so little calculations: (i) :ref:`loop <nsd-simd-mul1-loop>` and (ii)
+:ref:`SIMD <nsd-simd-mul1-simd>`.
 
 .. code-block:: cpp
+  :caption:
+    Simple loop for only 1 multiplication (:ref:`assembly
+    <nsd-simd-mul1-loop-asm>`)
+  :name: nsd-simd-mul1-loop
 
   void multiply1_loop(float* a, float* b, float* r)
   {
@@ -278,6 +255,11 @@ I use 3 sets of multiplication.  The first set uses 1 multiplication:
       }
   }
 
+.. code-block:: cpp
+  :caption:
+    SIMD (AVX) for only 1 multiplication (:ref:`assembly <nsd-simd-mul1-simd-asm>`)
+  :name: nsd-simd-mul1-simd
+
   void multiply1_simd(float* a, float* b, float* r)
   {
       for (size_t i=0; i<repeat; ++i)
@@ -289,20 +271,16 @@ I use 3 sets of multiplication.  The first set uses 1 multiplication:
       }
   }
 
-.. code-block:: console
-  :caption: 1 multiplication with loop
+The corresponding assembly code is:
 
-  $ make -C code/01_mul r2 NAME=multiply1_loop
-  r2 -Aqc "e scr.color=0 ; sf sym.multiply1_loop_float__float__float_ ; pdf" mul
-  WARNING: No calling convention defined for this file, analysis may be inaccurate.
-  Warning: set your favourite calling convention in `e anal.cc=?`
-              ; DATA XREF from entry0 @ 0x100002c10
-              ;-- func.100001720:
-  ┌ 178: sym.multiply1_loop_float__float__float_ ();
-  │           0x100001720      55             push rbp                   ; multiply1_loop(float*, float*, float*)
-  │           0x100001721      4889e5         mov rbp, rsp
-  │           0x100001724      48c7c0f8ffff.  mov rax, 0xfffffffffffffff8
-  │           0x10000172b      0f1f440000     nop dword [rax + rax]
+.. code-block:: console
+  :caption:
+    The assemly code of the simple loop for only 1 multiplication (:ref:`source
+    <nsd-simd-mul1-loop>`)
+  :name: nsd-simd-mul1-loop-asm
+
+  $ r2 -Aqc "e scr.color=0 ; sf sym.multiply1_loop_float__float__float_ ; pdf" mul
+  ...
   │           ; CODE XREF from multiply1_loop(float*, float*, float*) @ 0x1000017ca
   │       ┌─> 0x100001730      c5fa10448720   vmovss xmm0, dword [rdi + rax*4 + 0x20]
   │       ╎   0x100001736      c5fa59448620   vmulss xmm0, xmm0, dword [rsi + rax*4 + 0x20]
@@ -331,23 +309,16 @@ I use 3 sets of multiplication.  The first set uses 1 multiplication:
   │       ╎   0x1000017c0      4883c008       add rax, 8
   │       ╎   0x1000017c4      483df8ff7f00   cmp rax, 0x7ffff8
   │       └─< 0x1000017ca      0f8260ffffff   jb 0x100001730
-  │           0x1000017d0      5d             pop rbp
-  └           0x1000017d1      c3             ret
+  ...
 
 .. code-block:: console
-  :caption: 1 multiplication with simd/avx
+  :caption:
+    The assembly code of the SIMD (AVX) for only 1 multiplication (:ref:`source
+    <nsd-simd-mul1-simd>`)
+  :name: nsd-simd-mul1-simd-asm
 
-  $ make -C code/01_mul r2 NAME=multiply1_simd
-  r2 -Aqc "e scr.color=0 ; sf sym.multiply1_simd_float__float__float_ ; pdf" mul
-  WARNING: No calling convention defined for this file, analysis may be inaccurate.
-  Warning: set your favourite calling convention in `e anal.cc=?`
-              ; DATA XREF from entry0 @ 0x100002d03
-              ;-- func.1000017e0:
-  ┌ 102: sym.multiply1_simd_float__float__float_ ();
-  │           0x1000017e0      55             push rbp                   ; multiply1_simd(float*, float*, float*)
-  │           0x1000017e1      4889e5         mov rbp, rsp
-  │           0x1000017e4      31c0           xor eax, eax
-  │           0x1000017e6      662e0f1f8400.  nop word cs:[rax + rax]
+  $ r2 -Aqc "e scr.color=0 ; sf sym.multiply1_simd_float__float__float_ ; pdf" mul
+  ...
   │           ; CODE XREF from multiply1_simd(float*, float*, float*) @ 0x10000183f
   │       ┌─> 0x1000017f0      c5fc280407     vmovaps ymm0, ymmword [rdi + rax]
   │       ╎   0x1000017f5      c5fc590406     vmulps ymm0, ymm0, ymmword [rsi + rax]
@@ -364,16 +335,27 @@ I use 3 sets of multiplication.  The first set uses 1 multiplication:
   │       ╎   0x100001835      4883e880       sub rax, 0xffffffffffffff80
   │       ╎   0x100001839      483d00000002   cmp rax, 0x2000000
   │       └─< 0x10000183f      75af           jne 0x1000017f0
-  │           0x100001841      5d             pop rbp
-  │           0x100001842      c5f877         vzeroupper
-  └           0x100001845      c3             ret
+  ...
+
+In the runtime benchmark, the SIMD/AVX version is faster, but with a small
+margin.  The SIMD version is only 1.48 times faster than the loop version:
+
+.. code-block:: none
+
+  1 multiplication by loop takes: 0.00502769 sec
+  1 multiplication by simd takes: 0.00339758 sec
 
 3 Multiplication
 ++++++++++++++++
 
-The second set uses 3 multiplications:
+The second set uses 3 multiplications.  The source code for the loop and SIMD
+versions are:
 
 .. code-block:: cpp
+  :caption:
+    Simple loop for 3 multiplications (:ref:`assembly
+    <nsd-simd-mul3-loop-asm>`)
+  :name: nsd-simd-mul3-loop
 
   void multiply3_loop(float* a, float* b, float* r)
   {
@@ -388,6 +370,11 @@ The second set uses 3 multiplications:
       }
   }
 
+.. code-block:: cpp
+  :caption:
+    SIMD (AVX) for 3 multiplications (:ref:`assembly <nsd-simd-mul3-simd-asm>`)
+  :name: nsd-simd-mul3-simd
+
   void multiply3_simd(float* a, float* b, float* r)
   {
       for (size_t i=0; i<repeat; ++i)
@@ -401,20 +388,16 @@ The second set uses 3 multiplications:
       }
   }
 
-.. code-block:: console
-  :caption: 3 multiplication with loop
+The corresponding assembly code is:
 
-  $ make -C code/01_mul r2 NAME=multiply3_loop
-  r2 -Aqc "e scr.color=0 ; sf sym.multiply3_loop_float__float__float_ ; pdf" mul
-  WARNING: No calling convention defined for this file, analysis may be inaccurate.
-  Warning: set your favourite calling convention in `e anal.cc=?`
-              ; DATA XREF from entry0 @ 0x100002e68
-              ;-- func.100001850:
-  ┌ 354: sym.multiply3_loop_float__float__float_ ();
-  │           0x100001850      55             push rbp                   ; multiply3_loop(float*, float*, float*)
-  │           0x100001851      4889e5         mov rbp, rsp
-  │           0x100001854      48c7c0f8ffff.  mov rax, 0xfffffffffffffff8
-  │           0x10000185b      0f1f440000     nop dword [rax + rax]
+.. code-block:: console
+  :caption:
+    The assembly code of the simple loop for 3 multiplications (:ref:`source
+    <nsd-simd-mul3-loop>`)
+  :name: nsd-simd-mul3-loop-asm
+
+  $ r2 -Aqc "e scr.color=0 ; sf sym.multiply3_loop_float__float__float_ ; pdf" mul
+  ...
   │           ; CODE XREF from multiply3_loop(float*, float*, float*) @ 0x1000019aa
   │       ┌─> 0x100001860      c5fa10448720   vmovss xmm0, dword [rdi + rax*4 + 0x20]
   │       ╎   0x100001866      c5fa59c0       vmulss xmm0, xmm0, xmm0
@@ -475,23 +458,17 @@ The second set uses 3 multiplications:
   │       ╎   0x1000019a0      4883c008       add rax, 8
   │       ╎   0x1000019a4      483df8ff7f00   cmp rax, 0x7ffff8
   │       └─< 0x1000019aa      0f82b0feffff   jb 0x100001860
-  │           0x1000019b0      5d             pop rbp
-  └           0x1000019b1      c3             ret
+  ...
 
-.. code-block: console
-  :caption: 3 multiplication with simd/avx
+.. code-block:: console
+  :caption:
+    The assembly code of the SIMD (AVX) for 3 multiplication (:ref:`source
+    <nsd-simd-mul3-simd>`)
+  :name: nsd-simd-mul3-simd-asm
 
-  $ make -C code/01_mul r2 NAME=multiply3_simd
-  r2 -Aqc "e scr.color=0 ; sf sym.multiply3_simd_float__float__float_ ; pdf" mul
-  WARNING: No calling convention defined for this file, analysis may be inaccurate.
-  Warning: set your favourite calling convention in `e anal.cc=?`
-              ; DATA XREF from entry0 @ 0x100002f67
-              ;-- func.1000019c0:
-  ┌ 107: sym.multiply3_simd_float__float__float_ ();
-  │           0x1000019c0      55             push rbp                   ; multiply3_simd(float*, float*, float*)
-  │           0x1000019c1      4889e5         mov rbp, rsp
-  │           0x1000019c4      31c0           xor eax, eax
-  │           0x1000019c6      662e0f1f8400.  nop word cs:[rax + rax]
+
+  $ r2 -Aqc "e scr.color=0 ; sf sym.multiply3_simd_float__float__float_ ; pdf" mul
+  ...
   │           ; CODE XREF from multiply3_simd(float*, float*, float*) @ 0x100001a24
   │       ┌─> 0x1000019d0      c5fc280407     vmovaps ymm0, ymmword [rdi + rax]
   │       ╎   0x1000019d5      c5fc59c0       vmulps ymm0, ymm0, ymm0
@@ -510,16 +487,27 @@ The second set uses 3 multiplications:
   │       ╎   0x100001a1a      4883c040       add rax, 0x40              ; 64
   │       ╎   0x100001a1e      483d00000002   cmp rax, 0x2000000
   │       └─< 0x100001a24      75aa           jne 0x1000019d0
-  │           0x100001a26      5d             pop rbp
-  │           0x100001a27      c5f877         vzeroupper
-  └           0x100001a2a      c3             ret
+  ...
+
+The speed-up of the SIMD version to the loop version significantly increases to
+3.24 times:
+
+.. code-block:: none
+
+  3 multiplication by loop takes: 0.0111576 sec
+  3 multiplication by simd takes: 0.00344309 sec
 
 5 Multiplication
 ++++++++++++++++
 
-The third (last) set uses 5 multiplications:
+The third (last) set uses 5 multiplications.  The source code for the loop and
+SIMD versions are:
 
 .. code-block:: cpp
+  :caption:
+    Simple loop for 5 multiplications (:ref:`assembly
+    <nsd-simd-mul5-loop-asm>`)
+  :name: nsd-simd-mul5-loop
 
   void multiply5_loop(float* a, float* b, float* r)
   {
@@ -536,6 +524,11 @@ The third (last) set uses 5 multiplications:
       }
   }
 
+.. code-block:: cpp
+  :caption:
+    SIMD (AVX) for 5 multiplications (:ref:`assembly <nsd-simd-mul5-simd-asm>`)
+  :name: nsd-simd-mul5-simd
+
   void multiply5_simd(float* a, float* b, float* r)
   {
       for (size_t i=0; i<repeat; ++i)
@@ -551,20 +544,16 @@ The third (last) set uses 5 multiplications:
       }
   }
 
-.. code-block:: console
-  :caption: 5 multiplication with loop
+The corresponding assembly code is:
 
-  $ make -C code/01_mul r2 NAME=multiply5_loop
-  r2 -Aqc "e scr.color=0 ; sf sym.multiply5_loop_float__float__float_ ; pdf" mul
-  WARNING: No calling convention defined for this file, analysis may be inaccurate.
-  Warning: set your favourite calling convention in `e anal.cc=?`
-              ; DATA XREF from entry0 @ 0x1000030d2
-              ;-- func.100001a30:
-  ┌ 546: sym.multiply5_loop_float__float__float_ ();
-  │           0x100001a30      55             push rbp                   ; multiply5_loop(float*, float*, float*)
-  │           0x100001a31      4889e5         mov rbp, rsp
-  │           0x100001a34      48c7c0f8ffff.  mov rax, 0xfffffffffffffff8
-  │           0x100001a3b      0f1f440000     nop dword [rax + rax]
+.. code-block:: console
+  :caption:
+    The assembly code of the simple loop for 5 multiplications (:ref:`source
+    <nsd-simd-mul5-loop>`)
+  :name: nsd-simd-mul5-loop-asm
+
+  $ r2 -Aqc "e scr.color=0 ; sf sym.multiply5_loop_float__float__float_ ; pdf" mul
+  ...
   │           ; CODE XREF from multiply5_loop(float*, float*, float*) @ 0x100001c4a
   │       ┌─> 0x100001a40      c5fa10448720   vmovss xmm0, dword [rdi + rax*4 + 0x20]
   │       ╎   0x100001a46      c5fa59c0       vmulss xmm0, xmm0, xmm0
@@ -657,23 +646,16 @@ The third (last) set uses 5 multiplications:
   │       ╎   0x100001c40      4883c008       add rax, 8
   │       ╎   0x100001c44      483df8ff7f00   cmp rax, 0x7ffff8
   │       └─< 0x100001c4a      0f82f0fdffff   jb 0x100001a40
-  │           0x100001c50      5d             pop rbp
-  └           0x100001c51      c3             ret
+  ...
 
 .. code-block:: console
-  :caption: # 5 multiplication with simd/avx
+  :caption:
+    The assembly code of the SIMD (AVX) for 5 multiplications (:ref:`source
+    <nsd-simd-mul5-simd>`)
+  :name: nsd-simd-mul5-simd-asm
 
-  $ make -C code/01_mul r2 NAME=multiply5_simd
-  r2 -Aqc "e scr.color=0 ; sf sym.multiply5_simd_float__float__float_ ; pdf" mul
-  WARNING: No calling convention defined for this file, analysis may be inaccurate.
-  Warning: set your favourite calling convention in `e anal.cc=?`
-              ; DATA XREF from entry0 @ 0x1000031d1
-              ;-- func.100001c60:
-  ┌ 87: sym.multiply5_simd_float__float__float_ ();
-  │           0x100001c60      55             push rbp                   ; multiply5_simd(float*, float*, float*)
-  │           0x100001c61      4889e5         mov rbp, rsp
-  │           0x100001c64      31c0           xor eax, eax
-  │           0x100001c66      662e0f1f8400.  nop word cs:[rax + rax]
+  $ r2 -Aqc "e scr.color=0 ; sf sym.multiply5_simd_float__float__float_ ; pdf" mul
+  ...
   │           ; CODE XREF from multiply5_simd(float*, float*, float*) @ 0x100001cb0
   │       ┌─> 0x100001c70      c5fc280407     vmovaps ymm0, ymmword [rdi + rax]
   │       ╎   0x100001c75      c5fc59c0       vmulps ymm0, ymm0, ymm0
@@ -689,19 +671,74 @@ The third (last) set uses 5 multiplications:
   │       ╎   0x100001ca6      4883c020       add rax, 0x20              ; 32
   │       ╎   0x100001caa      483d00000002   cmp rax, 0x2000000
   │       └─< 0x100001cb0      75be           jne 0x100001c70
-  │           0x100001cb2      5d             pop rbp
-  │           0x100001cb3      c5f877         vzeroupper
-  └           0x100001cb6      c3             ret
+  ...
+
+The speed-up of the SIMD version to the loop version further increases to 5.68
+times:
+
+.. code-block:: none
+
+  5 multiplication by loop takes: 0.0219349 sec
+  5 multiplication by simd takes: 0.00385851 sec
+
+In the results above, it is clear that the higher density of numerical
+calculation, the more efficient the calculation is.
+
+By organizing the timing data in a :ref:`table <nsd-simd-mul-speedup>`, we will
+find another interesting fact: the calculation time does not increase
+significantly with the calculation density when the SIMD (AVX) is used:
+
+.. list-table:: SIMD (AVX) speed-up
+  :name: nsd-simd-mul-speedup
+  :header-rows: 1
+  :align: center
+
+  * - Number of multiplications
+    - Loop (ms)
+    - SIMD (AVX) (ms)
+    - SIMD speed-up
+  * - 1
+    - 5.02769
+    - 3.39758
+    - 1.48 x
+  * - 3
+    - 11.1576
+    - 3.44309
+    - 3.24 x
+  * - 5
+    - 21.9349
+    - 3.85851
+    - 5.68 x
 
 OpenMP
 ======
 
+OpenMP is a tool that uses multi-threading for parallelism.  It is by no means
+SIMD, but since the source code does not need users to know much about
+multi-threading, it is introduced here as a comparison to SIMD.
+
+Open requires users to add ``#pragma omp`` in the source code to instruct the
+compiler to parallelize accordingly:
+
+.. code-block:: cpp
+
+  #pragma omp parallel
+  {
+      printf
+      (
+          "Hello from thread %d, nthreads %d\n"
+        , omp_get_thread_num()
+        , omp_get_num_threads()
+      );
+  }
+
+The execution results are:
+
 .. code-block:: console
 
-  $ make -C code/03_omp run
-  clang++ -Xpreprocessor -fopenmp -std=c++17 -g -O3  -c -o omp.o omp.cpp
-  clang++ -Xpreprocessor -fopenmp -std=c++17 -g -O3  -lomp -o omp omp.o
-  ./omp
+  $ clang++ -Xpreprocessor -fopenmp -std=c++17 -g -O3  -c -o omp.o omp.cpp
+  $ clang++ -Xpreprocessor -fopenmp -std=c++17 -g -O3  -lomp -o omp omp.o
+  $ ./omp
   Hello from thread 0, nthreads 8
   Hello from thread 4, nthreads 8
   Hello from thread 3, nthreads 8
@@ -711,28 +748,32 @@ OpenMP
   Hello from thread 1, nthreads 8
   Hello from thread 5, nthreads 8
 
-.. code-block:: console
+Users may control the number of threads to be used via an environment variable:
 
-  $ env OMP_NUM_THREADS=1 make -C code/03_omp run
-  ./omp
+.. code-block:: console
+  :caption: Let the OpenMP program to use only 1 thread
+
+  $ env OMP_NUM_THREADS=1 ./omp
   Hello from thread 0, nthreads 1
 
 .. code-block:: console
+  :caption: Let the OpenMP program to use 5 threads
 
-  $ env OMP_NUM_THREADS=5 make -C code/03_omp run
-  ./omp
+  $ env OMP_NUM_THREADS=5 ./omp
   Hello from thread 0, nthreads 5
   Hello from thread 3, nthreads 5
   Hello from thread 1, nthreads 5
   Hello from thread 2, nthreads 5
   Hello from thread 4, nthreads 5
 
+The full example code can be found in :ref:`omp.cpp <nsd-simd-example-omp>`.
+
 Exercises
 =========
 
 1. Replace the single-precision floating-point vector type ``__m256`` with the
    double-precision floating-point vector type ``__m256d`` in the example, and
-   compare the performance with the sinple-precision version.
+   compare the performance with the single-precision version.
 
 References
 ==========
@@ -752,7 +793,11 @@ References
 .. [4] Intel Intrinsics Guide:
    https://software.intel.com/sites/landingpage/IntrinsicsGuide/
 
-.. [5] Computer Organization and Assembly Languages by Yung-Yu Chuang, NTU:
+.. [5] Yung-Yu Chuang, NTU, Computer Organization and Assembly Languages:
    https://www.csie.ntu.edu.tw/~cyy/courses/assembly/12fall/news/
+
+.. [6] Randal Bryant and Nathan Beckmann, CMU 15-418/15-618: Parallel Computer
+   Architecture and Programming, Spring 2019:
+   https://www.cs.cmu.edu/afs/cs/academic/class/15418-s19/www/index.html
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
