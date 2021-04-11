@@ -125,7 +125,6 @@ Haswell in 2013.  Before asking the compiler to use the specific instruction
 set, query the operating system for the CPU capabilities.
 
 .. code-block:: bash
-  :linenos:
 
   print("Check on", platform.system())
   if 'Linux' == platform.system():
@@ -159,7 +158,6 @@ and can stay in the high-level languages most of the time.  The intrinsic
 functions correspond to x86 instructions.  An example of using it:
 
 .. code-block:: cpp
-  :linenos:
 
   __m256 * ma = (__m256 *) (&a[i*width]);
   __m256 * mb = (__m256 *) (&b[i*width]);
