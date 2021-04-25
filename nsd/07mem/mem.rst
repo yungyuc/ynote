@@ -854,12 +854,19 @@ All bytes are freed:
 Instance Counter
 ================
 
-In some cases, we want to know how many intances are created of certain
+In some cases, we want to know how many instances are created of certain
 classes.  One quick way is to add an instance counter for the specific class.
-We may immediately know the number at any given time point of the execution.
+The number of instances is available at any given time point.  The full source
+code of the counter can be found in :ref:`icount.cpp <nsd-mem-example-icount>`.
+
+Counter Template
+++++++++++++++++
+
+This is a very simple counter implementation that only works in limited
+scenarios, e.g., single-threaded environment.  But it's sufficient as an
+example.
 
 .. code-block:: cpp
-  :caption: Example for Counting Instances
   :linenos:
 
   template <class T>
@@ -887,6 +894,19 @@ We may immediately know the number at any given time point of the execution.
       static std::atomic_size_t m_destructed;
 
   }; /* end class InstanceCounter */
+
+  // Compiler will make sure these static variables are defined only once.
+  template <class T> std::atomic_size_t InstanceCounter<T>::m_constructed = 0;
+  template <class T> std::atomic_size_t InstanceCounter<T>::m_copied = 0;
+  template <class T> std::atomic_size_t InstanceCounter<T>::m_destructed = 0;
+
+Use the Counter
++++++++++++++++
+
+To show the use of the counter, make two classes:
+
+.. code-block:: cpp
+  :linenos:
 
   struct Data
     : public InstanceCounter<Data>
@@ -922,84 +942,103 @@ We may immediately know the number at any given time point of the execution.
 
   }; /* end struct Data */
 
-  // Compiler will make sure these static variables are defined only once.
-  template <class T> std::atomic_size_t InstanceCounter<T>::m_constructed = 0;
-  template <class T> std::atomic_size_t InstanceCounter<T>::m_copied = 0;
-  template <class T> std::atomic_size_t InstanceCounter<T>::m_destructed = 0;
+Count at Construction
++++++++++++++++++++++
 
-  int main(int argc, char ** argv)
-  {
-      std::cout << "** Creation phase **" << std::endl;
+Now we can run a test program.  Both ``Data`` and ``Data2`` will be
+instantiated.  First it's ``Data``:
 
-      // Data.
-      Data * data = new Data();
-      report<Data> ("Data  (default construction)  ");
+.. code-block:: cpp
 
-      Data * data_copied = new Data(*data);
-      report<Data> ("Data  (copy construction)     ");
+  // Data.
+  Data * data = new Data();
+  report<Data> ("Data  (default construction)  ");
 
-      std::vector<Data> dvec(64);
-      report<Data> ("Data  (construction in vector)");
+  Data * data_copied = new Data(*data);
+  report<Data> ("Data  (copy construction)     ");
 
-      // Data2.
-      Data2 * data2 = new Data2();
-      report<Data2>("Data2 (default construction)  ");
+  std::vector<Data> dvec(64);
+  report<Data> ("Data  (construction in vector)");
 
-      Data2 * data2_copied = new Data2(*data2);
-      report<Data2>("Data2 (copy construction)     ");
+The results are:
 
-      std::vector<Data2> d2vec(64);
-      report<Data2>("Data2 (construction in vector)");
+.. code-block:: none
 
-      std::cout << "** Deletion phase **" << std::endl;
+  Data  (default construction)   instance: active = 1 constructed = 1 copied = 0 destructed = 0
+  Data  (copy construction)      instance: active = 2 constructed = 1 copied = 1 destructed = 0
+  Data  (construction in vector) instance: active = 66 constructed = 65 copied = 1 destructed = 0
 
-      // Data.
-      std::vector<Data>().swap(dvec);
-      report<Data>("Data ");
-      delete data;
-      report<Data>("Data ");
-      delete data_copied;
-      report<Data>("Data ");
+Then it's ``Data2``:
 
-      // Data2.
-      std::vector<Data2>().swap(d2vec);
-      report<Data2>("Data2");
-      delete data2;
-      report<Data2>("Data2");
-      delete data2_copied;
-      report<Data2>("Data2");
+.. code-block:: cpp
 
-      return 0;
-  }
+  // Data2.
+  Data2 * data2 = new Data2();
+  report<Data2>("Data2 (default construction)  ");
 
-.. admonition:: Execution Results
+  Data2 * data2_copied = new Data2(*data2);
+  report<Data2>("Data2 (copy construction)     ");
 
-  :download:`code/icount.cpp`
+  std::vector<Data2> d2vec(64);
+  report<Data2>("Data2 (construction in vector)");
 
-  .. code-block:: console
-    :caption: Build ``icount.cpp``
+The results are slightly different:
 
-    $ g++ icount.cpp -o icount -std=c++17 -O3 -g
+.. code-block:: none
 
-  .. code-block:: console
-    :caption: Run ``icount``
-    :linenos:
+  Data2 (default construction)   instance: active = 1 constructed = 1 copied = 0 destructed = 0
+  Data2 (copy construction)      instance: active = 2 constructed = 2 copied = 0 destructed = 0
+  Data2 (construction in vector) instance: active = 66 constructed = 66 copied = 0 destructed = 0
 
-    $ ./icount
-    ** Creation phase **
-    Data  (default construction)   instance: active = 1 constructed = 1 copied = 0 destructed = 0
-    Data  (copy construction)      instance: active = 2 constructed = 1 copied = 1 destructed = 0
-    Data  (construction in vector) instance: active = 66 constructed = 65 copied = 1 destructed = 0
-    Data2 (default construction)   instance: active = 1 constructed = 1 copied = 0 destructed = 0
-    Data2 (copy construction)      instance: active = 2 constructed = 2 copied = 0 destructed = 0
-    Data2 (construction in vector) instance: active = 66 constructed = 66 copied = 0 destructed = 0
-    ** Deletion phase **
-    Data  instance: active = 2 constructed = 65 copied = 1 destructed = 64
-    Data  instance: active = 1 constructed = 65 copied = 1 destructed = 65
-    Data  instance: active = 0 constructed = 65 copied = 1 destructed = 66
-    Data2 instance: active = 2 constructed = 66 copied = 0 destructed = 64
-    Data2 instance: active = 1 constructed = 66 copied = 0 destructed = 65
-    Data2 instance: active = 0 constructed = 66 copied = 0 destructed = 66
+``InstanceCounter<Data2>`` does not work correctly for copy construction!  We
+have documented the reason in the code:
+
+.. code-block:: cpp
+
+  #if 0
+      // Don't forget to call the base class copy constructor.  The implicit copy
+      // constructor calls it for you.  But when you have custom copy
+      // constructor, if you do not specify the base constructor, the default
+      // constructor in the base class is used.
+        : InstanceCounter<Data2>(other)
+  #endif
+
+C++ programmers need to be familiar with the behaviors of construction.
+
+Count at Destruction
+++++++++++++++++++++
+
+Test the destruction:
+
+.. code-block:: cpp
+
+  // Data.
+  std::vector<Data>().swap(dvec);
+  report<Data>("Data ");
+  delete data;
+  report<Data>("Data ");
+  delete data_copied;
+  report<Data>("Data ");
+
+  // Data2.
+  std::vector<Data2>().swap(d2vec);
+  report<Data2>("Data2");
+  delete data2;
+  report<Data2>("Data2");
+  delete data2_copied;
+  report<Data2>("Data2");
+
+We made no mistakes in the destructor so the number will be correct with
+destruction of both classes:
+
+.. code-block:: none
+
+  Data  instance: active = 2 constructed = 65 copied = 1 destructed = 64
+  Data  instance: active = 1 constructed = 65 copied = 1 destructed = 65
+  Data  instance: active = 0 constructed = 65 copied = 1 destructed = 66
+  Data2 instance: active = 2 constructed = 66 copied = 0 destructed = 64
+  Data2 instance: active = 1 constructed = 66 copied = 0 destructed = 65
+  Data2 instance: active = 0 constructed = 66 copied = 0 destructed = 66
 
 Exercises
 =========

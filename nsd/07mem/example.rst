@@ -42,6 +42,15 @@ Example Code: Memory Management
   :linenos:
   :end-before: // vim: set
 
+.. literalinclude:: code/icount.cpp
+  :name: nsd-mem-example-icount
+  :caption:
+    Template to help keep track of the number of living instances
+    (:download:`icount.cpp <code/icount.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 
