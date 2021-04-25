@@ -91,8 +91,8 @@ The full code of the example for the C memory manager can be found in
 
 .. _nsd-mem-example-cmem-main:
 
-:c:func:`!main` function
-++++++++++++++++++++++++
+Main Function
++++++++++++++
 
 .. code-block:: c
   :linenos:
@@ -108,8 +108,8 @@ The full code of the example for the C memory manager can be found in
 
 .. _nsd-mem-example-cmem-outer:
 
-:c:func:`!outer` function
-+++++++++++++++++++++++++
+Outer Function
+++++++++++++++
 
 .. code-block:: c
   :linenos:
@@ -175,8 +175,8 @@ The full code of the example for the C memory manager can be found in
 
 .. _nsd-mem-example-cmem-inner:
 
-:c:func:`!inner` function
-+++++++++++++++++++++++++
+Inner Function
+++++++++++++++
 
 .. code-block:: c
   :linenos:
@@ -207,8 +207,8 @@ The full code of the example for the C memory manager can be found in
       return data_dynamic;
   }
 
-Execution results
-+++++++++++++++++
+C API Usage
++++++++++++
 
 See the change of local frame:
 
@@ -302,7 +302,7 @@ Use :c:func:`!aligned_alloc` to allocate memory at 256 (0x100) bytes:
     address by aligned_alloc: 0x55abd8f12800
     === aligned_alloc tested
 
-Never access freed memory
+Never Access Freed Memory
 +++++++++++++++++++++++++
 
 In the :ref:`outer function`, after freeing the memory for ``data``:
@@ -384,7 +384,7 @@ For the test functions, a dummy class is defined:
 
 .. _nsd-mem-example-cppmem-scalar:
 
-Standard scalar allocation and deallocation
+Standard Scalar Allocation and Deallocation
 +++++++++++++++++++++++++++++++++++++++++++
 
 The example code for scalar new and delete is:
@@ -447,7 +447,7 @@ The execution results are:
 
 .. _nsd-mem-example-cppmem-array:
 
-Array allocation and deallocation
+Array Allocation and Deallocation
 +++++++++++++++++++++++++++++++++
 
 The example code for array new and delete is:
@@ -492,7 +492,7 @@ The execution results are:
 
 .. _nsd-mem-example-cppmem-placement:
 
-Placement new
+Placement New
 +++++++++++++
 
 The example code for placement new is:
@@ -570,7 +570,7 @@ parts: (i) the byte counter, (ii) the STL allocator, and (iii) the test code.
 
 .. _nsd-mem-example-alloc-byte:
 
-Byte counter
+Byte Counter
 ++++++++++++
 
 .. code-block:: cpp
@@ -681,7 +681,7 @@ Byte counter
 
 .. _nsd-mem-example-alloc-alloc:
 
-Simple allocator
+Simple Allocator
 ++++++++++++++++
 
 .. code-block:: cpp
@@ -754,7 +754,7 @@ Simple allocator
 
 .. _nsd-mem-example-alloc-vector:
 
-Bytes allocated by ``std::vector``
+Bytes Allocated by ``std::vector``
 ++++++++++++++++++++++++++++++++++
 
 Now this shows the execution results for the example of STL allocator.  To
