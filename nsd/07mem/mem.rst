@@ -7,13 +7,17 @@ memory has two major uses: (i) to hold the required huge amount of data, and
 (ii) to gain speed.
 
 Modern computers use a hierarchical memory system.  Registers locate in the
-processor chip and are the fastest and scarest memory.  There is no additional
+processor chip and are the fastest and scarcest memory.  There is no additional
 cycle needed for the CPU to access the bits in registers.
 
 Farther from the CPU, we have cache memory in multiple levels.  It takes 1 to
 30 cycles to get data from cache memory to CPU, depending on the level.  Then
 we reach the main memory.  Data in main memory takes 50-200 cycles of latency
 before getting to CPU.
+
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
 
 Register, Stack, Heap, and Memory Map
 =====================================
@@ -32,19 +36,44 @@ used.
 C Dynamic Memory
 ================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 The C programming language defines 5 API functions for manipulate dynamic
-memory.
+memory:
 
-.. code-block:: c
-  :linenos:
+* Allocate without initializing
 
-  void * malloc(size_t size);
-  void * calloc(size_t num, size_t size);
-  void * realloc(void * ptr, size_t new_size);
-  void free(void* ptr);
-  void * aligned_alloc(size_t alignment, size_t size);
+  .. code-block:: c
 
-For conveniece, we call a library or part of a library that implements the
+    void * malloc(size_t size);
+
+* Allocate with initializing with zero
+
+  .. code-block:: c
+
+    void * calloc(size_t num, size_t size);
+
+* Reallocate already allocated memory
+
+  .. code-block:: c
+
+    void * realloc(void * ptr, size_t new_size);
+
+* Free allocated memory
+
+  .. code-block:: c
+
+    void free(void* ptr);
+
+* Allocate memory at an address with the specified alignment
+
+  .. code-block:: c
+
+    void * aligned_alloc(size_t alignment, size_t size);
+
+For convenience, we call a library or part of a library that implements the
 dynamic memory management APIs a memory manager.  Although we should focus on
 C++ code, it is crucial to know how a C memory manager works, because
 
@@ -53,11 +82,19 @@ C++ code, it is crucial to know how a C memory manager works, because
 3. C memory managers sometimes are faster than C++.
 
 With the following example code, I will show how the 5 API functions work, in
-the order of ``malloc()``, ``free()``, ``calloc()``, ``realloc()``,
-``aligned_alloc()``.
+the order of :c:func:`!malloc`, :c:func:`!free`, :c:func:`!calloc`,
+:c:func:`!realloc`, :c:func:`!aligned_alloc`.
+
+The full code of the example for the C memory manager can be found in
+:ref:`cmem.c <nsd-mem-example-cmem>`.  It contains 3 functions :c:func:`!main`,
+:c:func:`!outer`, and :c:func:`!inner`.
+
+.. _nsd-mem-example-cmem-main:
+
+:c:func:`!main` function
+++++++++++++++++++++++++
 
 .. code-block:: c
-  :caption: Example for C Memory Managers
   :linenos:
 
   int main(int argc, char ** argv)
@@ -69,32 +106,13 @@ the order of ``malloc()``, ``free()``, ``calloc()``, ``realloc()``,
       return 0;
   }
 
-  // Will be called by outer().
-  int64_t * inner()
-  {
-      printf("frame address of inner: %p\n", __builtin_frame_address(0));
+.. _nsd-mem-example-cmem-outer:
 
-      // An array on the stack.  It is popped away when execution leaves this
-      // function.  You cannot use the memory outside this function.
-      int64_t data_stack[32];
+:c:func:`!outer` function
++++++++++++++++++++++++++
 
-      for (size_t it = 0; it < 32; ++it)
-      {
-          data_stack[it] = 100 + it;
-      }
-      printf("stack memory: %p\n", data_stack);
-
-      // A dynamic array.
-      int64_t * data_dynamic = (int64_t *) malloc(32 * sizeof(int64_t));
-
-      for (size_t it = 0; it < 32; ++it)
-      {
-          data_dynamic[it] = 200 + it;
-      }
-      printf("dynamic memory: %p\n", data_dynamic);
-
-      return data_dynamic;
-  }
+.. code-block:: c
+  :linenos:
 
   void outer()
   {
@@ -117,18 +135,6 @@ the order of ``malloc()``, ``free()``, ``calloc()``, ``realloc()``,
       free(data);
       //free(data); // Double free results into error.
       printf("=== free tested\n");
-
-  #if 0
-      // You may not use the memory that is already freed.  The results is
-      // undefined.
-      for (size_t it = 0; it < 32; ++it)
-      {
-          if (data[it] != 200 + it)
-          {
-              printf("error\n");
-          }
-      }
-  #endif
 
       // The following two allocations result in the same zero-initialized array.
       //
@@ -167,36 +173,161 @@ the order of ``malloc()``, ``free()``, ``calloc()``, ``realloc()``,
       printf("=== aligned_alloc tested\n");
   }
 
-.. admonition:: Execution Results
+.. _nsd-mem-example-cmem-inner:
 
-  :download:`code/cmem.c`
+:c:func:`!inner` function
++++++++++++++++++++++++++
 
-  .. code-block:: console
-    :caption: Build ``cmem.c``
+.. code-block:: c
+  :linenos:
 
-    $ gcc cmem.c -o cmem -std=c11 -O3 -g
+  int64_t * inner()
+  {
+      printf("frame address of inner: %p\n", __builtin_frame_address(0));
 
-  .. code-block:: console
-    :caption: Run ``cmem``
-    :linenos:
+      // An array on the stack.  It is popped away when execution leaves this
+      // function.  You cannot use the memory outside this function.
+      int64_t data_stack[32];
 
-    $ ./cmem
-    frame address of main: 0x7ffee17ea220
-    frame address of outer: 0x7ffee17ea210
-    frame address of inner: 0x7ffee17ea1e0
-    stack memory: 0x7ffee17ea0d0
-    dynamic memory: 0x7fedf5c05ab0
-    data returned from inner: 0x7fedf5c05ab0
-    === malloc tested
-    === free tested
-    === calloc tested
-    address by malloc: 0x7fedf6800000
-    address by realloc to smaller memory: 0x7fedf6800000
-    address by realloc to larger memory: 0x7fedf6800000
+      for (size_t it = 0; it < 32; ++it)
+      {
+          data_stack[it] = 100 + it;
+      }
+      printf("stack memory: %p\n", data_stack);
+
+      // A dynamic array.
+      int64_t * data_dynamic = (int64_t *) malloc(32 * sizeof(int64_t));
+
+      for (size_t it = 0; it < 32; ++it)
+      {
+          data_dynamic[it] = 200 + it;
+      }
+      printf("dynamic memory: %p\n", data_dynamic);
+
+      return data_dynamic;
+  }
+
+Execution results
++++++++++++++++++
+
+See the change of local frame:
+
+.. code-block:: none
+
+  frame address of main: 0x7ffee17ea220
+  frame address of outer: 0x7ffee17ea210
+  frame address of inner: 0x7ffee17ea1e0
+
+Stack address in the :ref:`inner function <nsd-mem-example-cmem-inner>`:
+
+.. code-block:: none
+
+  stack memory: 0x7ffee17ea0d0
+
+Dynamic memory is far away from the stack:
+
+.. code-block:: none
+
+  dynamic memory: 0x7fedf5c05ab0
+
+The allocated dynamic memory is returned to the :ref:`outer function
+<nsd-mem-example-cmem-outer>`:
+
+.. code-block:: none
+
+  data returned from inner: 0x7fedf5c05ab0
+
+Showing :c:func:`!malloc`, :c:func:`!free`, and :c:func:`!calloc` work:
+
+.. code-block:: none
+
+  === malloc tested
+  === free tested
+  === calloc tested
+
+Results of running :c:func:`!realloc` (on macos):
+
+.. code-block:: none
+
+  address by malloc: 0x7fedf6800000
+  address by realloc to smaller memory: 0x7fedf6800000
+  address by realloc to larger memory: 0x7fedf6800000
+  === realloc tested
+
+.. note::
+
+  :c:func:`!realloc` may return a different address.  It depends on the
+  implementation of the standard C library, and usually varies with operation
+  systems.  For example, on Ubuntu Linux 20.04 LTS, the results are:
+
+  .. code-block:: none
+
+    address by malloc: 0x7f27fd790010
+    address by realloc to smaller memory: 0x7f27fd790010
+    address by realloc to larger memory: 0x7f27fb78f010
     === realloc tested
-    address by malloc: 0x7fedf5c05ab0
-    address by aligned_alloc: 0x7fedf6009800
+
+Use :c:func:`!aligned_alloc` to allocate memory at 256 (0x100) bytes:
+
+.. code-block:: none
+
+  address by malloc: 0x7fedf5c05ab0
+  address by aligned_alloc: 0x7fedf6009800
+  === aligned_alloc tested
+
+.. note::
+
+  macos does not provide :c:func:`!aligned_alloc`, but provide
+  :c:func:`!posix_memalign`.  We can make a simple wrapper like:
+
+  .. code-block:: c
+
+    #ifdef __APPLE__
+    // Macos hasn't implemented the C11 aligned_alloc as of the time 2019/8.
+    void * aligned_alloc(size_t alignment, size_t size)
+    {
+        void * ptr;
+        posix_memalign(&ptr, alignment, size);
+        return ptr;
+    }
+    #endif
+
+.. note::
+
+  On Ubuntu Linux 20.04 LTS, the results are:
+
+  .. code-block:: none
+
+    address by malloc: 0x55abd8f127c0
+    address by aligned_alloc: 0x55abd8f12800
     === aligned_alloc tested
+
+Never access freed memory
++++++++++++++++++++++++++
+
+In the :ref:`outer function`, after freeing the memory for ``data``:
+
+.. code-block:: c
+
+  // You must free the memory after you finish using it.  Otherwise it will
+  // remain in the process unclaimed, results in the "memory leak".
+  free(data);
+  //free(data); // Double free results into error.
+  printf("=== free tested\n");
+
+if it is later accessed, we will not get correct behavior:
+
+.. code-block:: c
+
+  // You may not use the memory that is already freed.  The results is
+  // undefined.
+  for (size_t it = 0; it < 32; ++it)
+  {
+      if (data[it] != 200 + it)
+      {
+          printf("error\n");
+      }
+  }
 
 C++ Dynamic Memory
 ==================
