@@ -17,6 +17,22 @@ Example Code: Memory Management
 
   $ gcc cmem.c -o cmem -std=c11 -O3 -g
 
+.. literalinclude:: code/cppmem.cpp
+  :name: nsd-mem-example-cppmem
+  :caption:
+    Example code for C++ memory management (:download:`cppmem.cpp
+    <code/cppmem.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-mem-example-cppmem-build
+  :caption: 
+    Build :ref:`cppmem.cpp <nsd-mem-example-cppmem>`.
+
+  $ g++ cppmem.cpp -o cppmem -std=c++17 -O3 -g
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 

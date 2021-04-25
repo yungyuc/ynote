@@ -332,6 +332,10 @@ if it is later accessed, we will not get correct behavior:
 C++ Dynamic Memory
 ==================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Objects in C++ have 4 storage durations:
 
 1. static
@@ -354,8 +358,38 @@ management.  The third use case doesn't directly allocate or deallocate memory,
 but allows to use the ``new/delete`` expression for constructing objects on an
 already-allocated block of memory.
 
+The full code of the example for the C++ memory manager can be found in
+:ref:`cppmem.cpp <nsd-mem-example-cppmem>`.  There are 3 test functions:
+:cpp:func:`!scalar_form`, :cpp:func:`!array_form`, and :cpp:func:`!placement`.
+For the test functions, a dummy class is defined:
+
 .. code-block:: cpp
-  :caption: Example for C++ Memory Managers
+  :linenos:
+
+  /*
+   * A dummy class taking 8k bytes.
+   */
+  struct Block
+  {
+      Block()
+      {
+          std::cout << "Block (" << this << ") constructed" << std::endl;
+      }
+      ~Block()
+      {
+          std::cout << "Block (" << this << ") destructed" << std::endl;
+      }
+      int64_t buffer[1024];
+  };
+
+.. _nsd-mem-example-cppmem-scalar:
+
+Standard scalar allocation and deallocation
++++++++++++++++++++++++++++++++++++++++++++
+
+The example code for scalar new and delete is:
+
+.. code-block:: cpp
   :linenos:
 
   void scalar_form()
@@ -396,6 +430,31 @@ already-allocated block of memory.
       std::cout << "=== delete tested" << std::endl;
   }
 
+The execution results are:
+
+.. code-block:: none
+
+  frame address of scalar_form: 0x7ffee70ab210
+  Block (0x7ffee70a91f0) constructed
+  object on stack: 0x7ffee70a91f0
+  address difference: 8224, sizeof(Block): 8192
+  Block (0x7ffea6809800) constructed
+  object on dynamic memory: 0x7ffea6809800
+  === new tested
+  Block (0x7ffea6809800) destructed
+  === delete tested
+  Block (0x7ffee70a91f0) destructed
+
+.. _nsd-mem-example-cppmem-array:
+
+Array allocation and deallocation
++++++++++++++++++++++++++++++++++
+
+The example code for array new and delete is:
+
+.. code-block:: cpp
+  :linenos:
+
   void array_form()
   {
       // An array on the stack.  It is popped away when execution leaves this
@@ -422,63 +481,75 @@ already-allocated block of memory.
       std::cout << "=== delete[] tested" << std::endl;
   }
 
-  void array_form()
+The execution results are:
+
+.. code-block:: none
+
+  stack array memory: 0x7ffee70ab0f0
+  dynamic array memory: 0x7ffea6405ab0
+  === new[] tested
+  === delete[] tested
+
+.. _nsd-mem-example-cppmem-placement:
+
+Placement new
++++++++++++++
+
+The example code for placement new is:
+
+.. code-block:: cpp
+  :linenos:
+
+  void placement()
   {
-      // An array on the stack.  It is popped away when execution leaves this
-      // function.  You cannot use the memory outside this function.
-      int64_t data_stack[32];
+      char * buffer = new char[sizeof(Block)];
 
-      for (size_t it = 0; it < 32; ++it)
+      Block * block = new (buffer) Block;
+      for (size_t it = 0; it < 1024; ++it)
       {
-          data_stack[it] = 100 + it;
+          block->buffer[it] = it;
       }
-      std::cout << "stack array memory: " << data_stack << std::endl;
+      std::cout << "=== placement new tested" << std::endl;
 
-      // A dynamic array.
-      int64_t * data_dynamic = new int64_t[32];
-
-      for (size_t it = 0; it < 32; ++it)
-      {
-          data_dynamic[it] = 200 + it;
-      }
-      std::cout << "dynamic array memory: " << data_dynamic << std::endl;
-      std::cout << "=== new[] tested" << std::endl;
-
-      delete[] data_dynamic;
-      std::cout << "=== delete[] tested" << std::endl;
+      // Instead of deleting the pointer block, call explicit the destructor and
+      // delete the original buffer.
+      block->~Block();
+      delete[] buffer;
   }
 
-.. admonition:: Execution Results
+The execution results are:
 
-  :download:`code/cppmem.cpp`
+.. code-block:: none
 
-  .. code-block:: console
-    :caption: Build ``cppmem.cpp``
+  Block (0x7ffea6809800) constructed
+  === placement new tested
+  Block (0x7ffea6809800) destructed
 
-    $ g++ cppmem.cpp -o cppmem -std=c++17 -O3 -g
+.. note::
 
-  .. code-block:: console
-    :caption: Run ``cppmem``
-    :linenos:
+  Do not use ``operator delete`` with an object constructed using placement
+  new:
 
-    $ ./cppmem
-    frame address of scalar_form: 0x7ffee70ab210
-    Block (0x7ffee70a91f0) constructed
-    object on stack: 0x7ffee70a91f0
-    address difference: 8224, sizeof(Block): 8192
-    Block (0x7ffea6809800) constructed
-    object on dynamic memory: 0x7ffea6809800
-    === new tested
-    Block (0x7ffea6809800) destructed
-    === delete tested
-    Block (0x7ffee70a91f0) destructed
-    stack array memory: 0x7ffee70ab0f0
-    dynamic array memory: 0x7ffea6405ab0
-    === new[] tested
-    === delete[] tested
-    Block (0x7ffea6809800) constructed
-    === placement new tested
-    Block (0x7ffea6809800) destructed
+  .. code-block:: cpp
+
+    // This induces undefined behavior.  Don't do this.
+    delete block;
+
+  It causes double free (tested on macos):
+
+  .. code-block:: none
+
+    cppmem(34359,0x1167b5e00) malloc: *** error for object 0x7f89e5009800: pointer being freed was not allocated
+    cppmem(34359,0x1167b5e00) malloc: *** set a breakpoint in malloc_error_break to debug
+
+  The reason is that the memory buffer is managed separately:
+
+  .. code-block:: cpp
+
+    // Instead of deleting the pointer block, call explicit the destructor and
+    // delete the original buffer.
+    block->~Block();
+    delete[] buffer;
 
 STL Allocator
 =============
