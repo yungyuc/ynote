@@ -554,15 +554,26 @@ The execution results are:
 STL Allocator
 =============
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 STL uses another set of template API for allocating the memory for most of its
 container.  By default, the STL containers use ``std::allocator`` class
 template for memory allocation.  We are allowed to provide custom allocators to
 the containers.
 
-This example shows how many bytes that a ``std::vector`` uses.
+We will use an example to show how a STL allocator works with ``std::vector``.
+The example counts the number of bytes allocated by the container.  The full
+code can be found in :ref:`alloc.cpp <nsd-mem-example-alloc>`.  It has three
+parts: (i) the byte counter, (ii) the STL allocator, and (iii) the test code.
+
+.. _nsd-mem-example-alloc-byte:
+
+Byte counter
+++++++++++++
 
 .. code-block:: cpp
-  :caption: Example for STL Allocator
   :linenos:
 
   struct ByteCounterImpl
@@ -668,6 +679,14 @@ This example shows how many bytes that a ``std::vector`` uses.
 
   }; /* end class ByteCounter */
 
+.. _nsd-mem-example-alloc-alloc:
+
+Simple allocator
+++++++++++++++++
+
+.. code-block:: cpp
+  :linenos:
+
   /**
    * Very simple allocator that counts the number of bytes allocated through it.
    *
@@ -733,26 +752,104 @@ This example shows how many bytes that a ``std::vector`` uses.
       return !(a == b);
   }
 
-.. admonition:: Execution Results
+.. _nsd-mem-example-alloc-vector:
 
-  :download:`code/alloc.cpp`
+Bytes allocated by ``std::vector``
+++++++++++++++++++++++++++++++++++
 
-  .. code-block:: console
-    :caption: Build ``alloc.cpp``
+Now this shows the execution results for the example of STL allocator.  To
+begin, create the allocator object:
 
-    $ g++ alloc.cpp -o alloc -std=c++17 -O3 -g
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Run ``alloc``
-    :linenos:
+  MyAllocator<size_t> alloc;
 
-    $ ./alloc
-    allocator: bytes = 0 allocated = 0 deallocated = 0
-    allocator: bytes = 8192 allocated = 16376 deallocated = 8184
-    allocator: bytes = 0 allocated = 16376 deallocated = 16376
-    allocator: bytes = 8192 allocated = 24568 deallocated = 16376
-    allocator: bytes = 8192 allocated = 24568 deallocated = 16376
-    allocator: bytes = 0 allocated = 24568 deallocated = 24568
+Create an empty ``std::vector``:
+
+.. code-block:: cpp
+
+  std::vector<size_t, MyAllocator<size_t>> vec1(alloc);
+  std::cout << alloc << std::endl;
+
+Nothing is allocated, as expected:
+
+.. code-block:: none
+
+  allocator: bytes = 0 allocated = 0 deallocated = 0
+
+Then populate 1024 elements to the vector:
+
+.. code-block:: cpp
+
+  for (size_t it=0; it<1024; ++it)
+  {
+      vec1.push_back(it);
+  }
+  std::cout << alloc << std::endl;
+
+8192 bytes remain in the container:
+
+.. code-block:: none
+
+  allocator: bytes = 8192 allocated = 16376 deallocated = 8184
+
+The total number of bytes allocated is almost twice the remaining bytes, and
+there are bytes deallocated.  It is the overhead incurred by
+``std::vector::push_back``.
+
+Use ``std::swap`` to get rid of contents in ``vec1``:
+
+.. code-block:: cpp
+
+  std::vector<size_t, MyAllocator<size_t>>(alloc).swap(vec1);
+  std::cout << alloc << std::endl;
+
+No bytes remain:
+
+.. code-block:: none
+
+  allocator: bytes = 0 allocated = 16376 deallocated = 16376
+
+Create another ``std::vector``, named ``vec2``, and ask for 1024 elements on
+construction:
+
+.. code-block:: cpp
+
+  std::vector<size_t, MyAllocator<size_t>> vec2(1024, alloc);
+  std::cout << alloc << std::endl;
+
+This time the bytes of deallocation do not increase.  The second construction
+does not have the overhead incurred by ``push_back`` (which is not used):
+
+.. code-block:: none
+
+  allocator: bytes = 8192 allocated = 24568 deallocated = 16376
+
+Test to see how the move semantics works by using the third object ``vec3``:
+
+.. code-block:: cpp
+
+  std::vector<size_t, MyAllocator<size_t>> vec3(std::move(vec2));
+  std::cout << alloc << std::endl;
+
+No memory allocation or deallocation happen, as expected:
+
+.. code-block:: none
+
+  allocator: bytes = 8192 allocated = 24568 deallocated = 16376
+
+In the end, discard the contents of the third container:
+
+.. code-block:: cpp
+
+  std::vector<size_t, MyAllocator<size_t>>(alloc).swap(vec3);
+  std::cout << alloc << std::endl;
+
+All bytes are freed:
+
+.. code-block:: none
+
+  allocator: bytes = 0 allocated = 24568 deallocated = 24568
 
 Instance Counter
 ================

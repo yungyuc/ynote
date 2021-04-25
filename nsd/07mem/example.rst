@@ -33,6 +33,15 @@ Example Code: Memory Management
 
   $ g++ cppmem.cpp -o cppmem -std=c++17 -O3 -g
 
+.. literalinclude:: code/alloc.cpp
+  :name: nsd-mem-example-alloc
+  :caption:
+    A simple C++ STL allocator that keeps track of bytes allocated
+    (:download:`alloc.cpp <code/alloc.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 
