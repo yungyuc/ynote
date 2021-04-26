@@ -12,7 +12,7 @@ Example Code: Memory Management
 
 .. code-block:: console
   :name: nsd-mem-example-cmem-build
-  :caption: 
+  :caption:
     Build :ref:`cmem.c <nsd-mem-example-cmem>`.
 
   $ gcc cmem.c -o cmem -std=c11 -O3 -g
@@ -28,7 +28,7 @@ Example Code: Memory Management
 
 .. code-block:: console
   :name: nsd-mem-example-cppmem-build
-  :caption: 
+  :caption:
     Build :ref:`cppmem.cpp <nsd-mem-example-cppmem>`.
 
   $ g++ cppmem.cpp -o cppmem -std=c++17 -O3 -g
