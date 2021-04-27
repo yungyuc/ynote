@@ -14,10 +14,11 @@ C++ to develop numerical software systems.  It has two parts.  The :ref:`first
 :doc:`overview <00intro>` is provided before the details.
 
 .. toctree::
+  :caption: Overview
   :maxdepth: 1
-  :hidden:
 
   00intro
+  schedule/schedule
 
 .. _nsd-first-part:
 
