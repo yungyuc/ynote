@@ -2,124 +2,155 @@
 Ownership and Smart Pointers
 ============================
 
-Raw Pointer
-===========
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
 
-The raw pointer allows us to directly manipulate the memory.
+Pointer and Reference
+=====================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Raw Pointer
++++++++++++
+
+The raw pointer allows us to directly manipulate the memory.  When using a
+pointer, if it not pointing to an existing object, it is a good practice to
+point it to ``nullptr``.
 
 .. code-block:: cpp
-  :linenos:
 
-  struct PlainData
-  {
-      int buffer[1024*8];
-  }; /* end struct PlainData */
+  std::cout << "PlainData pointer initialized : ";
+  // It is a good practice to initialize a raw pointer to nullptr.
+  PlainData * ptr = nullptr;
+  // Although nullptr will be integer 0, do not use the integer literal 0 or
+  // the infamous macro NULL to represent nullity.
+  put_ptr(std::cout, ptr) << std::endl;
 
-  std::ostream & put_ptr(std::ostream & out, void * ptr)
-  {
-      out << std::internal << std::setw(18) << std::setfill('0') << ptr;
-      return out;
-  }
+``nullptr`` is the null address, which is generally just ``0x0``:
 
-  int main(int, char **)
-  {
-      std::cout << "PlainData pointer initialized : ";
-      // It is a good practice to initialize a raw pointer to nullptr.
-      PlainData * ptr = nullptr;
-      // Although nullptr will be integer 0, do not use the integer literal 0 or
-      // the infamous macro NULL to represent nullity.
-      put_ptr(std::cout, ptr) << std::endl;
+.. code-block:: none
 
-      // The reason to not use 0 or NULL for the null pointer: they are not even
-      // of a pointer type!
-      static_assert(!std::is_pointer<decltype(0)>::value, "error");
-      static_assert(!std::is_pointer<decltype(NULL)>::value, "error");
-      // 0 is int
-      static_assert(std::is_same<decltype(0), int>::value, "error");
-      // int cannot be converted to a pointer.
-      static_assert(!std::is_convertible<decltype(0), void *>::value, "error");
-      // NULL is long
-      static_assert(std::is_same<decltype(NULL), long>::value, "error");
-      // long cannot be converted to a pointer, either.
-      static_assert(!std::is_convertible<decltype(NULL), void *>::value, "error");
+  PlainData pointer initialized : 0x0000000000000000
 
-      // Although nullptr is of type std::nullptr_t, not exactly a pointer ...
-      static_assert(std::is_same<decltype(nullptr), std::nullptr_t>::value, "error");
-      static_assert(!std::is_pointer<decltype(nullptr)>::value, "error");
-      // It can be converted to a pointer.
-      static_assert(std::is_convertible<decltype(nullptr), void *>::value, "error");
-      static_assert(std::is_convertible<decltype(nullptr), PlainData *>::value, "error");
+The full example code can be found in :ref:`01_raw_pointer.cpp
+<nsd-smart-example-raw>`.
 
-      // Allocate memory for PlainData and get the returned pointer.
-      std::cout << "PlainData pointer after malloc: ";
-      ptr = static_cast<PlainData *>(malloc(sizeof(PlainData)));
-      put_ptr(std::cout, ptr) << std::endl;
+Type of Null Pointer Literal
+++++++++++++++++++++++++++++
 
-      // After free the memory, the pointer auto variable is not changed.
-      std::cout << "PlainData pointer after free  : ";
-      free(ptr);
-      put_ptr(std::cout, ptr) << std::endl;
+In older C, there is a convention to use the macro ``NULL`` to for the null
+address (``0x0``).  ``NULL`` should not be used with C++11 and beyond.  The
+macro is merely a number and does not provide correct type information:
 
-      // Use new to allocate for and construct PlainData and get the returned
-      // pointer.
-      std::cout << "PlainData pointer after new   : ";
-      ptr = new PlainData();
-      put_ptr(std::cout, ptr) << std::endl;
+.. code-block:: cpp
 
-      // After delete, the pointer auto variable is not changed, either.
-      std::cout << "PlainData pointer after delete: ";
-      delete ptr;
-      put_ptr(std::cout, ptr) << std::endl;
+  // The reason to not use 0 or NULL for the null pointer: they are not even
+  // of a pointer type!
+  static_assert(!std::is_pointer<decltype(0)>::value, "error");
+  static_assert(!std::is_pointer<decltype(NULL)>::value, "error");
+  // 0 is int
+  static_assert(std::is_same<decltype(0), int>::value, "error");
+  // int cannot be converted to a pointer.
+  static_assert(!std::is_convertible<decltype(0), void *>::value, "error");
+  // NULL is long
+  static_assert(std::is_same<decltype(NULL), long>::value, "error");
+  // long cannot be converted to a pointer, either.
+  static_assert(!std::is_convertible<decltype(NULL), void *>::value, "error");
 
-      return 0;
-  }
+C++11 defines the new ``nullptr`` `pointer literal
+<https://en.cppreference.com/w/cpp/language/nullptr>`__ to represent the null
+pointer with type information (``std::nullptr_t``).  The compiler may use the
+type information to perform more rigorous checks:
 
-.. admonition:: Execution Results
+.. code-block:: cpp
 
-  :download:`code/01_pointer/01_raw_pointer.cpp`
+  // Although nullptr is of type std::nullptr_t, not exactly a pointer ...
+  static_assert(std::is_same<decltype(nullptr), std::nullptr_t>::value, "error");
+  static_assert(!std::is_pointer<decltype(nullptr)>::value, "error");
+  // It can be converted to a pointer.
+  static_assert(std::is_convertible<decltype(nullptr), void *>::value, "error");
+  static_assert(std::is_convertible<decltype(nullptr), PlainData *>::value, "error");
 
-  .. code-block:: console
-    :caption: Build ``01_raw_pointer.cpp``
+Dynamic Allocation
+++++++++++++++++++
 
-    $ g++ 01_raw_pointer.cpp -o 01_raw_pointer -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+This is how to use a pointer to point to a memory block allocated for a class
+using ``malloc()``:
 
-  .. code-block:: console
-    :caption: Run ``01_raw_pointer``
-    :linenos:
+.. code-block:: cpp
 
-    $ ./01_raw_pointer
-    PlainData pointer initialized : 0x0000000000000000
-    PlainData pointer after malloc: 0x00007fdd5e809800
-    PlainData pointer after free  : 0x00007fdd5e809800
-    PlainData pointer after new   : 0x00007fdd5e809800
-    PlainData pointer after delete: 0x00007fdd5e809800
+  // Allocate memory for PlainData and get the returned pointer.
+  std::cout << "PlainData pointer after malloc: ";
+  ptr = static_cast<PlainData *>(malloc(sizeof(PlainData)));
+  put_ptr(std::cout, ptr) << std::endl;
+
+The address of the allocated memory is stored in the pointer variable:
+
+.. code-block:: none
+
+  PlainData pointer after malloc: 0x00007fdd5e809800
+
+Freeing the memory block takes the pointer:
+
+.. code-block:: cpp
+
+  // After free the memory, the pointer auto variable is not changed.
+  std::cout << "PlainData pointer after free  : ";
+  free(ptr);
+  put_ptr(std::cout, ptr) << std::endl;
+
+Freeing does not touch the pointer variable:
+
+.. code-block:: none
+
+  PlainData pointer after free  : 0x00007fdd5e809800
+
+Use ``new`` for the allocation:
+
+.. code-block:: cpp
+
+  // Use new to allocate for and construct PlainData and get the returned
+  // pointer.
+  std::cout << "PlainData pointer after new   : ";
+  ptr = new PlainData();
+  put_ptr(std::cout, ptr) << std::endl;
+
+The allocated memory happens to be the same as that returned by ``malloc()``:
+
+.. code-block:: none
+
+  PlainData pointer after new   : 0x00007fdd5e809800
+
+``delete`` takes the pointer for deletion:
+
+.. code-block:: cpp
+
+  // After delete, the pointer auto variable is not changed, either.
+  std::cout << "PlainData pointer after delete: ";
+  delete ptr;
+  put_ptr(std::cout, ptr) << std::endl;
+
+``delete`` does not change the pointer variable either:
+
+.. code-block:: none
+
+  PlainData pointer after delete: 0x00007fdd5e809800
 
 Reference
-=========
++++++++++
 
-When we see a reference, we know that we should not deallocate / destruct the object.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+A reference works very similar to a pointer, but unlike a pointer, a reference
+cannot be used to deallocate or destruct the object it references.  In general,
+a reference is used just like an instance:
 
 .. code-block:: cpp
-  :linenos:
-
-  struct PlainData
-  {
-      int buffer[1024*8];
-  }; /* end struct PlainData */
-
-  std::ostream & put_ptr(std::ostream & out, void * ptr)
-  {
-      out << std::internal << std::setw(18) << std::setfill('0') << ptr;
-      return out;
-  }
-
-  // The factory function for PlainData.
-  PlainData * make_data()
-  {
-      PlainData * ptr = new PlainData();
-      // (... work to be done before returning.)
-      return ptr;
-  }
 
   void manipulate_with_reference(PlainData & data)
   {
@@ -135,53 +166,32 @@ When we see a reference, we know that we should not deallocate / destruct the ob
       // We cannot delete an object passed in with a reference.
   }
 
-  int main(int, char **)
-  {
-      PlainData * ptr = nullptr;
+.. code-block:: none
 
-      // Obtain the pointer to the object ('resource').
-      ptr = make_data();
-      std::cout << "PlainData pointer after factory: ";
-      put_ptr(std::cout, ptr) << std::endl;
+  Manipulate with reference      : 0x00007fe94a808800
 
-      manipulate_with_reference(*ptr);
-
-      // A good habit when using raw pointer: destruct the object in the scope
-      // that we obtain the pointer.  In this way, we don't forget to delete it
-      // and avoid potential resource leak.
-      delete ptr;
-      std::cout << "PlainData pointer after delete : ";
-      put_ptr(std::cout, ptr) << std::endl;
-
-      return 0;
-  }
-
-.. admonition:: Execution Results
-
-  :download:`code/01_pointer/02_reference.cpp`
-
-  .. code-block:: console
-    :caption: Build ``02_reference.cpp``
-
-    $ g++ 02_reference.cpp -o 02_reference -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
-
-  .. code-block:: console
-    :caption: Run ``02_reference``
-    :linenos:
-
-    $ ./02_reference
-    PlainData pointer after factory: 0x00007fe94a808800
-    Manipulate with reference      : 0x00007fe94a808800
-    PlainData pointer after delete : 0x00007fe94a808800
-
+The full example code for using the reference can be found in
+:ref:`02_reference.cpp <nsd-smart-example-ref>`.
 
 RAII
 ++++
 
-A better way to manage the resource life cycle than the manual control shown
-above is to use the technique of RAII (resource acquisition is initialization).
-The basic concept of RAII is to use the object life cycle to control the
-resource life cycle.
+When using a pointer with dynamic memory, we need to make sure the life cycle
+of the instance is managed correctly.  That is, to instantiate the class and
+destroy the instance at proper places.  It is oftentimes cumbersome and
+error-prone.
+
+The C++ reference makes it easier when we do not need to manage the life cycle.
+Because a reference cannot be used to destroy an instance, when a programmer
+sees the use of a reference, it is clear that the lifecycle of the referenced
+instance is not managed with the reference.  Programmers should take the
+advantage to make the intention of their code clear.
+
+But there are cases that the resource life cycle needs explicit management, and
+references are not adequate.  A better way than the manual control shown above
+is the technique of RAII (resource acquisition is initialization).  The basic
+concept of RAII is to use the object life cycle to control the resource life
+cycle.
 
 With RAII, we can relax the treatment of always deleting the object in the same
 function creating it.  RAII is directly related to the concept of ownership we
