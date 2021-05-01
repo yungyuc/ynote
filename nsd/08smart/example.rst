@@ -34,6 +34,29 @@ Example Code: Ownership and Smart Pointers
 
   $ g++ 02_reference.cpp -o 02_reference -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
 
+.. literalinclude:: code/01_pointer/03_ownership.cpp
+  :name: nsd-smart-example-own
+  :caption:
+    The concept of ownership (:download:`03_ownership.cpp
+    <code/01_pointer/03_ownership.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-smart-example-own-build
+  :caption:
+    Build :ref:`03_ownership.cpp <nsd-smart-example-own>`.
+
+  $ g++ 03_ownership.cpp -o 03_ownership -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+
+.. code-block:: console
+  :name: nsd-smart-example-own-crash
+  :caption:
+    Build :ref:`03_ownership.cpp <nsd-smart-example-own>`.
+
+  $ g++ 03_ownership.cpp -o 03_ownership -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror -DCRASHME
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 

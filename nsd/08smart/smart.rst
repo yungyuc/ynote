@@ -200,15 +200,23 @@ are introducing immediately.
 Ownership
 =========
 
-In a complicated system, memory is not free immediately after allocation.
-Consider the following example, where there are two worker functions with
-different memory management behaviors.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
-Data Class
-++++++++++
+In a practical system, memory (resource) is rarely freed immediately after
+allocation.  The resources are usually manipulated and probably passed around
+multiple functions.  It is not a trivial task to keep track of the life cycle
+and know when and where to free the resources.  To help the management, the
+concept of ownership is introduced.
 
-Our data object is large, and we don't want the expensive overhead from
-frequent allocation and deallocation.
+Lack of Ownership
++++++++++++++++++
+
+We will use the following example to show what is ownership (the full example
+code is in :ref:`03_ownership.cpp <nsd-smart-example-own>`).  The example uses
+a large data object, whose expensive overhead of frequent allocation and
+deallocation should be avoided.
 
 .. code-block:: cpp
   :linenos:
@@ -273,14 +281,10 @@ frequent allocation and deallocation.
       // However, we cannot destruct an object passed in with a reference.
   }
 
-Separate Memory Operations
-++++++++++++++++++++++++++
-
-The memory allocation and deallocation is not consistent in ``worker1()`` and
-``worker2()``.  This kind of problems are commonplace.
+The memory allocation and deallocation in the example is separated in two
+functions.  The first function construct ``Data``:
 
 .. code-block:: cpp
-  :linenos:
 
   Data * worker1()
   {
@@ -292,6 +296,10 @@ The memory allocation and deallocation is not consistent in ``worker1()`` and
 
       return data;
   }
+
+The second:
+
+.. code-block:: cpp
 
   /*
    * Code in this function is intentionally made to be lack of discipline to
@@ -311,62 +319,65 @@ The memory allocation and deallocation is not consistent in ``worker1()`` and
       }
   }
 
-  int main(int, char **)
-  {
-      Data * data = worker1();
-      std::cout << "Data pointer after worker 1: " << data << std::endl;
-      worker2(data);
-      std::cout << "Data pointer after worker 2: " << data << std::endl;
+The example problem first constructs the ``Data`` object and uses a raw pointer
+to hold it:
 
-      // You have to read the code of worker2 to know that data could be
-      // destructed.  In addition, the Data class doesn't provide a
-      // programmatical way to detect whether or not the object is alive.  The
-      // design of Data, worker1, and worker2 makes it impossible to write
-      // memory-safe code.
-  #ifdef CRASHME // The fenced code causes double free.
-      delete data;
-      std::cout << "Data pointer after delete: " << data << std::endl;
-  #endif
-  }
+.. code-block:: cpp
 
-.. admonition:: Execution Results
+  Data * data = worker1();
+  std::cout << "Data pointer after worker 1: " << data << std::endl;
 
-  :download:`code/01_pointer/03_ownership.cpp`
+We see the process of construction and manipulation:
 
-  .. code-block:: console
-    :caption: Build ``03_ownership.cpp``
+.. code-block:: none
 
-    $ g++ 03_ownership.cpp -o 03_ownership -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+  Data @0x7fb287008800 is constructed
+  Manipulate with reference: 0x7fb287008800
+  Data pointer after worker 1: 0x7fb287008800
 
-  .. code-block:: console
-    :caption: Run ``03_ownership``
-    :linenos:
+The second worker function does something that is hard to infer from the
+function name:
 
-    $ ./03_ownership
-    Data @0x7fb287008800 is constructed
-    Manipulate with reference: 0x7fb287008800
-    Data pointer after worker 1: 0x7fb287008800
-    Data @0x7fb287008800 is destructed
-    Data pointer after worker 2: 0x7fb287008800
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Build ``03_ownership.cpp`` with the crashing behavior
+  worker2(data);
+  std::cout << "Data pointer after worker 2: " << data << std::endl;
 
-    $ g++ 03_ownership.cpp -o 03_ownership -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror -DCRASHME
+It destructs the instance that the input pointer points to:
 
-  .. code-block:: console
-    :caption: Crash ``03_ownership``
-    :linenos:
+.. code-block:: none
 
-    $ ./03_ownership
-    Data @0x7f8ef9808800 is constructed
-    Manipulate with reference: 0x7f8ef9808800
-    Data pointer after worker 1: 0x7f8ef9808800
-    Data @0x7f8ef9808800 is destructed
-    Data pointer after worker 2: 0x7f8ef9808800
-    Data @0x7f8ef9808800 is destructed
-    03_ownership(75158,0x114718e00) malloc: *** error for object 0x7f8ef9808800: pointer being freed was not allocated
-    03_ownership(75158,0x114718e00) malloc: *** set a breakpoint in malloc_error_break to debug
+  Data @0x7fb287008800 is destructed
+
+We need to be careful that the pointer in the caller remains unchanged,
+although the instance is destructed:
+
+.. code-block:: none
+
+  Data pointer after worker 2: 0x7fb287008800
+
+The second helper function has such a surprising behavior that we can only
+understand by reading its code, but unfortunately, few programmers have time to
+read code like this when they are busy implementing requested features.  Thus,
+we call code like this hard to maintain.  A consequence of such
+hard-to-maintain code is that programmers may run into mistake like:
+
+.. code-block:: cpp
+
+  // You have to read the code of worker2 to know that data could be
+  // destructed.  In addition, the Data class doesn't provide a
+  // programmatical way to detect whether or not the object is alive.  The
+  // design of Data, worker1, and worker2 makes it impossible to write
+  // memory-safe code.
+  delete data;
+  std::cout << "Data pointer after delete: " << data << std::endl;
+
+We get a hard crash:
+
+.. code-block:: none
+
+  03_ownership(75158,0x114718e00) malloc: *** error for object 0x7f8ef9808800: pointer being freed was not allocated
+  03_ownership(75158,0x114718e00) malloc: *** set a breakpoint in malloc_error_break to debug
 
 What Is Ownership
 +++++++++++++++++
@@ -382,7 +393,7 @@ it is owned by someone.  It also means that the owner is responsible for making
 sure the object gets destructed when it should be.
 
 As we observed in the above example code, there is no way for us to let the
-code to know the ownership, and it is unsafe to use the ``data`` object after
+code know the ownership, and it is unsafe to use the ``data`` object after
 ``worker2()`` is called.  The way C++ handles the situation is to use smart
 pointers.
 
@@ -391,8 +402,8 @@ pointers.
 
 (Modern) C++ provides two smart pointers: ``unique_ptr`` and ``shared_ptr``.
 We start with ``unique_ptr`` because it is lighter-weight.  A ``unique_ptr``
-takes the same number of bytes of a raw pointer.  It may be a drop-in replace
-with a raw pointer.
+takes the same number of bytes of a raw pointer.  It may be a drop-in
+replacement with a raw pointer.
 
 ``unique_ptr`` should be used when there can only be one owner of the pointed
 object.
