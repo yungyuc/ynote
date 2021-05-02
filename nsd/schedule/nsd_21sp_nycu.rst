@@ -80,7 +80,7 @@ NSD Schedule 2021 Spring NYCU
     -
   * - 17
     - 6/14
-    - TBD or no meeting
+    - No meeting (dragon boat holiday)
     -
   * - 18
     - 6/21
