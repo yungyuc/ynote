@@ -1140,11 +1140,23 @@ The ``Data`` object is correctly destructed, and the reference count is correct:
 
 There is not double free any more.
 
-Avoid Cyclic Reference
-++++++++++++++++++++++
+Avoid Circular Reference
+++++++++++++++++++++++++
 
-When two object use a pair of ``shared_ptr`` to point to each other, the cyclic
-reference will create a memory leak:
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
+Circular (or cyclic) reference means two objects contain pointers that point to
+each other.  The circle does not need to have only two objects.  It may contain
+three or more objects.  The circular reference is not a problem when none of
+the pointers owns other objects.  It becomes a problem when the pointers are
+smart pointers, and specifically the shared pointer.  Here we use the simplest
+case of the circle formed by two objects to demonstrate the problem.
+
+The following code has two objects (``Data`` and ``Child``) pointing to each
+other using a shared pointer.  (The full code is in :ref:`04_cyclic.cpp
+<nsd-smart-example-cyclic>`.)  The circular reference creates a memory leak:
 
 .. code-block:: cpp
   :linenos:
@@ -1177,55 +1189,67 @@ reference will create a memory leak:
       std::shared_ptr<Data> m_data;
   };
 
-  int main(int, char **)
-  {
-      std::shared_ptr<Data> data = Data::make();
-      std::shared_ptr<Child> child = Child::make(data);
-      std::cout << "data.use_count(): " << data.use_count() << std::endl;
-      std::cout << "child.use_count(): " << child.use_count() << std::endl;
+.. code-block:: cpp
 
-      std::weak_ptr<Data> wdata(data);
-      std::weak_ptr<Child> wchild(child);
+  std::shared_ptr<Data> data = Data::make();
+  std::shared_ptr<Child> child = Child::make(data);
+  std::cout << "data.use_count(): " << data.use_count() << std::endl;
+  std::cout << "child.use_count(): " << child.use_count() << std::endl;
 
-      data.reset();
-      std::cout << "wdata.use_count() after data.reset(): " << wdata.use_count() << std::endl;
-      std::cout << "wchild.use_count() after data.reset(): " << wchild.use_count() << std::endl;
+.. code-block:: none
 
-      child.reset();
-      std::cout << "wdata.use_count() after child.reset(): " << wdata.use_count() << std::endl;
-      std::cout << "wchild.use_count() after child.reset(): " << wchild.use_count() << std::endl;
-      // Oops, the reference count doesn't reduce to 0!
-  }
+  Data @0x7f8f48d00018 is constructed
+  data.use_count(): 2
+  child.use_count(): 2
 
-.. admonition:: Execution Results
+(Here we create two ``weak_ptr`` objects.  The weak pointers can access the
+reference count of the pointed objects of the shared pointers but do not own
+the objects.  They will be used for peaking the counts.)
 
-  :download:`code/02_shared/04_cyclic.cpp`
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Build ``04_cyclic.cpp``
+  std::weak_ptr<Data> wdata(data);
+  std::weak_ptr<Child> wchild(child);
 
-    $ g++ 04_cyclic.cpp -o 04_cyclic -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+Release the shared pointer to the ``Data`` object:
 
-  .. code-block:: console
-    :caption: Run ``04_cyclic``
-    :linenos:
+.. code-block:: cpp
 
-    $ ./04_cyclic
-    Data @0x7f8f48d00018 is constructed
-    data.use_count(): 2
-    child.use_count(): 2
-    wdata.use_count() after data.reset(): 1
-    wchild.use_count() after data.reset(): 2
-    wdata.use_count() after child.reset(): 1
-    wchild.use_count() after child.reset(): 1
+  data.reset();
+  std::cout << "wdata.use_count() after data.reset(): " << wdata.use_count() << std::endl;
+  std::cout << "wchild.use_count() after data.reset(): " << wchild.use_count() << std::endl;
+
+There is still one reference to ``Data`` remaining:
+
+.. code-block:: none
+
+  wdata.use_count() after data.reset(): 1
+  wchild.use_count() after data.reset(): 2
+
+Release the shared pointer to the ``Child`` object:
+
+.. code-block:: cpp
+
+  child.reset();
+  std::cout << "wdata.use_count() after child.reset(): " << wdata.use_count() << std::endl;
+  std::cout << "wchild.use_count() after child.reset(): " << wchild.use_count() << std::endl;
+
+There is still one reference to ``Child`` remaining:
+
+.. code-block:: none
+
+  wdata.use_count() after child.reset(): 1
+  wchild.use_count() after child.reset(): 1
+
+Oops.  The ``Data`` and ``Child`` objects will never go away!
 
 Use Weak Pointer to Work around
 -------------------------------
 
-In the above demonstration we use ``weak_ptr`` to get the reference count without
-increasing it.  ``weak_ptr`` can also be used to break the cyclic reference.  In
-the following example, the ``Child`` object replaces ``shared_ptr`` with ``weak_ptr``
-to point to ``Data``:
+In the above demonstration we use weak pointers to get the reference count
+without increasing it.  The weak pointer can also be used to break the circular
+reference.  In the following example, the ``Child`` object replaces
+``std::shared_ptr`` with ``std::weak_ptr`` to point to ``Data``:
 
 .. code-block:: cpp
   :linenos:
@@ -1249,65 +1273,79 @@ to point to ``Data``:
       std::weak_ptr<Data> m_data;
   };
 
-  int main(int, char **)
-  {
-      std::shared_ptr<Data> data = Data::make();
-      std::shared_ptr<Child> child = Child::make(data);
-      std::cout << "data.use_count(): " << data.use_count() << std::endl;
-      std::cout << "child.use_count(): " << child.use_count() << std::endl;
+(The full code is in :ref:`05_weak.cpp <nsd-smart-example-weak>`.)
 
-      std::weak_ptr<Data> wdata(data);
-      std::weak_ptr<Child> wchild(child);
+Like the previous example, the ``Data`` and ``Child`` objects are created:
 
-      child.reset();
-      std::cout << "wdata.use_count() after child.reset(): " << wdata.use_count() << std::endl;
-      std::cout << "wchild.use_count() after child.reset(): " << wchild.use_count() << std::endl;
+.. code-block:: cpp
 
-      data.reset();
-      std::cout << "wdata.use_count() after data.reset(): " << wdata.use_count() << std::endl;
-      std::cout << "wchild.use_count() after data.reset(): " << wchild.use_count() << std::endl;
-  }
+  std::shared_ptr<Data> data = Data::make();
+  std::shared_ptr<Child> child = Child::make(data);
+  std::cout << "data.use_count(): " << data.use_count() << std::endl;
+  std::cout << "child.use_count(): " << child.use_count() << std::endl;
 
-.. admonition:: Execution Results
+  std::weak_ptr<Data> wdata(data);
+  std::weak_ptr<Child> wchild(child);
 
-  :download:`code/02_shared/05_weak.cpp`
+The two objects are linked to each other:
 
-  .. code-block:: console
-    :caption: Build ``05_weak.cpp``
+.. code-block:: none
 
-    $ g++ 05_weak.cpp -o 05_weak -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+  Data @0x7fe6f8500018 is constructed
+  data.use_count(): 1
+  child.use_count(): 2
 
-  .. code-block:: console
-    :caption: Run ``05_weak``
-    :linenos:
+Release the reference to the ``Child`` object from the controlling program:
 
-    $ ./05_weak
-    Data @0x7fe6f8500018 is constructed
-    data.use_count(): 1
-    child.use_count(): 2
-    wdata.use_count() after child.reset(): 1
-    wchild.use_count() after child.reset(): 1
-    Data @0x7fe6f8500018 is destructed
-    wdata.use_count() after data.reset(): 0
-    wchild.use_count() after data.reset(): 0
+.. code-block:: cpp
+
+  child.reset();
+  std::cout << "wdata.use_count() after child.reset(): " << wdata.use_count() << std::endl;
+  std::cout << "wchild.use_count() after child.reset(): " << wchild.use_count() << std::endl;
+
+Because now ``Child`` does not own ``Data``, both the reference count to the
+``Data`` and ``Child`` objects reduce to 1:
+
+.. code-block:: none
+
+  wdata.use_count() after child.reset(): 1
+  wchild.use_count() after child.reset(): 1
+
+Then release the reference to the ``Data`` object from the controlling program:
+
+.. code-block:: cpp
+
+  data.reset();
+  std::cout << "wdata.use_count() after data.reset(): " << wdata.use_count() << std::endl;
+  std::cout << "wchild.use_count() after data.reset(): " << wchild.use_count() << std::endl;
+
+The ``Data`` object is correctly destructed:
+
+.. code-block:: none
+
+  Data @0x7fe6f8500018 is destructed
+  wdata.use_count() after data.reset(): 0
+  wchild.use_count() after data.reset(): 0
+
+The circular reference is broken.
 
 Reminder: Avoid Weak Pointer
 ----------------------------
 
-Using ``weak_ptr`` to break cyclic reference should only be considered as a
+Using weak pointers to break circular reference should only be considered as a
 workaround, rather than a full resolution.  We sometimes need it since the
-reference cycle may not be as obvious as it is in our example.  For example,
-there may be 3 or 4 levels of references in the cycle.  ``weak_ptr`` has a
-similar interface to ``shared_ptr``.  When we are troubleshooting
-resource-leaking issues, replacing ``shared_ptr`` with ``weak_ptr`` can work as
-a quick-n-dirty hotfix.
+reference circle may not be as obvious as it is in our example.  For example,
+there may be 3 or 4 levels of references in the cycle.  Weak pointers have a
+similar interface to shared pointers.  When we are troubleshooting
+resource-leaking issues, replacing ``std::shared_ptr`` with ``std::weak_ptr``
+can work as a quick-n-dirty fix.
 
 The right treatment is to sort out the ownership.  It's not easy when the
 system is complex.  The rule of thumb is that, as we mentioned earlier, you
-should avoid using ``shared_ptr`` unless you really need it.  And most of the
+should avoid using a shared pointer unless you really need it.  And most of the
 time the need appears in a higher-level and heavy-weight container, rather than
 the lower-level small objects.  For small objects, we should try to limit the
-lifecycle and use raw pointers or stack.
+life cycle and use raw pointers or just the stack.
 
 Exercises
 =========

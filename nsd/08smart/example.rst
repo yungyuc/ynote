@@ -162,6 +162,38 @@ Example Code: Ownership and Smart Pointers
 
   $ g++ 03_fromthis.cpp -o 03_fromthis -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
 
+.. literalinclude:: code/02_shared/04_cyclic.cpp
+  :name: nsd-smart-example-cyclic
+  :caption:
+    The problem of circular reference of shared pointer
+    (:download:`04_cyclic.cpp <code/02_shared/04_cyclic.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-smart-example-cyclic-build
+  :caption:
+    Build :ref:`04_cyclic.cpp <nsd-smart-example-cyclic>`.
+
+  $ g++ 04_cyclic.cpp -o 04_cyclic -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+
+.. literalinclude:: code/02_shared/05_weak.cpp
+  :name: nsd-smart-example-weak
+  :caption:
+    Use weak pointers to break circular reference (:download:`05_weak.cpp
+    <code/02_shared/05_weak.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-smart-example-weak-build
+  :caption:
+    Build :ref:`05_weak.cpp <nsd-smart-example-cyclic>`.
+
+  $ g++ 05_weak.cpp -o 05_weak -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 
