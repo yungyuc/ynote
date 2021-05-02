@@ -85,15 +85,17 @@ int main(int, char **)
     std::shared_ptr<Data> data = Data::make();
     std::cout << "data.use_count(): " << data.use_count() << std::endl;
 
+    // This is the problematic call that creates an ill-formed shared pointer.
     std::shared_ptr<Data> holder2 = data->get_shared_ptr();
+    std::cout << "a bad shared pointer is created" << std::endl;
 
     data.reset();
     std::cout << "data.use_count() after data.reset(): " << data.use_count() << std::endl;
 
     std::cout << "holder2.use_count(): " << holder2.use_count() << std::endl;
-    holder2.reset();
-    // This line never gets reached since the the above line causes double free
-    // and crash.
+    holder2.reset();  // This line crashes with double free.
+    // This line never gets reached since the above line causes double free and
+    // crash.
     std::cout << "holder2.use_count() after holder2.reset(): " << holder2.use_count() << std::endl;
 }
 

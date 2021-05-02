@@ -129,6 +129,39 @@ Example Code: Ownership and Smart Pointers
 
   $ g++ 01_fully.cpp -o 01_fully -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror -DMAKENOWORK
 
+.. literalinclude:: code/02_shared/02_duplicate.cpp
+  :name: nsd-smart-example-duplicate
+  :caption:
+    Duplicate the ownership anywhere (:download:`02_duplicate.cpp
+    <code/02_shared/02_duplicate.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-smart-example-duplicate-build
+  :caption:
+    Build :ref:`02_duplicate.cpp <nsd-smart-example-duplicate>` (it contains
+    the double-free bug).
+
+  $ g++ 02_duplicate.cpp -o 02_duplicate -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+
+.. literalinclude:: code/02_shared/03_fromthis.cpp
+  :name: nsd-smart-example-fromthis
+  :caption:
+    Enable shared pointer from this (:download:`03_fromthis.cpp
+    <code/02_shared/03_fromthis.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-smart-example-fromthis-build
+  :caption:
+    Build :ref:`03_fromthis.cpp <nsd-smart-example-fromthis>`.
+
+  $ g++ 03_fromthis.cpp -o 03_fromthis -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 

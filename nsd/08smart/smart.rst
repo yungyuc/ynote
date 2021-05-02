@@ -678,6 +678,10 @@ will be introduced.
 Exclusively Manage Data Object
 ++++++++++++++++++++++++++++++
 
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
 Sometimes we know a big resource (our ``Data`` class) must not be constructed
 and destructed frequently, and should be shared among multiple consumers.  It
 should be managed by a shared pointer.  The overhead of reference counting is
@@ -944,11 +948,22 @@ The object is properly destructed:
   Data pointer after reset from outside: 0x0
   main data.use_count(): 0
 
-Get Shared Pointer inside Object
-++++++++++++++++++++++++++++++++
+Get Shared Pointer from inside Object
++++++++++++++++++++++++++++++++++++++
 
-Occasionally we get the ``Data`` object without the ``shared_ptr`` that manages
-it, but want to give the ownership to the caller:
+.. contents:: Contents in the sub-section
+  :local:
+  :depth: 1
+
+Occasionally we get the ``Data`` object without the managing shared pointer
+object, but still want to return the ownership to the caller.
+
+Never Recreate from Raw Pointer
+-------------------------------
+
+A wrong way to do it is to recreate the shared pointer object using the raw
+pointer, e.g., the following example.  (The full code of the example is in
+:ref:`02_duplicate.cpp <nsd-smart-example-duplicate>`.)
 
 .. code-block:: cpp
   :linenos:
@@ -970,61 +985,82 @@ it, but want to give the ownership to the caller:
       }
   };
 
-The above code (``get_shared_ptr()``) naively creates an alternate
-``shared_ptr`` object, and will results in double free in the caller:
+The above function ``get_shared_ptr()`` naively creates a duplicate
+``std::shared_ptr<Data>`` object, and will results in double free in the
+caller.
+
+To see the problem, first create the ``Data`` object:
 
 .. code-block:: cpp
-  :linenos:
 
-  int main(int, char **)
-  {
-      std::shared_ptr<Data> data = Data::make();
-      std::cout << "data.use_count(): " << data.use_count() << std::endl;
+  std::shared_ptr<Data> data = Data::make();
+  std::cout << "data.use_count(): " << data.use_count() << std::endl;
 
-  #ifdef DUPSHARED
-      std::shared_ptr<Data> holder2 = data->get_shared_ptr();
-  #endif
+The created object is held in a shared pointer:
 
-      data.reset();
-      std::cout << "data.use_count() after data.reset(): " << data.use_count() << std::endl;
+.. code-block:: none
 
-  #ifdef DUPSHARED
-      std::cout << "holder2.use_count(): " << holder2.use_count() << std::endl;
-      holder2.reset();
-      // This line never gets reached since the the above line causes double free
-      // and crash.
-      std::cout << "holder2.use_count() after holder2.reset(): " << holder2.use_count() << std::endl;
-  #endif
-  }
+  Data @0x7faaf0d00018 is constructed
+  data.use_count(): 1
 
-.. admonition:: Execution Results
+Then we call the problematic function ``get_shared_ptr()``:
 
-  :download:`code/02_shared/02_duplicate.cpp`
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Build ``02_duplicate.cpp``
+  // This is the problematic call that creates an ill-formed shared pointer.
+  std::shared_ptr<Data> holder2 = data->get_shared_ptr();
+  std::cout << "a bad shared pointer is created" << std::endl;
 
-    $ g++ 02_duplicate.cpp -o 02_duplicate -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+We get the pointer:
 
-  .. code-block:: console
-    :caption: Run ``02_duplicate``
-    :linenos:
+.. code-block:: none
 
-    $ ./02_duplicate
-    Data @0x7faaf0d00018 is constructed
-    data.use_count(): 1
-    Data @0x7faaf0d00018 is destructed
-    data.use_count() after data.reset(): 0
-    holder2.use_count(): 1
-    Data @0x7faaf0d00018 is destructed
-    02_duplicate(76813,0x10d1c7e00) malloc: *** error for object 0x7faaf0d00018: pointer being freed was not allocated
-    02_duplicate(76813,0x10d1c7e00) malloc: *** set a breakpoint in malloc_error_break to debug
+  a bad shared pointer is created
 
-Never Recreate from Raw Pointer
-+++++++++++++++++++++++++++++++
+Release the original shared pointer:
 
-The right way to get a ``std::shared_ptr`` from a ``shared_ptr``-managed object
-is to use ``std::enable_shared_from_this``:
+.. code-block:: cpp
+
+  data.reset();
+  std::cout << "data.use_count() after data.reset(): " << data.use_count() << std::endl;
+
+The ``Data`` object is destructed:
+
+.. code-block:: none
+
+  Data @0x7faaf0d00018 is destructed
+  data.use_count() after data.reset(): 0
+
+Now, release the second, ill-formed shared pointer:
+
+.. code-block:: cpp
+
+  std::cout << "holder2.use_count(): " << holder2.use_count() << std::endl;
+  holder2.reset();  // This line crashes with double free.
+  // This line never gets reached since the above line causes double free and
+  // crash.
+  std::cout << "holder2.use_count() after holder2.reset(): " << holder2.use_count() << std::endl;
+
+It can never reach the last line, since releasing the pointer results into
+double free:
+
+.. code-block:: none
+
+  holder2.use_count(): 1
+  Data @0x7faaf0d00018 is destructed
+  02_duplicate(76813,0x10d1c7e00) malloc: *** error for object 0x7faaf0d00018: pointer being freed was not allocated
+  02_duplicate(76813,0x10d1c7e00) malloc: *** set a breakpoint in malloc_error_break to debug
+
+Enable Shared Pointer from This
+-------------------------------
+
+The right way to get a new shared pointer from inside a shared-pointer-managed
+object is to use the class template ``std::enable_shared_from_this``.  The full
+code of the example is in :ref:`03_fromthis.cpp <nsd-smart-example-fromthis>`.
+It requires two things:
+
+1. Inherit the ``Data`` class from ``enable_shared_from_this``.
+2. Call the inherited member function ``shared_from_this()``.
 
 .. code-block:: cpp
   :linenos:
@@ -1041,43 +1077,68 @@ is to use ``std::enable_shared_from_this``:
       }
   };
 
-  int main(int, char **)
-  {
-      std::shared_ptr<Data> data = Data::make();
-      std::cout << "data.use_count(): " << data.use_count() << std::endl;
+With the change, ``get_shared_ptr()`` will not result in double free.  To show
+it, first create the ``Data`` object:
 
-      std::shared_ptr<Data> holder2 = data->get_shared_ptr();
-      std::cout << "data.use_count() after holder2: " << data.use_count() << std::endl;
+.. code-block:: cpp
 
-      data.reset();
-      std::cout << "data.use_count() after data.reset(): " << data.use_count() << std::endl;
+  std::shared_ptr<Data> data = Data::make();
+  std::cout << "data.use_count(): " << data.use_count() << std::endl;
 
-      std::cout << "holder2.use_count() before holder2.reset(): " << holder2.use_count() << std::endl;
-      holder2.reset();
-      std::cout << "holder2.use_count() after holder2.reset(): " << holder2.use_count() << std::endl;
-  }
+It is held in a shared pointer with unity reference count:
 
-.. admonition:: Execution Results
+.. code-block:: none
 
-  :download:`code/02_shared/03_fromthis.cpp`
+  Data @0x7fc5bed00018 is constructed
+  data.use_count(): 1
 
-  .. code-block:: console
-    :caption: Build ``03_fromthis.cpp``
+Now we call the corrected ``get_shared_ptr()``:
 
-    $ g++ 03_fromthis.cpp -o 03_fromthis -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Run ``03_fromthis``
-    :linenos:
+  std::shared_ptr<Data> holder2 = data->get_shared_ptr();
+  std::cout << "data.use_count() after holder2: " << data.use_count() << std::endl;
 
-    $ ./03_fromthis
-    Data @0x7fc5bed00018 is constructed
-    data.use_count(): 1
-    data.use_count() after holder2: 2
-    data.use_count() after data.reset(): 0
-    holder2.use_count() before holder2.reset(): 1
-    Data @0x7fc5bed00018 is destructed
-    holder2.use_count() after holder2.reset(): 0
+The reference count is correctly increased to 2:
+
+.. code-block:: none
+
+  data.use_count() after holder2: 2
+
+Release the first shared pointer:
+
+.. code-block:: cpp
+
+  data.reset();
+  std::cout << "data.use_count() after data.reset(): " << data.use_count() << std::endl;
+
+The reference count of the original pointer becomes 0 (!):
+
+.. code-block:: none
+
+  data.use_count() after data.reset(): 0
+
+But don't worry, it is because the nullified shared pointer does not have
+access to the reference counter of the original ``Data`` object anymore.  The
+object is still there since we do not see the destruction message.
+
+Now we release the second shared pointer:
+
+.. code-block:: cpp
+
+  std::cout << "holder2.use_count() before holder2.reset(): " << holder2.use_count() << std::endl;
+  holder2.reset();
+  std::cout << "holder2.use_count() after holder2.reset(): " << holder2.use_count() << std::endl;
+
+The ``Data`` object is correctly destructed, and the reference count is correct:
+
+.. code-block:: none
+
+  holder2.use_count() before holder2.reset(): 1
+  Data @0x7fc5bed00018 is destructed
+  holder2.use_count() after holder2.reset(): 0
+
+There is not double free any more.
 
 Avoid Cyclic Reference
 ++++++++++++++++++++++
