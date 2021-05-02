@@ -120,6 +120,8 @@ int main(int, char **)
     std::cout << "wdata.use_count() after child.reset(): " << wdata.use_count() << std::endl;
     std::cout << "wchild.use_count() after child.reset(): " << wchild.use_count() << std::endl;
     // Oops, the reference count doesn't reduce to 0!
+
+    return 0;
 }
 
 // vim: set et sw=4 ts=4 sts=4:
