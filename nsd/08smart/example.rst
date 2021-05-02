@@ -98,6 +98,37 @@ Example Code: Ownership and Smart Pointers
 
   $ g++ 05_shared.cpp -o 05_shared -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
 
+.. literalinclude:: code/02_shared/01_fully.cpp
+  :name: nsd-smart-example-fully
+  :caption:
+    Fully manage data object in shared pointer (:download:`01_fully.cpp
+    <code/02_shared/01_fully.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-smart-example-fully-build
+  :caption:
+    Build :ref:`01_fully.cpp <nsd-smart-example-fully>`.
+
+  $ g++ 01_fully.cpp -o 01_fully -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+
+.. code-block:: console
+  :name: nsd-smart-example-fully-ctor
+  :caption:
+    Build :ref:`01_fully.cpp <nsd-smart-example-fully>` with constructor error.
+
+  $ g++ 01_fully.cpp -o 01_fully -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror -DCTORNOWORK
+
+.. code-block:: console
+  :name: nsd-smart-example-fully-make
+  :caption:
+    Build :ref:`01_fully.cpp <nsd-smart-example-fully>` with ``make_shared``
+    error.
+
+  $ g++ 01_fully.cpp -o 01_fully -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror -DMAKENOWORK
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 

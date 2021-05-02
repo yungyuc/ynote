@@ -661,8 +661,15 @@ possible, but start with the :ref:`unique pointer <nsd-smart-unique>`.  A
 unique pointer forces a developer to think clearly about whether or not
 multiple owners are necessary.
 
-Inside Shared Pointer
-=====================
+More on Shared Pointer
+======================
+
+Use of shared pointers is usually tricky.  At the first glance, shared pointers
+allow multiple ownership and seemingly solve all problems of object life
+cycles.  We must not be tricked by the misunderstandings.
+
+In this section, some common guidelines and caveats of using shared pointers
+will be introduced.
 
 .. contents:: Contents in the section
   :local:
@@ -672,39 +679,42 @@ Exclusively Manage Data Object
 ++++++++++++++++++++++++++++++
 
 Sometimes we know a big resource (our ``Data`` class) must not be constructed
-and destructed lightly, and it must be managed by a ``shared_ptr``.  The
-overhead of reference counting is negligible compare to other operations or we
-simply have to tolerate.  In this case, we do not want anyone to directly call
-the ``Data`` constructor:
+and destructed frequently, and should be shared among multiple consumers.  It
+should be managed by a shared pointer.  The overhead of reference counting is
+negligible compare to other operations or we simply have to tolerate.  In this
+case, we do not want anyone to directly call the ``Data`` constructor:
 
 .. code-block:: cpp
-  :linenos:
 
   // We want to forbid it.
   Data * raw_pointer = new Data;
 
-And allow only the ``shared_ptr`` construction:
+We want to allow only the construction of ``std::shared_ptr<Data>``:
 
 .. code-block:: cpp
-  :linenos:
 
   // We want this to work:
   std::shared_ptr<Data> sptr1(new Data);
   // Or this:
   std::shared_ptr<Data> sptr2 = std::make_shared<Data>();
 
-The problem is, if ``new Data`` is forbidden, ``std::shared_ptr<Data>(new
-Data)`` is forbidden too.  How can we only turn off the first but not the
-second?
+To achieve what we want, we need to solve the problem that , if ``new Data`` is
+forbidden, ``std::shared_ptr<Data>(new Data)`` is forbidden too.  How can we
+only turn off the first but not the second?
+
+(The full example code is in :ref:`01_fully.cpp <nsd-smart-example-fully>`.)
+
+Private Constructor (Non-Ideal)
+-------------------------------
 
 One idea is to use private constructor:
 
 .. code-block:: cpp
-  :linenos:
 
   class Data
   {
   private:
+      // A private constructor.
       Data() {}
   public:
       static std::shared_ptr<Data> make()
@@ -714,31 +724,50 @@ One idea is to use private constructor:
       }
   };
 
-  std::shared_ptr<Data> func()
-  {
-  #ifdef THISDOESNOTWORK
-      std::shared_ptr<Data> data(new Data);
-  #else
-      std::shared_ptr<Data> data = Data::make();
-  #endif
-      // Do work.
-      return ret;
-  }
+The above design makes the following line work:
 
-This works because the constructor is called from the ``Data`` class, in the
-line of ``std::shared_ptr<Data> ret(new Data)``.
+.. code-block:: cpp
 
-Now consider ``std::shared_ptr<Data> ret = std::make_shared<Data>()``, the
-private constructor fails to compile, because the function template
-``std::make_shared`` cannot access the private constructor!  We need to work it
-out.  You may think of ``friend``.  In some cases it works, but note that
-``std::make_shared`` is a function template, not a function.  Friendship to a
-function template is not straight-forward.  Moreover, ``std::make_shared`` does
-a lot of things behind the scene.  Simply making friend with that function
-template may or may not work.  It depends on how STL implement
-``std::make_shared``.
+  std::shared_ptr<Data> data = Data::make();
 
-A sound resolution is to use the passkey pattern:
+It is because the constructor of ``Data`` is called in the static member
+function ``make()``.  The member function is inside the class ``Data``, and can
+access the private constructor.
+
+When trying to construct the shared pointer using ``new``, the following code
+fails to compile:
+
+.. code-block:: cpp
+
+  std::shared_ptr<Data> data(new Data);
+
+It is because the constructor is private and cannot be called outside of class
+``Data``.
+
+It works nice, until we start to consider ``std::make_shared<Data>()``.  The
+function template ``std::make_shared`` is useful because it allocates the
+``Data`` object along with its reference counter.  The reference counter of a
+shared pointer must be dynamically allocated because it is shared among all
+shared pointer instances.  The ``Data`` object also needs to be dynamically
+allocated.  Without ``std::make_shared``, two dynamic allocations will be used
+instead of one, and it is a lot of overhead when we have many ``Data`` objects.
+
+However, the use of the private constructor forbids the following code from working:
+
+.. code-block:: cpp
+
+  std::shared_ptr<Data> ret = std::make_shared<Data>()
+
+It is because the function template ``std::make_shared`` is not inside class
+``Data``, and cannot access the private constructor!  Using ``friend``
+sometimes works, but it depends on how ``std::make_shared`` is implemented.
+The template does a lot of things behind the scene.  Simply making friend with
+that function template may or may not work.
+
+Passkey Pattern
+---------------
+
+A sound approach is to use the passkey pattern:
 
 .. code-block:: cpp
   :linenos:
@@ -759,21 +788,91 @@ A sound resolution is to use the passkey pattern:
       // them for now.
   };
 
+The design prohibits calling the constructor:
+
+.. code-block:: cpp
+
+  data = std::shared_ptr<Data>(new Data);
+
+The constructor is deleted:
+
+.. code-block:: none
+
+  01_fully.cpp:91:38: error: call to deleted constructor of 'Data'
+      data = std::shared_ptr<Data>(new Data);
+                                       ^
+  01_fully.cpp:22:5: note: 'Data' has been explicitly marked deleted here
+      Data() = delete;
+      ^
+
+The use of the function template ``std::make_shared``:
+
+.. code-block:: cpp
+
+  data = std::make_shared<Data>();
+
+is forbidden for the same reason, while the compiler shows much more verbose
+messages:
+
+.. code-block:: none
+
+  In file included from 01_fully.cpp:1:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream:37:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/ios:215:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__locale:14:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string:504:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string_view:175:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__string:57:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/algorithm:643:
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:4398:5: error: static_assert failed due to requirement
+        'is_constructible<Data>::value' "Can't construct object in make_shared"
+      static_assert(is_constructible<_Tp, _Args...>::value, "Can't construct object in make_shared");
+      ^             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  01_fully.cpp:95:17: note: in instantiation of function template specialization 'std::__1::make_shared<Data>' requested here
+      data = std::make_shared<Data>();
+                  ^
+  In file included from 01_fully.cpp:1:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream:37:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/ios:215:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__locale:14:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string:504:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string_view:175:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__string:57:
+  In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/algorithm:643:
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:2201:46: error: call to deleted constructor of 'Data'
+    __compressed_pair_elem(__value_init_tag) : __value_() {}
+                                               ^
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:2294:42: note: in instantiation of member function
+        'std::__1::__compressed_pair_elem<Data, 1, false>::__compressed_pair_elem' requested here
+        : _Base1(std::forward<_U1>(__t1)), _Base2(std::forward<_U2>(__t2)) {}
+                                           ^
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:3567:12: note: in instantiation of function template specialization
+        'std::__1::__compressed_pair<std::__1::allocator<Data>, Data>::__compressed_pair<std::__1::allocator<Data>, std::__1::__value_init_tag>'
+        requested here
+          :  __data_(_VSTD::move(__a), __value_init_tag()) {}
+             ^
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:4405:26: note: in instantiation of member function
+        'std::__1::__shared_ptr_emplace<Data, std::__1::allocator<Data> >::__shared_ptr_emplace' requested here
+      ::new(__hold2.get()) _CntrlBlk(__a2, _VSTD::forward<_Args>(__args)...);
+                           ^
+  01_fully.cpp:95:17: note: in instantiation of function template specialization 'std::__1::make_shared<Data>' requested here
+      data = std::make_shared<Data>();
+                  ^
+  01_fully.cpp:22:5: note: 'Data' has been explicitly marked deleted here
+      Data() = delete;
+      ^
+  2 errors generated.
+
+Now we return to our 2-worker example:
+
+.. code-block:: cpp
+  :caption: First worker: obtain the shared pointer from the factory method
+
   std::shared_ptr<Data> worker1()
   {
       // Create a new Data object.
       std::shared_ptr<Data> data;
-
-  #ifdef CTORNOWORK
-      data = std::shared_ptr<Data>(new Data);
-  #endif
-
-  #ifdef MAKENOWORK
-      data = std::make_shared<Data>();
-  #endif
-
       data = Data::make();
-
       std::cout << "worker 1 data.use_count(): " << data.use_count() << std::endl;
 
       // Manipulate the Data object.
@@ -781,6 +880,9 @@ A sound resolution is to use the passkey pattern:
 
       return data;
   }
+
+.. code-block:: cpp
+  :caption: Second worker: consumes the shared pointer
 
   void worker2(std::shared_ptr<Data> data)
   {
@@ -796,107 +898,51 @@ A sound resolution is to use the passkey pattern:
       }
   }
 
-  int main(int, char **)
-  {
-      std::shared_ptr<Data> data = worker1();
-      std::cout << "Data pointer after worker 1: " << data.get() << std::endl;
+Call the first worker function:
 
-      worker2(data);
-      std::cout << "Data pointer after worker 2: " << data.get() << std::endl;
+.. code-block:: cpp
 
-      data.reset();
-      std::cout << "Data pointer after reset from outside: " << data.get() << std::endl;
-      std::cout << "main data.use_count(): " << data.use_count() << std::endl;
-  }
+  std::shared_ptr<Data> data = worker1();
+  std::cout << "Data pointer after worker 1: " << data.get() << std::endl;
 
-  static_assert(sizeof(Data *) * 2 == sizeof(std::shared_ptr<Data>), "shared_ptr should use two word");
+The ``Data`` object is constructed and returned with a shared pointer:
 
-.. admonition:: Execution Results
+.. code-block:: none
 
-  :download:`code/02_shared/01_fully.cpp`
+  Data @0x7fb36ad00018 is constructed
+  worker 1 data.use_count(): 1
+  Manipulate with reference: 0x7fb36ad00018
+  Data pointer after worker 1: 0x7fb36ad00018
 
-  .. code-block:: console
-    :caption: Build ``01_fully.cpp``
+Call the second worker function:
 
-    $ g++ 01_fully.cpp -o 01_fully -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Run ``01_fully``
-    :linenos:
+  worker2(data);
+  std::cout << "Data pointer after worker 2: " << data.get() << std::endl;
 
-    $ ./01_fully
-    Data @0x7fb36ad00018 is constructed
-    worker 1 data.use_count(): 1
-    Manipulate with reference: 0x7fb36ad00018
-    Data pointer after worker 1: 0x7fb36ad00018
-    worker 2 data.use_count(): 2
-    Data pointer after worker 2: 0x7fb36ad00018
-    Data @0x7fb36ad00018 is destructed
-    Data pointer after reset from outside: 0x0
-    main data.use_count(): 0
+The ``Data`` object is properly sent to the second worker:
 
-  .. code-block:: console
-    :caption: Error message when constructor doesn't work
+.. code-block:: none
 
-    $ g++ 01_fully.cpp -o 01_fully -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror -DCTORNOWORK
-    01_fully.cpp:91:38: error: call to deleted constructor of 'Data'
-        data = std::shared_ptr<Data>(new Data);
-                                         ^
-    01_fully.cpp:22:5: note: 'Data' has been explicitly marked deleted here
-        Data() = delete;
-        ^
-    1 error generated.
+  worker 2 data.use_count(): 2
+  Data pointer after worker 2: 0x7fb36ad00018
 
-  .. code-block:: console
-    :caption: Error message when ``make_shared`` doesn't work
+After the worker functions, destroy the ``Data`` object:
 
-    $ g++ 01_fully.cpp -o 01_fully -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror -DMAKENOWORK
-    In file included from 01_fully.cpp:1:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream:37:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/ios:215:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__locale:14:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string:504:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string_view:175:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__string:57:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/algorithm:643:
-    /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:4398:5: error: static_assert failed due to requirement
-          'is_constructible<Data>::value' "Can't construct object in make_shared"
-        static_assert(is_constructible<_Tp, _Args...>::value, "Can't construct object in make_shared");
-        ^             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    01_fully.cpp:95:17: note: in instantiation of function template specialization 'std::__1::make_shared<Data>' requested here
-        data = std::make_shared<Data>();
-                    ^
-    In file included from 01_fully.cpp:1:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream:37:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/ios:215:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__locale:14:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string:504:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string_view:175:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__string:57:
-    In file included from /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/algorithm:643:
-    /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:2201:46: error: call to deleted constructor of 'Data'
-      __compressed_pair_elem(__value_init_tag) : __value_() {}
-                                                 ^
-    /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:2294:42: note: in instantiation of member function
-          'std::__1::__compressed_pair_elem<Data, 1, false>::__compressed_pair_elem' requested here
-          : _Base1(std::forward<_U1>(__t1)), _Base2(std::forward<_U2>(__t2)) {}
-                                             ^
-    /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:3567:12: note: in instantiation of function template specialization
-          'std::__1::__compressed_pair<std::__1::allocator<Data>, Data>::__compressed_pair<std::__1::allocator<Data>, std::__1::__value_init_tag>'
-          requested here
-            :  __data_(_VSTD::move(__a), __value_init_tag()) {}
-               ^
-    /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/memory:4405:26: note: in instantiation of member function
-          'std::__1::__shared_ptr_emplace<Data, std::__1::allocator<Data> >::__shared_ptr_emplace' requested here
-        ::new(__hold2.get()) _CntrlBlk(__a2, _VSTD::forward<_Args>(__args)...);
-                             ^
-    01_fully.cpp:95:17: note: in instantiation of function template specialization 'std::__1::make_shared<Data>' requested here
-        data = std::make_shared<Data>();
-                    ^
-    01_fully.cpp:22:5: note: 'Data' has been explicitly marked deleted here
-        Data() = delete;
-        ^
-    2 errors generated.
+.. code-block:: cpp
+
+  data.reset();
+  std::cout << "Data pointer after reset from outside: " << data.get() << std::endl;
+  std::cout << "main data.use_count(): " << data.use_count() << std::endl;
+
+The object is properly destructed:
+
+.. code-block:: none
+
+  Data @0x7fb36ad00018 is destructed
+  Data pointer after reset from outside: 0x0
+  main data.use_count(): 0
 
 Get Shared Pointer inside Object
 ++++++++++++++++++++++++++++++++
@@ -1033,8 +1079,8 @@ is to use ``std::enable_shared_from_this``:
     Data @0x7fc5bed00018 is destructed
     holder2.use_count() after holder2.reset(): 0
 
-Cyclic Reference
-++++++++++++++++
+Avoid Cyclic Reference
+++++++++++++++++++++++
 
 When two object use a pair of ``shared_ptr`` to point to each other, the cyclic
 reference will create a memory leak:
@@ -1112,8 +1158,8 @@ reference will create a memory leak:
     wdata.use_count() after child.reset(): 1
     wchild.use_count() after child.reset(): 1
 
-Use Weak Pointer
-++++++++++++++++
+Use Weak Pointer to Work around
+-------------------------------
 
 In the above demonstration we use ``weak_ptr`` to get the reference count without
 increasing it.  ``weak_ptr`` can also be used to break the cyclic reference.  In
