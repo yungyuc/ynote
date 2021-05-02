@@ -63,7 +63,11 @@ void manipulate_with_reference(Data & data)
     // However, we cannot destruct an object passed in with a reference.
 }
 
-static_assert(sizeof(Data *) == sizeof(std::unique_ptr<Data>), "unique_ptr should take only a word");
+static_assert
+(
+    sizeof(Data *) == sizeof(std::unique_ptr<Data>)
+  , "unique_ptr should take only a word"
+);
 
 std::unique_ptr<Data> worker1()
 {

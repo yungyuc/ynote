@@ -397,21 +397,49 @@ code know the ownership, and it is unsafe to use the ``data`` object after
 ``worker2()`` is called.  The way C++ handles the situation is to use smart
 pointers.
 
-``unique_ptr``
+Smart Pointers
 ==============
 
-(Modern) C++ provides two smart pointers: ``unique_ptr`` and ``shared_ptr``.
-We start with ``unique_ptr`` because it is lighter-weight.  A ``unique_ptr``
-takes the same number of bytes of a raw pointer.  It may be a drop-in
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+(Modern) C++ provides smart pointers to help manage object life cycles.  Since
+C++11, STL provides two smart pointers: ``unique_ptr`` (unique pointer) and
+``shared_ptr`` (shared pointer).  They have different use cases.  When using a
+unique pointer, the pointed object may have at most one unique pointer.  But if
+using shared pointers, the pointed object may have any number of shared
+pointers.  Only one type of smart point may be used at a time.  If an object is
+managed by unique pointer, it may not be used with shared pointer, and vice
+versa.
+
+In other words, ``unique_ptr`` should be used when there can only be one owner
+of the pointed object, and ``shared_ptr`` allows the pointed object to have
+more than one owner.
+
+.. _nsd-smart-unique:
+
+Unique Pointer
+++++++++++++++
+
+We start with ``unique_ptr`` because it is lighter-weight.  A unique pointer
+may take the same number of bytes of a raw pointer, and used as a drop-in
 replacement with a raw pointer.
 
-``unique_ptr`` should be used when there can only be one owner of the pointed
-object.
+.. code-block:: cpp
+
+  static_assert
+  (
+      sizeof(Data *) == sizeof(std::unique_ptr<Data>)
+    , "unique_ptr should take only a word"
+  );
+
+The full example code is in :ref:`04_unique.cpp <nsd-smart-example-unique>`.
+In the new example, we still have 2 worker functions, but they change to use
+unique pointers.
 
 .. code-block:: cpp
-  :linenos:
-
-  static_assert(sizeof(Data *) == sizeof(std::unique_ptr<Data>), "unique_ptr should take only a word");
+  :caption: First worker: returns a unique pointer
 
   std::unique_ptr<Data> worker1()
   {
@@ -423,6 +451,9 @@ object.
 
       return data;
   }
+
+.. code-block:: cpp
+  :caption: Second worker: consumes a unique pointer
 
   void worker2(std::unique_ptr<Data> data)
   {
@@ -436,47 +467,51 @@ object.
       }
   }
 
-  int main(int, char **)
-  {
-      std::unique_ptr<Data> data = worker1();
-      std::cout << "Data pointer after worker 1: " << data.get() << std::endl;
+The first worker function is called and it returns a unique pointer:
 
-  #ifdef COPYNOWORK
-      worker2(data);
-  #else
-      worker2(std::move(data));
-  #endif
-      std::cout << "Data pointer after worker 2: " << data.get() << std::endl;
+.. code-block:: cpp
 
-      data.reset();
-      std::cout << "Data pointer after delete: " << data.get() << std::endl;
-  }
+  std::unique_ptr<Data> data = worker1();
+  std::cout << "Data pointer after worker 1: " << data.get() << std::endl;
 
-.. admonition:: Execution Results
+The results are the same as raw pointer:
 
-  :download:`code/01_pointer/04_unique.cpp`
+.. code-block:: none
+
+  Data @0x7fee5a008800 is constructed
+  Manipulate with reference: 0x7fee5a008800
+  Data pointer after worker 1: 0x7fee5a008800
+
+There can be at most one unique pointer per object.  Thus, we need to move the
+returned pointer to ``worker2``.
+
+.. code-block:: cpp
+
+  worker2(std::move(data));
+  std::cout << "Data pointer after worker 2: " << data.get() << std::endl;
+
+The second worker detects that the input data are manipulated, and exercises
+its right to destruct the object.  Because the input pointer was moved into the
+function, when we try to get the address after ``worker2``, we get null:
+
+.. code-block:: none
+
+  Data @0x7fee5a008800 is destructed
+  Data pointer after worker 2: 0x0
+
+.. note::
+
+  Unique pointer does not have copy constructor and copy assignment operator
+  defined.  Trying to copy the pointer object:
+
+  .. code-block:: cpp
+
+    worker2(data);
+
+  results in compilation error:
 
   .. code-block:: console
-    :caption: Build ``04_unique.cpp``
 
-    $ g++ 04_unique.cpp -o 04_unique -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
-
-  .. code-block:: console
-    :caption: Run ``04_unique``
-    :linenos:
-
-    $ ./04_unique
-    Data @0x7fee5a008800 is constructed
-    Manipulate with reference: 0x7fee5a008800
-    Data pointer after worker 1: 0x7fee5a008800
-    Data @0x7fee5a008800 is destructed
-    Data pointer after worker 2: 0x0
-    Data pointer after delete: 0x0
-
-  .. code-block:: console
-    :caption: Copy not working in ``04_unique.cpp``
-
-    $ g++ 04_unique.cpp -o 04_unique -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror -DCOPYNOWORK
     04_unique.cpp:97:13: error: call to implicitly-deleted copy constructor of 'std::unique_ptr<Data>'
         worker2(data);
                 ^~~~
@@ -489,23 +524,51 @@ object.
                                        ^
     1 error generated.
 
-``shared_ptr``
-==============
+Although it is unnecessary, in the end we delete the unique pointer again.
+
+.. code-block:: cpp
+
+  data.reset();
+  std::cout << "Data pointer after delete: " << data.get() << std::endl;
+
+.. code-block:: none
+  :caption: Execution result of the final deletion
+
+  Data pointer after delete: 0x0
+
+Shared Pointer
+++++++++++++++
 
 Unlike ``unique_ptr``, ``shared_ptr`` allows multiple owners.  It maintains a
-reference counter.  When the ``shared_ptr`` object is constructed, the counter
-increments.  When the pointer object (note, not the pointed object) is
-destructed, the counter decrements.  When the counter decrements from 1, the
-pointed object gets destructed.
+reference counter to achieve the multiple ownership.  When a shared pointer
+object is constructed, the counter increments.  When the pointer object (note,
+not the pointed object) is destructed, the counter decrements.  When the
+counter decrements from 1, the pointed object gets destructed.
 
 ``std::shared_ptr`` provides ``use_count()`` function for showing the reference
 counts.  This reference counting technique is commonplace for managing
-ownership, and it appears in many other languages.
+ownership, and it appears in many other libraries and languages.  The reference
+counter requires a lot of additional memory, and a shared pointer is always
+larger than a raw pointer:
 
 .. code-block:: cpp
-  :linenos:
 
-  static_assert(sizeof(Data *) < sizeof(std::shared_ptr<Data>), "shared_ptr uses more than a word");
+  static_assert
+  (
+      sizeof(Data *) < sizeof(std::shared_ptr<Data>)
+    , "shared_ptr uses more than a word"
+  );
+
+.. note::
+
+  The additional memory of the ``std::shared_ptr`` pointer is not directly used
+  for storing the reference count.
+
+We will use the shared pointer in our 2-worker example.  The full example code
+is in :ref:`05_shared.cpp <nsd-smart-example-shared>`.
+
+.. code-block:: cpp
+  :caption: First worker: returns a shared pointer
 
   std::shared_ptr<Data> worker1()
   {
@@ -519,6 +582,9 @@ ownership, and it appears in many other languages.
 
       return data;
   }
+
+.. code-block:: cpp
+  :caption: Second worker: consumes a shared pointer
 
   void worker2(std::shared_ptr<Data> data)
   {
@@ -534,54 +600,76 @@ ownership, and it appears in many other languages.
       }
   }
 
-  int main(int, char **)
-  {
-      std::shared_ptr<Data> data = worker1();
-      std::cout << "Data pointer after worker 1: " << data.get() << std::endl;
+Call the first worker function to get the returned shared pointer:
 
-      worker2(data);
-      std::cout << "Data pointer after worker 2: " << data.get() << std::endl;
+.. code-block:: cpp
 
-      data.reset();
-      std::cout << "Data pointer after reset from outside: " << data.get() << std::endl;
-      std::cout << "main data.use_count(): " << data.use_count() << std::endl;
-  }
+  std::shared_ptr<Data> data = worker1();
+  std::cout << "Data pointer after worker 1: " << data.get() << std::endl;
 
-.. admonition:: Execution Results
+The first worker function constructs the data object and shows the reference
+count.  The caller also shows the memory address of the managed object:
 
-  :download:`code/01_pointer/05_shared.cpp`
+.. code-block:: none
 
-  .. code-block:: console
-    :caption: Build ``05_shared.cpp``
+  Data @0x7ffbac500018 is constructed
+  worker 1 data.use_count(): 1
+  Manipulate with reference: 0x7ffbac500018
+  Data pointer after worker 1: 0x7ffbac500018
 
-    $ g++ 05_shared.cpp -o 05_shared -std=c++17 -g -O3 -m64 -Wall -Wextra -Werror
+The shared pointer allows more than one owner.  A copy of the shared pointer
+object is given to the second worker function.  The caller and the callee
+simultaneously own the data object:
 
-  .. code-block:: console
-    :caption: Run ``05_shared``
-    :linenos:
+.. code-block:: cpp
 
-    $ ./05_shared
-    Data @0x7ffbac500018 is constructed
-    worker 1 data.use_count(): 1
-    Manipulate with reference: 0x7ffbac500018
-    Data pointer after worker 1: 0x7ffbac500018
-    worker 2 data.use_count(): 2
-    Data pointer after worker 2: 0x7ffbac500018
-    Data @0x7ffbac500018 is destructed
-    Data pointer after reset from outside: 0x0
-    main data.use_count(): 0
+  worker2(data);
+  std::cout << "Data pointer after worker 2: " << data.get() << std::endl;
 
-Raw Pointers vs Smart Pointers
-==============================
+The second worker prints the reference count, and the caller shows the address:
 
-The rule of thumb is to always start with smart pointers.  When in doubt, use
-``unique_ptr``.  ``unique_ptr`` forces a developer to think clearly about
-whether or not multiple owners are necessary.  Only use ``shared_ptr`` when it
-is absolutely necessary.  The reference counter is much more expensive than it
-looks.
+.. code-block:: none
 
-Make ``Data`` Exclusively Managed by ``shared_ptr``
-===================================================
+  worker 2 data.use_count(): 2
+  Data pointer after worker 2: 0x7ffbac500018
+
+After the two workers are complete, we destroy the data object in the caller:
+
+.. code-block:: cpp
+
+  std::cout << "main data.use_count(): " << data.use_count() << std::endl;
+  data.reset();
+  std::cout << "Data pointer after reset from outside: " << data.get() << std::endl;
+  std::cout << "main data.use_count(): " << data.use_count() << std::endl;
+
+The data object is destructed after the last shared pointer releases the ownership:
+
+.. code-block:: none
+
+  main data.use_count(): 1
+  Data @0x7ffbac500018 is destructed
+  Data pointer after reset from outside: 0x0
+  main data.use_count(): 0
+
+.. warning::
+
+  Only use a shared pointer when it is absolutely necessary.  The reference
+  counting is much more expensive than it looks.
+
+When writing C++ code, the rule of thumb is to use smart pointers as much as
+possible, but start with the :ref:`unique pointer <nsd-smart-unique>`.  A
+unique pointer forces a developer to think clearly about whether or not
+multiple owners are necessary.
+
+Inside Shared Pointer
+=====================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Exclusively Manage Data Object
+++++++++++++++++++++++++++++++
 
 Sometimes we know a big resource (our ``Data`` class) must not be constructed
 and destructed lightly, and it must be managed by a ``shared_ptr``.  The
@@ -810,8 +898,8 @@ A sound resolution is to use the passkey pattern:
         ^
     2 errors generated.
 
-Get ``shared_ptr`` from ``this``
-================================
+Get Shared Pointer inside Object
+++++++++++++++++++++++++++++++++
 
 Occasionally we get the ``Data`` object without the ``shared_ptr`` that manages
 it, but want to give the ownership to the caller:
@@ -886,8 +974,8 @@ The above code (``get_shared_ptr()``) naively creates an alternate
     02_duplicate(76813,0x10d1c7e00) malloc: *** error for object 0x7faaf0d00018: pointer being freed was not allocated
     02_duplicate(76813,0x10d1c7e00) malloc: *** set a breakpoint in malloc_error_break to debug
 
-Never Recreate ``shared_ptr`` from Raw Pointer
-==============================================
+Never Recreate from Raw Pointer
++++++++++++++++++++++++++++++++
 
 The right way to get a ``std::shared_ptr`` from a ``shared_ptr``-managed object
 is to use ``std::enable_shared_from_this``:
@@ -946,7 +1034,7 @@ is to use ``std::enable_shared_from_this``:
     holder2.use_count() after holder2.reset(): 0
 
 Cyclic Reference
-================
+++++++++++++++++
 
 When two object use a pair of ``shared_ptr`` to point to each other, the cyclic
 reference will create a memory leak:
@@ -1024,8 +1112,8 @@ reference will create a memory leak:
     wdata.use_count() after child.reset(): 1
     wchild.use_count() after child.reset(): 1
 
-Use ``weak_ptr`` to Break Cyclic Reference
-++++++++++++++++++++++++++++++++++++++++++
+Use Weak Pointer
+++++++++++++++++
 
 In the above demonstration we use ``weak_ptr`` to get the reference count without
 increasing it.  ``weak_ptr`` can also be used to break the cyclic reference.  In
@@ -1096,8 +1184,8 @@ to point to ``Data``:
     wdata.use_count() after data.reset(): 0
     wchild.use_count() after data.reset(): 0
 
-Reminder: Avoid ``weak_ptr``
-++++++++++++++++++++++++++++
+Reminder: Avoid Weak Pointer
+----------------------------
 
 Using ``weak_ptr`` to break cyclic reference should only be considered as a
 workaround, rather than a full resolution.  We sometimes need it since the

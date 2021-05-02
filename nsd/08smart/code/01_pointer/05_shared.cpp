@@ -63,7 +63,11 @@ void manipulate_with_reference(Data & data)
     // However, we cannot destruct an object passed in with a reference.
 }
 
-static_assert(sizeof(Data *) < sizeof(std::shared_ptr<Data>), "shared_ptr uses more than a word");
+static_assert
+(
+    sizeof(Data *) < sizeof(std::shared_ptr<Data>)
+  , "shared_ptr uses more than a word"
+);
 
 std::shared_ptr<Data> worker1()
 {
@@ -100,6 +104,7 @@ int main(int, char **)
     worker2(data);
     std::cout << "Data pointer after worker 2: " << data.get() << std::endl;
 
+    std::cout << "main data.use_count(): " << data.use_count() << std::endl;
     data.reset();
     std::cout << "Data pointer after reset from outside: " << data.get() << std::endl;
     std::cout << "main data.use_count(): " << data.use_count() << std::endl;
