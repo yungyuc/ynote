@@ -84,7 +84,7 @@ Example Code: Modern C++
 .. code-block:: console
   :name: nsd-moderncpp-example-lambda-build
   :caption:
-    Build :ref:`01_lambda.cpp <nsd-moderncpp-example-lambda>`
+    Build :ref:`01_lambda.cpp <nsd-moderncpp-example-lambda>`.
 
   $ g++ 01_lambda.cpp -o 01_lambda -std=c++17 -g -O3
 
@@ -100,10 +100,27 @@ Example Code: Modern C++
 .. code-block:: console
   :name: nsd-moderncpp-example-stored-build
   :caption:
-    Build :ref:`02_stored.cpp <nsd-moderncpp-example-stored>`
+    Build :ref:`02_stored.cpp <nsd-moderncpp-example-stored>`.
 
   $ g++ 02_stored.cpp -o 02_stored -std=c++17 -g -O3
   $ g++ 02_stored.cpp -o 02_stored -std=c++17 -g -O3 -DSHOW_DIFF
+
+.. literalinclude:: code/05_lambda/02_stored_demangle.cpp
+  :name: nsd-moderncpp-example-stored-demangle
+  :caption:
+    Store a lambda in a variable, demangled version
+    (:download:`02_stored_demangle.cpp
+    <code/05_lambda/02_stored_demangle.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-moderncpp-example-stored-demangle-build
+  :caption:
+    Build :ref:`02_stored_demangle.cpp <nsd-moderncpp-example-stored-demangle>`.
+
+  $ g++ 02_stored_demangle.cpp -o 02_stored_demangle -std=c++17 -g -O3
 
 .. literalinclude:: code/05_lambda/03_closure.cpp
   :name: nsd-moderncpp-example-closure
@@ -117,7 +134,7 @@ Example Code: Modern C++
 .. code-block:: console
   :name: nsd-moderncpp-example-closure-build
   :caption:
-    Build :ref:`03_closure.cpp <nsd-moderncpp-example-closure>`
+    Build :ref:`03_closure.cpp <nsd-moderncpp-example-closure>`.
 
   $ g++ 03_closure.cpp -o 03_closure -std=c++17 -g -O3 -DWRONG_CAPTURE
   $ g++ 03_closure.cpp -o 03_closure -std=c++17 -g -O3

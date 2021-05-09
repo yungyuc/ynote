@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <memory>
 
 // NOTE: This isn't guaranteed to work in every compiler.
 #include <cxxabi.h>
