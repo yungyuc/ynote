@@ -17,7 +17,8 @@ public:
     {
         m_buffer = new int[NELEM];
         initialize();
-        std::cout << "Data #" << m_serial << " constructed @" << this << std::endl;
+        std::cout << "Data #" << m_serial << " constructed @" << this
+                  << std::endl;
     }
 
     Data(Data const & other)
@@ -25,7 +26,8 @@ public:
         m_serial = other.m_serial;
         m_buffer = new int[NELEM];
         copy_from(other);
-        std::cout << "Data #" << m_serial << " copied to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data #" << m_serial << " copied to @" << this
+                  << " from @" << &other << std::endl;
     }
 
     Data & operator=(Data const & other)
@@ -33,7 +35,8 @@ public:
         m_serial = other.m_serial;
         if (nullptr == m_buffer) { m_buffer = new int[NELEM]; }
         copy_from(other);
-        std::cout << "Data #" << m_serial << " copy assigned to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data #" << m_serial << " copy assigned to @" << this
+                  << " from @" << &other << std::endl;
         return *this;
     }
 
@@ -46,7 +49,8 @@ public:
         m_serial = other.m_serial;
         m_buffer = other.m_buffer;
         other.m_buffer = nullptr;
-        std::cout << "Data #" << m_serial << " moved to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data #" << m_serial << " moved to @" << this
+                  << " from @" << &other << std::endl;
     }
 
     Data & operator=(Data && other)
@@ -55,14 +59,16 @@ public:
         if (m_buffer) { delete[] m_buffer; }
         m_buffer = other.m_buffer;
         other.m_buffer = nullptr;
-        std::cout << "Data #" << m_serial << " move assigned to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data #" << m_serial << " move assigned to @" << this
+                  << " from @" << &other << std::endl;
         return *this;
     }
 
     ~Data()
     {
         if (m_buffer) { delete[] m_buffer; }
-        std::cout << "Data #" << m_serial << " destructed @" << this << std::endl;
+        std::cout << "Data #" << m_serial << " destructed @" << this
+                  << std::endl;
     }
 
     size_t size() const { return NELEM; }
@@ -174,6 +180,7 @@ public:
     }
 
 private:
+    // Caller does not see this private helper that takes an output argument.
     void inner2(size_t start, size_t len, std::vector<Data> & ret)
     {
         std::cout << "** Accumulator::inner2 begins with " << start << std::endl;
@@ -193,10 +200,14 @@ public:
         for (size_t it=0; it < len; ++it)
         {
             std::cout << std::endl;
-            std::cout << "* Accumulator::outer loop it=" << it << " begins" << std::endl;
+            std::cout << "* Accumulator::outer loop it=" << it
+                      << " begins" << std::endl;
+            // The output argument passed into the private helper is a private
+            // member datum.
             inner2(result.size(), it+1, result);
         }
-        std::cout << "* Accumulator::outer result.size() = " << result.size() << std::endl << std::endl;
+        std::cout << "* Accumulator::outer result.size() = "
+                  << result.size() << std::endl << std::endl;
     }
 
 public:

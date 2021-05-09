@@ -25,6 +25,13 @@ int main(int argc, char ** argv)
         << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%23; })
         << std::endl;
 
+    // Demonstrate the similarity between a functor and a lambda.
+    auto le = [](int v){ return 0 == v%23; };
+    Functor func;
+    static_assert(sizeof(le) == sizeof(func));
+    static_assert(1 == sizeof(le));
+    static_assert(1 == sizeof(func));
+
     return 0;
 }
 

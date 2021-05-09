@@ -51,15 +51,18 @@ public:
     }
 
     // Proxy to copy and move constructor.
-    Data(Data const &  other, ctor_passkey const &) : Data(std::forward<Data const &>(other)) {}
-    Data(Data       && other, ctor_passkey const &) : Data(std::forward<Data &&>(other)) {}
+    Data(Data const &  other, ctor_passkey const &)
+      : Data(std::forward<Data const &>(other)) {}
+    Data(Data       && other, ctor_passkey const &)
+      : Data(std::forward<Data &&>(other)) {}
 
     Data(Data const & other)
     {
         m_serial = other.m_serial;
         m_buffer = new int[NELEM];
         copy_from(other);
-        std::cout << "Data #" << m_serial << " copied to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data #" << m_serial << " copied to @" << this
+                  << " from @" << &other << std::endl;
     }
 
     Data(Data && other) noexcept
@@ -67,7 +70,8 @@ public:
         m_serial = other.m_serial;
         m_buffer = other.m_buffer;
         other.m_buffer = nullptr;
-        std::cout << "Data #" << m_serial << " moved to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data #" << m_serial << " moved to @" << this
+                  << " from @" << &other << std::endl;
     }
 
     // Turn off default constructor.
@@ -179,6 +183,7 @@ void outer1(size_t len)
 int main(int argc, char ** argv)
 {
     outer1(3);
+    return 0;
 }
 
 // vim: set et sw=4 ts=4 sts=4:

@@ -2,4 +2,5 @@
 *.o
 01_lambda
 02_stored
+02_stored_demangle
 03_closure
