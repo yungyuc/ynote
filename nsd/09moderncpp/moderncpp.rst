@@ -1229,10 +1229,9 @@ C++ lambda expression enables a shorthand for anonymous function.  The syntax
 
   [] (/* arguments */) { /* body */ }
 
-It works basically like a functor.
+It works basically like a functor.  See an example of a functor:
 
 .. code-block:: cpp
-  :linenos:
 
   struct Functor
   {
@@ -1242,110 +1241,141 @@ It works basically like a functor.
       }
   }; /* end struct Functor */
 
-  int main(int argc, char ** argv)
-  {
-      std::vector<int> data(63712);
-      for (size_t i=0 ; i<data.size(); ++i) { data[i] = i;}
-
-      std::cout
-          << "Number divisible by 23 (count by functor): "
-          << std::count_if(data.begin(), data.end(), Functor())
-          << std::endl;
-
-      std::cout
-          << "Number divisible by 23 (count by lambda): "
-          << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%23; })
-          << std::endl;
-
-      return 0;
-  }
-
-.. admonition:: Execution Results
-
-  :download:`code/05_lambda/01_lambda.cpp`
-
-  .. code-block:: console
-    :caption: Build ``01_lambda.cpp`` and show perfect forwarding
-
-    $ g++ 01_lambda.cpp -o 01_lambda -std=c++17 -g -O3
-
-  .. code-block:: console
-    :caption: Run ``01_lambda``
-    :linenos:
-
-    $ ./01_lambda
-    Number divisible by 23 (count by functor): 2771
-    Number divisible by 23 (count by lambda): 2771
-
-Keep a Lambda in a Local Variable
-+++++++++++++++++++++++++++++++++
-
-Lambda is considered as anonymous function, but we can give it a "name" by
-assigning it to a variable.  There are two choices: ``auto`` or
-``std::function``.
+Let us see how similar that the lambda expression works like a functor.  We
+prepare a vector of integer for later consumption:
 
 .. code-block:: cpp
-  :linenos:
 
-  int main(int argc, char ** argv)
-  {
-      std::vector<int> data(63712);
-      for (size_t i=0 ; i<data.size(); ++i) { data[i] = i;}
+  std::vector<int> data(63712);
+  for (size_t i=0 ; i<data.size(); ++i) { data[i] = i;}
 
-      std::cout
-          << "Number divisible by 23 (count by lambda inline): "
-          << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%23; })
-          << std::endl;
+First run the functor through all the element in the vector:
 
-      auto condition = [](int v){ return 0 == v%23; };
+.. code-block:: cpp
 
-      std::cout
-          << "Number divisible by 23 (count by lambda in auto): "
-          << std::count_if(data.begin(), data.end(), condition)
-          << std::endl;
+  std::cout
+      << "Number divisible by 23 (count by functor): "
+      << std::count_if(data.begin(), data.end(), Functor())
+      << std::endl;
 
-      std::function<bool (int)> condition_function = [](int v){ return 0 == v%23; };
+The execution results:
 
-      std::cout
-          << "Number divisible by 23 (count by lambda in std::function): "
-          << std::count_if(data.begin(), data.end(), condition_function)
-          << std::endl;
+.. code-block:: console
 
-      return 0;
-  }
+  Number divisible by 23 (count by functor): 2771
 
-.. admonition:: Execution Results
+The run the lambda version:
 
-  :download:`code/05_lambda/02_stored.cpp`
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Build ``02_stored.cpp``
+  std::cout
+      << "Number divisible by 23 (count by lambda): "
+      << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%23; })
+      << std::endl;
 
-    $ g++ 02_stored.cpp -o 02_stored -std=c++17 -g -O3
+The execution results are the same as the functor version:
 
-  .. code-block:: console
-    :caption: Run ``02_stored``
+.. code-block:: console
+
+  Number divisible by 23 (count by lambda): 2771
+
+The full example code is in :ref:`01_lambda.cpp
+<nsd-moderncpp-example-lambda>`.
+
+.. note::
+
+  Additional information for the similiarity between a functor and a lambda
+  expression:
+
+  .. code-block:: cpp
     :linenos:
 
-    $ ./02_stored
-    Number divisible by 23 (count by lambda inline): 2771
-    Number divisible by 23 (count by lambda in auto): 2771
-    Number divisible by 23 (count by lambda in std::function): 2771
+    auto le = [](int v){ return 0 == v%23; };
+    Functor func;
+    static_assert(sizeof(le) == sizeof(func));
+    static_assert(1 == sizeof(le));
+    static_assert(1 == sizeof(func));
+
+Store Lambda in Variable
+++++++++++++++++++++++++
+
+Lambda is considered as an anonymous function, but we can give it a "name" by
+assigning it to a variable.  There are two choices of the type for the
+variable: (i) ``auto`` or (ii) ``std::function``.
+
+First, we create a lambda and pass it to ``std::count_if()`` without storing it
+in a local variable:
+
+.. code-block:: cpp
+
+  std::cout
+      << "Number divisible by 23 (count by lambda inline): "
+      << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%23; })
+      << std::endl;
+
+.. code-block:: none
+
+  Number divisible by 23 (count by lambda inline): 2771
+
+In the second test, we store a lambda to an ``auto`` variable:
+
+.. code-block:: cpp
+
+  auto condition = [](int v){ return 0 == v%23; };
+
+  std::cout
+      << "Number divisible by 23 (count by lambda in auto): "
+      << std::count_if(data.begin(), data.end(), condition)
+      << std::endl;
+
+The execution results are the same, as expected:
+
+.. code-block:: none
+
+  Number divisible by 23 (count by lambda in auto): 2771
+
+In the third and last test, we store it to a ``std::function`` variable:
+
+.. code-block:: cpp
+
+  std::function<bool (int)> condition_function = [](int v){ return 0 == v%23; };
+
+  std::cout
+      << "Number divisible by 23 (count by lambda in std::function): "
+      << std::count_if(data.begin(), data.end(), condition_function)
+      << std::endl;
+
+The execution results are still the same:
+
+.. code-block:: none
+
+  Number divisible by 23 (count by lambda in std::function): 2771
+
+.. note::
+
+  To use a ``std::function`` template, we need to specify the signature of the
+  function in the template argument.
+
+The full example code is in :ref:`02_stored.cpp
+<nsd-moderncpp-example-stored>`.
 
 Difference between ``auto`` and ``std::function``
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
-Although both ``auto`` and ``std::function`` can hold a lambda, the two ways
-are not exactly the same.  A lambda works like a functor and the ``auto`` type
-reflects that.  A ``std::function`` is more versatile than it, and takes more
-memory as well.
+Although both ``auto`` and ``std::function`` hold a lambda, the two approaches
+do not work exactly the same.  A lambda works like a functor and the ``auto``
+type reflects that.  A ``std::function`` is more versatile than it, and takes
+more memory as well.
 
-This is a list of targets (callables) that a ``std::function`` can hold: free
-functions, member functions, functors, lambda expressions, and bind
-expressions.
+.. note::
+
+  List of targets (callables) that a ``std::function`` can hold: free
+  functions, member functions, functors, lambda expressions, and bind
+  expressions.
+
+The types of ``auto`` and ``std::function`` are different:
 
 .. code-block:: cpp
-  :linenos:
 
   std::cout
       << std::endl
@@ -1358,6 +1388,18 @@ expressions.
       << "type name of std::function: "
       << typeid(condition_function).name() << std::endl;
 
+The execution results are:
+
+.. code-block:: console
+
+  The differences between lambda and std::function
+  type name of lambda: Z4mainE3$_1
+  type name of std::function: NSt3__18functionIFbiEEE
+
+The sizes of the two types are different:
+
+.. code-block:: cpp
+
   std::cout
       << "size of lambda: "
       << sizeof(condition) << std::endl;
@@ -1365,29 +1407,12 @@ expressions.
       << "size of std::function: "
       << sizeof(condition_function) << std::endl;
 
-.. admonition:: Execution Results
+The execution results are:
 
-  :download:`code/05_lambda/02_stored.cpp`
+.. code-block:: console
 
-  .. code-block:: console
-    :caption: Build ``02_stored.cpp`` and show the difference in types
-
-    $ g++ 02_stored.cpp -o 02_stored -std=c++17 -g -O3 -DSHOW_DIFF
-
-  .. code-block:: console
-    :caption: Run ``02_stored``
-    :linenos:
-
-    $ ./02_stored
-    Number divisible by 23 (count by lambda inline): 2771
-    Number divisible by 23 (count by lambda in auto): 2771
-    Number divisible by 23 (count by lambda in std::function): 2771
-
-    The differences between lambda and std::function
-    type name of lambda: Z4mainE3$_1
-    type name of std::function: NSt3__18functionIFbiEEE
-    size of lambda: 1
-    size of std::function: 48
+  size of lambda: 1
+  size of std::function: 48
 
 Closure
 =======

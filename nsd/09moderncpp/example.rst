@@ -73,6 +73,38 @@ Example Code: Modern C++
   $ g++ 01_factory.cpp -o 01_factory -std=c++17 -g -O3
   $ g++ 01_factory.cpp -o 01_factory -std=c++17 -g -O3 -DSHOW_PERFECT_FORWARD
 
+.. literalinclude:: code/05_lambda/01_lambda.cpp
+  :name: nsd-moderncpp-example-lambda
+  :caption:
+    C++ lambda (:download:`01_lambda.cpp <code/05_lambda/01_lambda.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-moderncpp-example-lambda-build
+  :caption:
+    Build :ref:`01_lambda.cpp <nsd-moderncpp-example-lambda>`
+
+  $ g++ 01_lambda.cpp -o 01_lambda -std=c++17 -g -O3
+
+.. literalinclude:: code/05_lambda/02_stored.cpp
+  :name: nsd-moderncpp-example-stored
+  :caption:
+    Store a lambda in a variable (:download:`02_stored.cpp
+    <code/05_lambda/02_stored.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-moderncpp-example-stored-build
+  :caption:
+    Build :ref:`02_stored.cpp <nsd-moderncpp-example-stored>`
+
+  $ g++ 02_stored.cpp -o 02_stored -std=c++17 -g -O3
+  $ g++ 02_stored.cpp -o 02_stored -std=c++17 -g -O3 -DSHOW_DIFF
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 
