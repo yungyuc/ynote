@@ -13,26 +13,30 @@ int main(int argc, char ** argv)
 #if WRONG_CAPTURE
     std::cout
         << "Count (wrong capture): "
-        << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%divisor; })
+        << std::count_if(data.begin(), data.end(),
+                         [](int v){ return 0 == v%divisor; })
         << " (divisor: " << divisor << ")"
         << std::endl;
 #endif
 
     std::cout
         << "Count (lambda explicitly capture by value): "
-        << std::count_if(data.begin(), data.end(), [divisor](int v){ return 0 == v%divisor; })
+        << std::count_if(data.begin(), data.end(),
+                         [divisor](int v){ return 0 == v%divisor; })
         << " (divisor: " << divisor << ")"
         << std::endl;
 
     std::cout
         << "Count (lambda implicitly capture by value): "
-        << std::count_if(data.begin(), data.end(), [=](int v){ return 0 == v%divisor; })
+        << std::count_if(data.begin(), data.end(),
+                         [=](int v){ return 0 == v%divisor; })
         << " (divisor: " << divisor << ")"
         << std::endl;
 
     std::cout
         << "Count (lambda explicitly capture by reference): "
-        << std::count_if(data.begin(), data.end(), [&divisor](int v){ divisor = 10; return 0 == v%divisor; })
+        << std::count_if(data.begin(), data.end(),
+                         [&divisor](int v){ divisor = 10; return 0 == v%divisor; })
         << " (divisor: " << divisor << ")"
         << std::endl;
 

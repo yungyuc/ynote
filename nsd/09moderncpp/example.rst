@@ -105,6 +105,23 @@ Example Code: Modern C++
   $ g++ 02_stored.cpp -o 02_stored -std=c++17 -g -O3
   $ g++ 02_stored.cpp -o 02_stored -std=c++17 -g -O3 -DSHOW_DIFF
 
+.. literalinclude:: code/05_lambda/03_closure.cpp
+  :name: nsd-moderncpp-example-closure
+  :caption:
+    Closure example (:download:`03_closure.cpp
+    <code/05_lambda/03_closure.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-moderncpp-example-closure-build
+  :caption:
+    Build :ref:`03_closure.cpp <nsd-moderncpp-example-closure>`
+
+  $ g++ 03_closure.cpp -o 03_closure -std=c++17 -g -O3 -DWRONG_CAPTURE
+  $ g++ 03_closure.cpp -o 03_closure -std=c++17 -g -O3
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 

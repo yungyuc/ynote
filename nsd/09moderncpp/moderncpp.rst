@@ -1222,6 +1222,10 @@ The execution result shows that the move is correctly done:
 Lambda Expression
 =================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 C++ lambda expression enables a shorthand for anonymous function.  The syntax
 (no variable is captured) is:
 
@@ -1417,115 +1421,118 @@ The execution results are:
 Closure
 =======
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 So far our use of lambda expressions doesn't capture any local variables.  When
 it does, we call the lambda expression a closure.
 
 We must tell the compiler what type of capture the lambda expression would like
-to use.  Otherwise the compilation fails.
+to use.  Otherwise the compilation fails.  For example:
 
 .. code-block:: cpp
-  :linenos:
+  :emphasize-lines: 9
 
-  int main(int argc, char ** argv)
-  {
-      std::vector<int> data(63712);
-      for (size_t i=0 ; i<data.size(); ++i) { data[i] = i;}
+  std::vector<int> data(63712);
+  for (size_t i=0 ; i<data.size(); ++i) { data[i] = i;}
 
+  int divisor = 23;
+
+  std::cout
+      << "Count (wrong capture): "
+      << std::count_if(data.begin(), data.end(),
+                       [](int v){ return 0 == v%divisor; })
+      << " (divisor: " << divisor << ")"
+      << std::endl;
+
+The compiler error:
+
+.. code-block:: console
+
+  $ g++ 03_closure.cpp -o 03_closure -std=c++17 -g -O3 -DWRONG_CAPTURE
+  03_closure.cpp:17:51: error: variable 'divisor' cannot be implicitly captured in a lambda with no capture-default specified
+                           [](int v){ return 0 == v%divisor; })
+                                                    ^
+  03_closure.cpp:11:9: note: 'divisor' declared here
       int divisor = 23;
+          ^
+  03_closure.cpp:17:26: note: lambda expression begins here
+                           [](int v){ return 0 == v%divisor; })
+                           ^
+  1 error generated.
 
-  #if WRONG_CAPTURE
-      std::cout
-          << "Count (wrong capture): "
-          << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%divisor; })
-          << " (divisor: " << divisor << ")"
-          << std::endl;
-  #endif
-
-      return 0;
-  }
-
-.. admonition:: Execution Results
-
-  :download:`code/05_lambda/03_closure.cpp`
-
-  .. code-block:: console
-    :caption: Show compiler error of wrong capture in ``03_closure.cpp``
-
-    $ g++ 03_closure.cpp -o 03_closure -std=c++17 -g -O3 -DWRONG_CAPTURE
-    03_closure.cpp:16:77: error: variable 'divisor' cannot be implicitly captured in a lambda with no capture-default specified
-            << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%divisor; })
-                                                                                ^
-    03_closure.cpp:11:9: note: 'divisor' declared here
-        int divisor = 23;
-            ^
-    03_closure.cpp:16:52: note: lambda expression begins here
-            << std::count_if(data.begin(), data.end(), [](int v){ return 0 == v%divisor; })
-                                                       ^
-    1 error generated.
-
-We may explicitly tell the compiler that we want `divisor` to be captured by the lambda expression by value:
+We may explicitly tell the compiler that we want ``divisor`` to be captured by
+the lambda expression by value:
 
 .. code-block:: cpp
+  :emphasize-lines: 6
 
   int divisor = 23;
 
   std::cout
       << "Count (lambda explicitly capture by value): "
-      << std::count_if(data.begin(), data.end(), [divisor](int v){ return 0 == v%divisor; })
+      << std::count_if(data.begin(), data.end(),
+                       [divisor](int v){ return 0 == v%divisor; })
       << " (divisor: " << divisor << ")"
       << std::endl;
 
-Use ``=`` to implicitly capture by value:
+The execution result shows that the value of ``divisor`` is correctly captured:
+
+.. code-block:: none
+
+  Count (lambda explicitly capture by value): 2771 (divisor: 23)
+
+We may also use ``=`` to implicitly capture all variables by value:
 
 .. code-block:: cpp
 
   std::cout
       << "Count (lambda implicitly capture by value): "
-      << std::count_if(data.begin(), data.end(), [=](int v){ return 0 == v%divisor; })
+      << std::count_if(data.begin(), data.end(),
+                       [=](int v){ return 0 == v%divisor; })
       << " (divisor: " << divisor << ")"
       << std::endl;
 
-Use ``&`` to capture by reference:
+The execution result shows that the value is also correctly captured:
+
+.. code-block:: none
+
+  Count (lambda implicitly capture by value): 2771 (divisor: 23)
+
+We can also capture a variable by reference by using ``&``.  When we do it, we
+may change the value of the referenced variable:
 
 .. code-block:: cpp
-  :linenos:
 
   std::cout
       << "Count (lambda explicitly capture by reference): "
-      << std::count_if(data.begin(), data.end(), [&divisor](int v){ divisor = 10; return 0 == v%divisor; })
+      << std::count_if(data.begin(), data.end(),
+                       [&divisor](int v){ divisor = 10; return 0 == v%divisor; })
       << " (divisor: " << divisor << ")"
       << std::endl;
 
-``&`` can also be put standalone in ``[]`` to indicate that the default capture is
-by reference.
+.. note::
 
-The execution results:
+  ``&`` can also be put standalone in ``[]`` to indicate that the default
+  capture is by reference.
 
-.. admonition:: Execution Results
+The execution result is:
 
-  :download:`code/05_lambda/03_closure.cpp`
+.. code-block:: console
 
-  .. code-block:: console
-    :caption: Build ``03_closure.cpp``
+  Count (lambda explicitly capture by reference): 6372 (divisor: 10)
 
-    $ g++ 03_closure.cpp -o 03_closure -std=c++17 -g -O3
-
-  .. code-block:: console
-    :caption: Run ``03_closure``
-    :linenos:
-
-    $ ./03_closure
-    Count (lambda explicitly capture by value): 2771 (divisor: 23)
-    Count (lambda implicitly capture by value): 2771 (divisor: 23)
-    Count (lambda explicitly capture by reference): 6372 (divisor: 10)
+The full example code is in :ref:`03_closure.cpp
+<nsd-moderncpp-example-closure>`.
 
 Comments on Functional Style
 ++++++++++++++++++++++++++++
 
 The lambda expression and closure allow functional style of programming.  As
 shown in the ``std::count_if`` example, it is a convenient tool to reduce the
-lines of code.  It generally makes the code looks cleaner and easier to
-maintain.  That buys us time to do more important things or optimize
+number of lines of code.  It generally makes the code looks cleaner and easier
+to maintain.  That buys us time to do more important things or optimize
 performance hotspot.
 
 But there are times that we cannot entrust the optimization to the compiler.
