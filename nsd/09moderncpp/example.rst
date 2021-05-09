@@ -19,6 +19,23 @@ Example Code: Modern C++
   $ g++ 01_copy.cpp -o 01_copy -std=c++17 -g -O3
   $ g++ 01_copy.cpp -o 01_copy -std=c++17 -g -O0
 
+.. literalinclude:: code/03_elision/02_move.cpp
+  :name: nsd-moderncpp-example-move
+  :caption:
+    Manipulate data using a raw pointer (:download:`02_move.cpp
+    <code/03_elision/02_move.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-moderncpp-example-move-build
+  :caption:
+    Build :ref:`02_move.cpp <nsd-modern-example-move>`.
+
+  $ g++ 02_move.cpp -o 02_move -std=c++17 -g -O3
+  $ g++ 02_move.cpp -o 02_move -std=c++17 -g -O3 -DFORCEMOVE
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 

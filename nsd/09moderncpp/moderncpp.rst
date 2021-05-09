@@ -200,9 +200,15 @@ It is confirmed that copy constructor is not called:
 Move Semantics and Copy Elision
 ===============================
 
-Move semantics greatly helps us to avoid copying expensive resources.  To take
-advantage of that, our ``Data`` class should be changed to use dynamic
-allocation:
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Move semantics greatly helps us to avoid copying expensive resources.  I would
+like to show how the movement interacts with copy elision.  The full example
+code is in :ref:`02_move.cpp <nsd-moderncpp-example-move>`.
+
+The ``Data`` class is changed to make both copy and move construction explicit:
 
 .. code-block:: cpp
   :linenos:
@@ -263,12 +269,33 @@ allocation:
 Forced Move Is a Bad Idea
 +++++++++++++++++++++++++
 
-Although the move semantics indeed avoids copy the expensive buffer in the
-``Data`` class, it cannot avoid copy the ``Data`` object itself.  However, copy
-elision (RVO & NRVO) can.
+The move semantics is certainly able to avoid copying the expensive buffer in
+the ``Data`` class.  Sometimes we will take advantage of it.
+
+However, movement cannot avoid copy the ``Data`` object itself, and copy
+elision (RVO & NRVO) can.  This renders forced move a bad idea to return
+objects except for some corner cases.  Let us check it using a slightly
+modified ``worker2()`` helper function.  The inner helpers remain identical to
+the previous example:
 
 .. code-block:: cpp
-  :linenos:
+  :caption: Manipulation code.
+
+  void manipulate_with_reference(Data & data, int value)
+  {
+      std::cout << "Manipulate with reference: " << &data << std::endl;
+
+      for (size_t it=0; it < data.size(); ++it)
+      {
+          data[it] = value + it;
+      }
+      // In a real consumer function we will do much more meaningful operations.
+
+      // However, we cannot destruct an object passed in with a reference.
+  }
+
+.. code-block:: cpp
+  :caption: Inner helper function that construct ``Data``.
 
   Data worker1()
   {
@@ -280,6 +307,12 @@ elision (RVO & NRVO) can.
       return data;
   }
 
+Note that the new ``worker2()`` returns the moved object:
+
+.. code-block:: cpp
+  :caption: The outer helper function that returns a moved object.
+  :emphasize-lines: 9
+
   Data worker2()
   {
       Data data = worker1();
@@ -287,78 +320,71 @@ elision (RVO & NRVO) can.
       // Manipulate the Data object, again.
       manipulate_with_reference(data, 8);
 
-  #ifdef FORCEMOVE
       // Explicit move semantics destroys copy elision.
       return std::move(data);
-  #else
-      return data;
-  #endif
   }
 
-  int main(int argc, char ** argv)
-  {
-      std::cout
-          << "Status:"
-          << (bool(Status::instance().is_copied()) ? " copied" : " uncopied")
-          << (bool(Status::instance().is_moved()) ? " moved" : " unmoved")
-          << std::endl;
-      Data data = worker2();
-      std::cout
-          << "Status:"
-          << (bool(Status::instance().is_copied()) ? " copied" : " uncopied")
-          << (bool(Status::instance().is_moved()) ? " moved" : " unmoved")
-          << std::endl;
-  }
+The test driver is:
+
+.. code-block:: cpp
+  :caption: Run with the move operations.
+
+  std::cout
+      << "Status:"
+      << (bool(Status::instance().is_copied()) ? " copied" : " uncopied")
+      << (bool(Status::instance().is_moved()) ? " moved" : " unmoved")
+      << std::endl;
+  Data data = worker2();
+  std::cout
+      << "Status:"
+      << (bool(Status::instance().is_copied()) ? " copied" : " uncopied")
+      << (bool(Status::instance().is_moved()) ? " moved" : " unmoved")
+      << std::endl;
+
+In the terminal prints, we see the movement correctly works, but it also
+results in two ``Data`` objects (but there is only one data buffer) in the
+process:
+
+.. code-block:: none
+
+  Status: uncopied unmoved
+  Data constructed @0x7ffee90cb0d0
+  Manipulate with reference: 0x7ffee90cb0d0
+  Manipulate with reference: 0x7ffee90cb0d0
+  Data moved to @0x7ffee90cb168 from @0x7ffee90cb0d0
+  Data destructed @0x7ffee90cb0d0
+  Status: uncopied moved
+  Data destructed @0x7ffee90cb168
 
 Compiler Does Copy Elision
 ++++++++++++++++++++++++++
 
-.. admonition:: Execution Results
+The forced movement does not look good.  Let us change it back to use copy elision:
 
-  :download:`code/03_elision/02_move.cpp`
+.. code-block:: cpp
+  :caption: The outer helper function that enables copy elision.
 
-  .. code-block:: console
-    :caption: Build ``02_move.cpp`` without optimization
+  Data worker2()
+  {
+      Data data = worker1();
 
-    $ g++ 02_move.cpp -o 02_move -std=c++17 -g
+      // Manipulate the Data object, again.
+      manipulate_with_reference(data, 8);
 
-  .. code-block:: console
-    :caption: Run ``02_move``
-    :linenos:
+      return data;
+  }
 
-    $ ./02_move
-    Status: uncopied unmoved
-    Data constructed @0x7ffee0ac61b8
-    Manipulate with reference: 0x7ffee0ac61b8
-    Manipulate with reference: 0x7ffee0ac61b8
-    Status: uncopied unmoved
-    Data destructed @0x7ffee0ac61b8
+Nothing is copied, nothing is moved, and there is only one ``Data`` object
+throughout the whole process:
 
-Forced Move Incurs More Operations
-++++++++++++++++++++++++++++++++++
+.. code-block:: none
 
-.. admonition:: Execution Results
-
-  :download:`code/03_elision/02_move.cpp`
-
-  .. code-block:: console
-    :caption: Build ``02_move.cpp`` without optimization
-
-    $ g++ 02_move.cpp -o 02_move -std=c++17 -g  -DFORCEMOVE
-
-  .. code-block:: console
-    :caption: Run ``02_move``
-    :linenos:
-
-    $ ./02_move
-    Status: uncopied unmoved
-    Data constructed @0x7ffee90cb0d0
-    Manipulate with reference: 0x7ffee90cb0d0
-    Manipulate with reference: 0x7ffee90cb0d0
-    Data moved to @0x7ffee90cb168 from @0x7ffee90cb0d0
-    Data destructed @0x7ffee90cb0d0
-    Status: uncopied moved
-    Data destructed @0x7ffee90cb168
+  Status: uncopied unmoved
+  Data constructed @0x7ffee0ac61b8
+  Manipulate with reference: 0x7ffee0ac61b8
+  Manipulate with reference: 0x7ffee0ac61b8
+  Status: uncopied unmoved
+  Data destructed @0x7ffee0ac61b8
 
 Data Concatenation
 ==================

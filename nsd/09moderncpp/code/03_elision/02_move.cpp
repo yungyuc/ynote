@@ -10,6 +10,7 @@ public:
 
     static Status & instance()
     {
+        // This is a singleton.
         static Status inst;
         return inst;
     }
@@ -165,6 +166,8 @@ int main(int argc, char ** argv)
         << (bool(Status::instance().is_copied()) ? " copied" : " uncopied")
         << (bool(Status::instance().is_moved()) ? " moved" : " unmoved")
         << std::endl;
+
+    return 0;
 }
 
 // vim: set et sw=4 ts=4 sts=4:
