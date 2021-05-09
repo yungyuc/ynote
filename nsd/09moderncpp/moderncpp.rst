@@ -2,22 +2,28 @@
 Modern C++
 ==========
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 Copy Elision / Return Value Optimization (RVO)
 ==============================================
 
-Copy elision is one of the two forms of optimization, alongside allocation
-elision and extension, that is allowed to change the side effects.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Copy elision is one of the two forms of optimization that are allowed to change
+the side effects.  (The other is allocation elision and extension.)
 
 Sometimes copy elision is also called return value optimization (RVO) or named
 return value optimization (NRVO).
 
 In the following example, even though no optimization flag is used, the copy is
-optimized out.
+optimized out.  The full example code is in :ref:`01_copy.cpp
+<nsd-moderncpp-example-copy>`.
 
-Make a Tracker Class for Copy
-+++++++++++++++++++++++++++++
-
-To show that the copy construction is not called, we make a help class:
+To show that the copy construction is not called, we will use a help class:
 
 .. code-block:: cpp
   :linenos:
@@ -27,6 +33,7 @@ To show that the copy construction is not called, we make a help class:
   public:
       static IsCopied & instance()
       {
+          // This is a singleton.
           static IsCopied inst;
           return inst;
       }
@@ -44,13 +51,13 @@ To show that the copy construction is not called, we make a help class:
       bool m_status;
   };
 
-In the copy constructor of the class of interest is called, it will set the
-status to be true.
+.. note::
 
-Copy Elision in Action
-++++++++++++++++++++++
+  In the copy constructor of the class of interest is called, an instance of
+  this class ``IsCopied`` will set the status to be true.  This helper class is
+  a singleton so there will be only one instance in the process.
 
-In the testing program, we will check for the copy status:
+In the testing program, we have a ``Data`` class whose copy status is tracked:
 
 .. code-block:: cpp
   :linenos:
@@ -72,18 +79,45 @@ In the testing program, we will check for the copy status:
       {
           std::cout << "Data destructed @" << this << std::endl;
       }
+  private:
       void copy_from(Data const & other)
       {
           for (size_t it=0; it < NELEM; ++it)
           {
               m_buffer[it] = other.m_buffer[it];
           }
+          // Mark copied.
           IsCopied::instance().on();
       }
-  private:
       // A lot of data that we don't want to reconstruct.
       int m_buffer[NELEM];
   };
+
+In the beginning, check that nothing is copied before anything is constructed:
+
+.. code-block:: cpp
+
+  std::cout
+      << (bool(IsCopied::instance()) ? "Something" : "Nothing")
+      << " is copied" << std::endl;
+
+Indeed there is nothing copied:
+
+.. code-block:: none
+
+  Nothing is copied
+
+Now we call a series of helper functions to construct, process, and return the
+``Data`` object:
+
+.. code-block:: cpp
+
+  Data data = worker2();
+
+Let us take a look at the helper function ``worker2()`` and its inner helpers:
+
+.. code-block:: cpp
+  :caption: Manipulation code.
 
   void manipulate_with_reference(Data & data, int value)
   {
@@ -98,6 +132,9 @@ In the testing program, we will check for the copy status:
       // However, we cannot destruct an object passed in with a reference.
   }
 
+.. code-block:: cpp
+  :caption: Inner helper function that construct ``Data``.
+
   Data worker1()
   {
       Data data;
@@ -107,6 +144,9 @@ In the testing program, we will check for the copy status:
 
       return data;
   }
+
+.. code-block:: cpp
+  :caption: Outer helper function that obtain ``Data`` from ``worker1()``.
 
   Data worker2()
   {
@@ -118,39 +158,44 @@ In the testing program, we will check for the copy status:
       return data;
   }
 
-  int main(int argc, char ** argv)
-  {
-      std::cout
-          << (bool(IsCopied::instance()) ? "Something" : "Nothing")
-          << " is copied" << std::endl;
-      Data data = worker2();
-      std::cout
-          << (bool(IsCopied::instance()) ? "Something" : "Nothing")
-          << " is copied" << std::endl;
-  }
+You may be surprised when seeing the terminal prints showing no message of copy
+construction:
 
-While running it, we will see that the copy constructor is not called.
+.. code-block:: none
 
-.. admonition:: Execution Results
+  Data constructed @0x7ffee9ebe1c0
+  Manipulate with reference: 0x7ffee9ebe1c0
+  Manipulate with reference: 0x7ffee9ebe1c0
 
-  :download:`code/03_elision/01_copy.cpp`
+.. note::
+
+  You may guess that some optimizations disabled the copy construction, but the
+  results remain the same with optimization:
 
   .. code-block:: console
-    :caption: Build ``01_copy.cpp``
 
     $ g++ 01_copy.cpp -o 01_copy -std=c++17 -g -O3
 
-  .. code-block:: console
-    :caption: Run ``01_copy``
-    :linenos:
+  or without it:
 
-    $ ./01_copy
-    Nothing is copied
-    Data constructed @0x7ffee9ebe1c0
-    Manipulate with reference: 0x7ffee9ebe1c0
-    Manipulate with reference: 0x7ffee9ebe1c0
-    Nothing is copied
-    Data destructed @0x7ffee9ebe1c0
+  .. code-block:: console
+
+    $ g++ 01_copy.cpp -o 01_copy -std=c++17 -g -O0
+
+We can call our copy checker again:
+
+.. code-block:: cpp
+
+  std::cout
+      << (bool(IsCopied::instance()) ? "Something" : "Nothing")
+      << " is copied" << std::endl;
+
+It is confirmed that copy constructor is not called:
+
+.. code-block:: none
+
+  Nothing is copied
+  Data destructed @0x7ffee9ebe1c0
 
 Move Semantics and Copy Elision
 ===============================

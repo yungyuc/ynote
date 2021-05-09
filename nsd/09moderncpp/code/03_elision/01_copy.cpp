@@ -10,6 +10,7 @@ public:
 
     static IsCopied & instance()
     {
+        // This is a singleton.
         static IsCopied inst;
         return inst;
     }
@@ -84,6 +85,7 @@ private:
         {
             m_buffer[it] = other.m_buffer[it];
         }
+        // Mark copied.
         IsCopied::instance().on();
     }
 
@@ -134,6 +136,7 @@ int main(int argc, char ** argv)
     std::cout
         << (bool(IsCopied::instance()) ? "Something" : "Nothing")
         << " is copied" << std::endl;
+    return 0;
 }
 
 // vim: set et sw=4 ts=4 sts=4:
