@@ -965,11 +965,18 @@ up with a (rather) optimized class library for data processing.
 Variadic Template
 =================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Variadic template allows us to capture any number of template arguments in a
-function template.  Assuming we have 2 constructors for ``Data``:
+function template.  The full example of its use is in :ref:`01_factory.cpp
+<nsd-moderncpp-example-factory>`.
+
+Assuming we have 2 constructors for ``Data``:
 
 .. code-block:: cpp
-  :linenos:
+  :caption: Constructor that takes a single serial number.
 
   Data(size_t serial, ctor_passkey const &)
     : m_serial(serial)
@@ -979,6 +986,9 @@ function template.  Assuming we have 2 constructors for ``Data``:
       std::cout << "Data #" << m_serial << " constructed @" << this
                 << "(serial=" << m_serial << ")" << std::endl;
   }
+
+.. code-block:: cpp
+  :caption: Constructor that takes a serial number and a base number.
 
   Data(size_t serial, int base, ctor_passkey const &)
     : m_serial(serial+base)
@@ -990,43 +1000,57 @@ function template.  Assuming we have 2 constructors for ``Data``:
                 << "(base=" << base << ")" << std::endl;
   }
 
-We will need two factories methods for them:
+There should be two corresponding factory functions:
 
 .. code-block:: cpp
-  :linenos:
+  :caption: Factory function for a single serial number.
 
   static std::shared_ptr<Data> create(size_t serial)
   {
       return std::make_shared<Data>(serial, ctor_passkey());
   }
 
+.. code-block:: cpp
+  :caption: Factory function for a serial number and a base.
+
   static std::shared_ptr<Data> create(size_t serial, int base)
   {
       return std::make_shared<Data>(serial, int, ctor_passkey());
   }
 
-It's tedious to add the corresponding factory functions, although it is not too
-much an issue, since the compiler will complain.  Let's assume we forgot the
-add the second factory overload and see what may happen.
+It's tedious to add the corresponding factory functions.  When we add a new
+constructor, it is not unusually for us to forget to add the corresponding
+factory function in the first place.  It is not too much an issue, because the
+compiler must find the mistake and complain.
 
-.. admonition:: Execution Results
+Assume we forgot the add the second factory overload but write:
 
-  :download:`code/04_template/01_factory.cpp`
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Build ``01_factory.cpp`` and show the missing factory method
+  // The factory function is available for this:
+  data = Data::create(it);
+  // The factory function is missing for this:
+  data = Data::create(it, base);
 
-    $ g++ 01_factory.cpp -o 01_factory -std=c++17 -g -O3 -DUSE_CREATE
-    01_factory.cpp:142:37: error: too many arguments to function call, expected single argument 'serial', have 2 arguments
-                data = Data::create(it, base);
-                       ~~~~~~~~~~~~     ^~~~
-    01_factory.cpp:22:5: note: 'create' declared here
-        static std::shared_ptr<Data> create(size_t serial)
-        ^
-    1 error generated.
+The compiler will issue error for it cannot find the definition of the second
+factory function:
 
-Variadic template can conveniently help us summarize the two overloads into one
-template function, and also capture every new public constructor that will be
+.. code-block:: console
+  :caption:
+    Build :ref:`01_factory.cpp <nsd-moderncpp-example-factory>` and show the
+    missing factory method.
+
+  $ g++ 01_factory.cpp -o 01_factory -std=c++17 -g -O3 -DUSE_CREATE
+  01_factory.cpp:142:37: error: too many arguments to function call, expected single argument 'serial', have 2 arguments
+              data = Data::create(it, base);
+                     ~~~~~~~~~~~~     ^~~~
+  01_factory.cpp:22:5: note: 'create' declared here
+      static std::shared_ptr<Data> create(size_t serial)
+      ^
+  1 error generated.
+
+Variadic template can conveniently help us organize the two overloads into one
+function template, and also capture every new public constructor that will be
 added in the future.
 
 .. code-block:: cpp
@@ -1039,32 +1063,11 @@ added in the future.
       return std::make_shared<Data>(std::forward<Args>(args) ..., ctor_passkey());
   }
 
-Run the following code:
+The helper function that uses the variadic function template:
 
 .. code-block:: cpp
   :linenos:
-
-  void outer1(size_t len)
-  {
-      std::cout << "* outer1 begins" << std::endl;
-      std::vector<std::shared_ptr<Data>> vec;
-      for (size_t it=0; it < len; ++it)
-      {
-          std::cout << std::endl;
-          std::cout << "* outer1 loop it=" << it << " begins" << std::endl;
-          std::vector<std::shared_ptr<Data>> subvec = inner1(vec.size(), it+1);
-          std::cout << "* outer1 obtained inner1 at " << vec.size() << std::endl;
-          vec.insert(
-              vec.end()
-            , std::make_move_iterator(subvec.begin())
-            , std::make_move_iterator(subvec.end())
-          );
-          std::cout << "* outer1 inserted subvec.size()=" << subvec.size() << std::endl;
-      }
-      std::cout << "* outer1 result.size() = " << vec.size() << std::endl << std::endl;
-
-      std::cout << "* outer1 end" << std::endl << std::endl;
-  }
+  :emphasize-lines: 10,14
 
   std::vector<std::shared_ptr<Data>> inner1(size_t base, size_t len)
   {
@@ -1086,52 +1089,66 @@ Run the following code:
       return ret;
   }
 
-.. admonition:: Execution Results
+Run the following code:
 
-  :download:`code/04_template/01_factory.cpp`
+.. code-block:: cpp
 
-  .. code-block:: console
-    :caption: Build ``01_factory.cpp``
+  std::cout << "* outer1 begins" << std::endl;
+  std::vector<std::shared_ptr<Data>> vec;
+  for (size_t it=0; it < len; ++it)
+  {
+      std::cout << std::endl;
+      std::cout << "* outer1 loop it=" << it << " begins" << std::endl;
+      std::vector<std::shared_ptr<Data>> subvec = inner1(vec.size(), it+1);
+      std::cout << "* outer1 obtained inner1 at " << vec.size() << std::endl;
+      vec.insert(
+          vec.end()
+        , std::make_move_iterator(subvec.begin())
+        , std::make_move_iterator(subvec.end())
+      );
+      std::cout << "* outer1 inserted subvec.size()=" << subvec.size() << std::endl;
+  }
+  std::cout << "* outer1 result.size() = " << vec.size() << std::endl << std::endl;
 
-    $ g++ 01_factory.cpp -o 01_factory -std=c++17 -g -O3
+  std::cout << "* outer1 end" << std::endl << std::endl;
 
-  .. code-block:: console
-    :caption: Run ``01_factory``
-    :linenos:
+The execution results are:
 
-    $ ./01_factory
-    * outer1 begins
+.. code-block:: console
+  :linenos:
 
-    * outer1 loop it=0 begins
-    ** inner1 begins with 0
-    Data #0 constructed @0x7ff4af405ac8(serial=0)
-    * outer1 obtained inner1 at 0
-    * outer1 inserted subvec.size()=1
+  * outer1 begins
 
-    * outer1 loop it=1 begins
-    ** inner1 begins with 1
-    Data #1 constructed @0x7ff4af405b28(serial=1)(base=1)
-    Data #2 constructed @0x7ff4af405b68(serial=2)(base=1)
-    * outer1 obtained inner1 at 1
-    * outer1 inserted subvec.size()=2
+  * outer1 loop it=0 begins
+  ** inner1 begins with 0
+  Data #0 constructed @0x7ff4af405ac8(serial=0)
+  * outer1 obtained inner1 at 0
+  * outer1 inserted subvec.size()=1
 
-    * outer1 loop it=2 begins
-    ** inner1 begins with 3
-    Data #3 constructed @0x7ff4af405bf8(serial=3)(base=3)
-    Data #4 constructed @0x7ff4af405c38(serial=4)(base=3)
-    Data #5 constructed @0x7ff4af405c78(serial=5)(base=3)
-    * outer1 obtained inner1 at 3
-    * outer1 inserted subvec.size()=3
-    * outer1 result.size() = 6
+  * outer1 loop it=1 begins
+  ** inner1 begins with 1
+  Data #1 constructed @0x7ff4af405b28(serial=1)(base=1)
+  Data #2 constructed @0x7ff4af405b68(serial=2)(base=1)
+  * outer1 obtained inner1 at 1
+  * outer1 inserted subvec.size()=2
 
-    * outer1 end
+  * outer1 loop it=2 begins
+  ** inner1 begins with 3
+  Data #3 constructed @0x7ff4af405bf8(serial=3)(base=3)
+  Data #4 constructed @0x7ff4af405c38(serial=4)(base=3)
+  Data #5 constructed @0x7ff4af405c78(serial=5)(base=3)
+  * outer1 obtained inner1 at 3
+  * outer1 inserted subvec.size()=3
+  * outer1 result.size() = 6
 
-    Data #5 destructed @0x7ff4af405c78
-    Data #4 destructed @0x7ff4af405c38
-    Data #3 destructed @0x7ff4af405bf8
-    Data #2 destructed @0x7ff4af405b68
-    Data #1 destructed @0x7ff4af405b28
-    Data #0 destructed @0x7ff4af405ac8
+  * outer1 end
+
+  Data #5 destructed @0x7ff4af405c78
+  Data #4 destructed @0x7ff4af405c38
+  Data #3 destructed @0x7ff4af405bf8
+  Data #2 destructed @0x7ff4af405b68
+  Data #1 destructed @0x7ff4af405b28
+  Data #0 destructed @0x7ff4af405ac8
 
 Perfect Forwarding
 ==================
