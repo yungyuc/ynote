@@ -1153,11 +1153,15 @@ The execution results are:
 Perfect Forwarding
 ==================
 
-In the previous section we used ``std::forward``, which enables perfect
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+In the previous section, we used ``std::forward`` without explanation.  It will
+be explained in this section.  The template is used to enable perfect
 forwarding:
 
 .. code-block:: cpp
-  :linenos:
 
   template < typename ... Args >
   static std::shared_ptr<Data> make(Args && ... args)
@@ -1171,10 +1175,10 @@ to rvalue reference.  The difference is that:
 1. ``std::move`` unconditionally casts the input to rvalue reference.
 2. ``std::forward`` casts to rvalue reference only when it can.
 
-When we write ``Data &&``, it is a rvalue reference.  With ``T &&`` as a
+When we write ``Data &&``, it is a **rvalue reference**.  With ``T &&`` as a
 template argument, when we write ``T &&``, it can be either lvalue or rvalue,
-and is called universal reference.  The rule of thumb is that when ``T`` is a
-deductible type (``auto &&`` falls into this category too), ``T &&`` is a
+and is called a **universal reference**.  The rule of thumb is that when ``T``
+is a deductible type (``auto &&`` falls into this category too), ``T &&`` is a
 universal reference rather a strict rvalue reference.
 
 So ``std::forward<Args>(args)`` preserves the type of reference of the
@@ -1184,93 +1188,36 @@ or not we use perfect forwarding.  To demonstrate how it works, we add the two
 wrapper:
 
 .. code-block:: cpp
-  :linenos:
 
   // Proxy to copy and move constructor.
-  Data(Data const &  other, ctor_passkey const &) : Data(std::forward<Data const &>(other)) {}
-  Data(Data       && other, ctor_passkey const &) : Data(std::forward<Data &&>(other)) {}
+  Data(Data const &  other, ctor_passkey const &)
+    : Data(std::forward<Data const &>(other)) {}
+  Data(Data       && other, ctor_passkey const &)
+    : Data(std::forward<Data &&>(other)) {}
 
-And we use a slightly different ``outer``:
+Let us test the copy factory function:
 
 .. code-block:: cpp
-  :linenos:
 
-  void outer1(size_t len)
-  {
-      std::cout << "* outer1 begins" << std::endl;
-      std::vector<std::shared_ptr<Data>> vec;
-      for (size_t it=0; it < len; ++it)
-      {
-          std::cout << std::endl;
-          std::cout << "* outer1 loop it=" << it << " begins" << std::endl;
-          std::vector<std::shared_ptr<Data>> subvec = inner1(vec.size(), it+1);
-          std::cout << "* outer1 obtained inner1 at " << vec.size() << std::endl;
-          vec.insert(
-              vec.end()
-            , std::make_move_iterator(subvec.begin())
-            , std::make_move_iterator(subvec.end())
-          );
-          std::cout << "* outer1 inserted subvec.size()=" << subvec.size() << std::endl;
-      }
-      std::cout << "* outer1 result.size() = " << vec.size() << std::endl << std::endl;
+  vec.emplace_back(Data::make(*vec[0]));
 
-      // Exercise the perfect forwarding.
-      vec.emplace_back(Data::make(*vec[0]));
-      vec.emplace_back(Data::make(std::move(*vec[1])));
+The execution result shows that the copy is corrected done:
 
-      std::cout << "* outer1 end" << std::endl << std::endl;
-  }
+.. code-block:: none
 
-.. admonition:: Execution Results
+  Data #0 copied to @0x7ff6abc05cb8 from @0x7ff6abc05ac8
 
-  :download:`code/04_template/01_factory.cpp`
+Test the move factory function:
 
-  .. code-block:: console
-    :caption: Build ``01_factory.cpp`` and show perfect forwarding
+.. code-block:: cpp
 
-    $ g++ 01_factory.cpp -o 01_factory -std=c++17 -g -O3 -DSHOW_PERFECT_FORWARD
+  vec.emplace_back(Data::make(std::move(*vec[1])));
 
-  .. code-block:: console
-    :caption: Run ``01_factory``
-    :linenos:
+The execution result shows that the move is correctly done:
 
-    $ ./01_factory
-    * outer1 begins
+.. code-block:: none
 
-    * outer1 loop it=0 begins
-    ** inner1 begins with 0
-    Data #0 constructed @0x7ff6abc05ac8(serial=0)
-    * outer1 obtained inner1 at 0
-    * outer1 inserted subvec.size()=1
-
-    * outer1 loop it=1 begins
-    ** inner1 begins with 1
-    Data #1 constructed @0x7ff6abc05b28(serial=1)(base=1)
-    Data #2 constructed @0x7ff6abc05b68(serial=2)(base=1)
-    * outer1 obtained inner1 at 1
-    * outer1 inserted subvec.size()=2
-
-    * outer1 loop it=2 begins
-    ** inner1 begins with 3
-    Data #3 constructed @0x7ff6abc05bf8(serial=3)(base=3)
-    Data #4 constructed @0x7ff6abc05c38(serial=4)(base=3)
-    Data #5 constructed @0x7ff6abc05c78(serial=5)(base=3)
-    * outer1 obtained inner1 at 3
-    * outer1 inserted subvec.size()=3
-    * outer1 result.size() = 6
-
-    Data #0 copied to @0x7ff6abc05cb8 from @0x7ff6abc05ac8
-    Data #1 moved to @0x7ff6abc05ba8 from @0x7ff6abc05b28
-    * outer1 end
-
-    Data #1 destructed @0x7ff6abc05ba8
-    Data #0 destructed @0x7ff6abc05cb8
-    Data #5 destructed @0x7ff6abc05c78
-    Data #4 destructed @0x7ff6abc05c38
-    Data #3 destructed @0x7ff6abc05bf8
-    Data #2 destructed @0x7ff6abc05b68
-    Data #1 destructed @0x7ff6abc05b28
-    Data #0 destructed @0x7ff6abc05ac8
+  Data #1 moved to @0x7ff6abc05ba8 from @0x7ff6abc05b28
 
 Lambda Expression
 =================
