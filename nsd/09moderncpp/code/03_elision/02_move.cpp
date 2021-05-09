@@ -40,21 +40,24 @@ public:
     Data()
     {
         m_buffer = new int[NELEM];
-        std::cout << "Data constructed @" << this << std::endl;
+        std::cout << "Data constructed @" << this
+                  << std::endl;
     }
 
     Data(Data const & other)
     {
         m_buffer = new int[NELEM];
         copy_from(other);
-        std::cout << "Data copied to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data copied to @" << this
+                  << " from @" << &other << std::endl;
     }
 
     Data & operator=(Data const & other)
     {
         if (nullptr == m_buffer) { m_buffer = new int[NELEM]; }
         copy_from(other);
-        std::cout << "Data copy assigned to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data copy assigned to @" << this
+                  << " from @" << &other << std::endl;
         return *this;
     }
 
@@ -62,7 +65,8 @@ public:
     {
         m_buffer = other.m_buffer;
         other.m_buffer = nullptr;
-        std::cout << "Data moved to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data moved to @" << this
+                  << " from @" << &other << std::endl;
         Status::instance().set_moved();
     }
 
@@ -71,7 +75,8 @@ public:
         if (m_buffer) { delete[] m_buffer; }
         m_buffer = other.m_buffer;
         other.m_buffer = nullptr;
-        std::cout << "Data move assigned to @" << this << " from @" << &other << std::endl;
+        std::cout << "Data move assigned to @" << this
+                  << " from @" << &other << std::endl;
         Status::instance().set_moved();
         return *this;
     }

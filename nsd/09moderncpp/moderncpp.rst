@@ -223,21 +223,24 @@ The ``Data`` class is changed to make both copy and move construction explicit:
       Data()
       {
           m_buffer = new int[NELEM];
-          std::cout << "Data constructed @" << this << std::endl;
+          std::cout << "Data constructed @" << this
+                    << std::endl;
       }
 
       Data(Data const & other)
       {
           m_buffer = new int[NELEM];
           copy_from(other);
-          std::cout << "Data copied to @" << this << " from @" << &other << std::endl;
+          std::cout << "Data copied to @" << this
+                    << " from @" << &other << std::endl;
       }
 
       Data & operator=(Data const & other)
       {
           if (nullptr == m_buffer) { m_buffer = new int[NELEM]; }
           copy_from(other);
-          std::cout << "Data copy assigned to @" << this << " from @" << &other << std::endl;
+          std::cout << "Data copy assigned to @" << this
+                    << " from @" << &other << std::endl;
           return *this;
       }
 
@@ -245,7 +248,8 @@ The ``Data`` class is changed to make both copy and move construction explicit:
       {
           m_buffer = other.m_buffer;
           other.m_buffer = nullptr;
-          std::cout << "Data moved to @" << this << " from @" << &other << std::endl;
+          std::cout << "Data moved to @" << this
+                    << " from @" << &other << std::endl;
           Status::instance().set_moved();
       }
 
@@ -254,7 +258,8 @@ The ``Data`` class is changed to make both copy and move construction explicit:
           if (m_buffer) { delete[] m_buffer; }
           m_buffer = other.m_buffer;
           other.m_buffer = nullptr;
-          std::cout << "Data move assigned to @" << this << " from @" << &other << std::endl;
+          std::cout << "Data move assigned to @" << this
+                    << " from @" << &other << std::endl;
           Status::instance().set_moved();
           return *this;
       }
@@ -264,7 +269,7 @@ The ``Data`` class is changed to make both copy and move construction explicit:
           if (m_buffer) { delete[] m_buffer; }
           std::cout << "Data destructed @" << this << std::endl;
       }
-  }
+  };
 
 Forced Move Is a Bad Idea
 +++++++++++++++++++++++++
@@ -389,20 +394,18 @@ throughout the whole process:
 Data Concatenation
 ==================
 
-Because of copy elision, for readability it is prefer to write:
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+After knowing that the compiler almost always does copy elision, to make code
+more readable, we prefer to write code that returns a container:
 
 .. code-block:: cpp
 
   std::vector<int> worker_return();
 
-than
-
-.. code-block:: cpp
-
-  void worker_argument(std::vector<int> & output /* output argument */);
-
-
-Because in consumer code:
+At the calling site, the intention of using a returned container is very clear:
 
 .. code-block:: cpp
   :linenos:
@@ -410,10 +413,28 @@ Because in consumer code:
   // It reads clearly that the worker produces new result.
   std::vector<int> result = worker_return();
 
+And we do not worry about additional data copy, which does not exist, as we
+have shown in the previous example of copy elision.
+
+Consequently, we avoid code that takes an output argument:
+
+.. code-block:: cpp
+
+  void worker_argument(std::vector<int> & output /* output argument */);
+
+The output argument creates ambiguity and a productivity killer.  It may be
+used solely for output, like:
+
+.. code-block:: cpp
+
   // It takes a second to understand that the worker is using result as a buffer
   // for output.
   std::vector<int> result;
   worker_argument(result);
+
+But it may also be used for both input and output:
+
+.. code-block:: cpp
 
   /*
    * The result is pre-populated before sending to the worker.  From the
@@ -421,7 +442,7 @@ Because in consumer code:
    *
    * By reading the worker signature we know that result may be used for output.
    * We can only be sure that result is used for output after reading the full
-   * implemnetation of the worker.
+   * implementation of the worker.
    *
    * The worker may or may not expect the output argument to be pre-populated.
    * Regardless, it has to use runtime check to ensure either case.
@@ -430,17 +451,93 @@ Because in consumer code:
   std::fill(result.begin(), result.end(), 7);
   worker_argument(result);
 
-The ambiguity is a productivity killer.  (Runtime performance is another
-story.)
+By looking at the function signature or its implementation, it is impossible to
+tell whether or not it is a pure output or read-write argument.  Using code
+remarks at the calling site and the function definition helps, but is inferior
+than simply using the syntax of returning a container object in terms of
+testability, readability, and maintainability.
 
-Style 1: Return ``vector``
-++++++++++++++++++++++++++
+But for a more complex scenario that concatenating multiple containers from a
+helper function, it becomes less obvious what is the way to go.  To analyze, we
+will use 3 cases.  The full example code is in :ref:`03_accumulate.cpp
+<nsd-moderncpp-example-accumulate>`.
 
-The first style returns a vector from inner and appends it in outer.  It is
-easier to read and test.  The inner worker:
+The ``Data`` class for testing:
 
 .. code-block:: cpp
   :linenos:
+
+  class Data
+  {
+
+  public:
+
+      constexpr const static size_t NELEM = 1024*8;
+
+      Data(size_t serial)
+        : m_serial(serial)
+      {
+          m_buffer = new int[NELEM];
+          initialize();
+          std::cout << "Data #" << m_serial << " constructed @" << this
+                    << std::endl;
+      }
+
+      Data(Data const & other)
+      {
+          m_serial = other.m_serial;
+          m_buffer = new int[NELEM];
+          copy_from(other);
+          std::cout << "Data #" << m_serial << " copied to @" << this
+                    << " from @" << &other << std::endl;
+      }
+
+      Data & operator=(Data const & other)
+      {
+          m_serial = other.m_serial;
+          if (nullptr == m_buffer) { m_buffer = new int[NELEM]; }
+          copy_from(other);
+          std::cout << "Data #" << m_serial << " copy assigned to @" << this
+                    << " from @" << &other << std::endl;
+          return *this;
+      }
+
+      Data(Data && other)
+      {
+          m_serial = other.m_serial;
+          m_buffer = other.m_buffer;
+          other.m_buffer = nullptr;
+          std::cout << "Data #" << m_serial << " moved to @" << this
+                    << " from @" << &other << std::endl;
+      }
+
+      Data & operator=(Data && other)
+      {
+          m_serial = other.m_serial;
+          if (m_buffer) { delete[] m_buffer; }
+          m_buffer = other.m_buffer;
+          other.m_buffer = nullptr;
+          std::cout << "Data #" << m_serial << " move assigned to @" << this
+                    << " from @" << &other << std::endl;
+          return *this;
+      }
+
+      ~Data()
+      {
+          if (m_buffer) { delete[] m_buffer; }
+          std::cout << "Data #" << m_serial << " destructed @" << this
+                    << std::endl;
+      }
+
+  };
+
+Style 1: Return Container
++++++++++++++++++++++++++
+
+The first style returns a ``std::vector`` from inner and appends it in outer.
+It is easier to read and test.  The worker that produces the inner vector:
+
+.. code-block:: cpp
 
   std::vector<Data> inner1(size_t start, size_t len)
   {
@@ -454,118 +551,115 @@ easier to read and test.  The inner worker:
       return ret;
   }
 
-The outer worker:
+The accumulating code calls the inner helper and builds the final vector
+container:
 
 .. code-block:: cpp
   :linenos:
 
-  void outer1(size_t len)
+  std::cout << "* outer1 begins" << std::endl;
+  std::vector<Data> vec;
+  for (size_t it=0; it < len; ++it)
   {
-      std::cout << "* outer1 begins" << std::endl;
-      std::vector<Data> vec;
-      for (size_t it=0; it < len; ++it)
-      {
-          std::cout << std::endl;
-          std::cout << "* outer1 loop it=" << it << " begins" << std::endl;
-          std::vector<Data> subvec = inner1(vec.size(), it+1);
-          std::cout << "* outer1 obtained inner1 at " << vec.size() << std::endl;
-          vec.insert(
-              vec.end()
-            , std::make_move_iterator(subvec.begin())
-            , std::make_move_iterator(subvec.end())
-          );
-          std::cout << "* outer1 inserted subvec.size()=" << subvec.size() << std::endl;
-      }
-      std::cout << "* outer1 result.size() = " << vec.size() << std::endl << std::endl;
+      std::cout << std::endl;
+      std::cout << "* outer1 loop it=" << it << " begins" << std::endl;
+      std::vector<Data> subvec = inner1(vec.size(), it+1);
+      std::cout << "* outer1 obtained inner1 at " << vec.size() << std::endl;
+      vec.insert(
+          vec.end()
+        , std::make_move_iterator(subvec.begin())
+        , std::make_move_iterator(subvec.end())
+      );
+      std::cout << "* outer1 inserted subvec.size()=" << subvec.size() << std::endl;
   }
+  std::cout << "* outer1 result.size() = " << vec.size() << std::endl << std::endl;
 
-.. admonition:: Execution Results
+The execution results are:
 
-  :download:`code/03_elision/03_accumulate.cpp`
+.. code-block:: none
+  :linenos:
+  :emphasize-lines: 20,26,39,44-45,53-55
 
-  .. code-block:: console
-    :caption: Build ``03_accumulate.cpp`` with `-DOTYPE=1`
+  * outer1 begins
 
-    $ g++ 03_accumulate.cpp -o 03_accumulate -std=c++17 -g -O3 -DOTYPE=1
+  * outer1 loop it=0 begins
+  ** inner1 begins with 0
+  Data #0 constructed @0x7ffee4a620c8
+  Data #0 moved to @0x7fe29d405ab0 from @0x7ffee4a620c8
+  Data #0 destructed @0x7ffee4a620c8
+  * outer1 obtained inner1 at 0
+  Data #0 moved to @0x7fe29d405ac0 from @0x7fe29d405ab0
+  * outer1 inserted subvec.size()=1
+  Data #0 destructed @0x7fe29d405ab0
 
-  .. code-block:: console
-    :caption: Run ``03_accumulate``
-    :linenos:
+  * outer1 loop it=1 begins
+  ** inner1 begins with 1
+  Data #1 constructed @0x7ffee4a620c8
+  Data #1 moved to @0x7fe29d405ab0 from @0x7ffee4a620c8
+  Data #1 destructed @0x7ffee4a620c8
+  Data #2 constructed @0x7ffee4a620c8
+  Data #2 moved to @0x7fe29d405ae0 from @0x7ffee4a620c8
+  Data #1 copied to @0x7fe29d405ad0 from @0x7fe29d405ab0
+  Data #1 destructed @0x7fe29d405ab0
+  Data #2 destructed @0x7ffee4a620c8
+  * outer1 obtained inner1 at 1
+  Data #1 moved to @0x7fe29d405b00 from @0x7fe29d405ad0
+  Data #2 moved to @0x7fe29d405b10 from @0x7fe29d405ae0
+  Data #0 copied to @0x7fe29d405af0 from @0x7fe29d405ac0
+  Data #0 destructed @0x7fe29d405ac0
+  * outer1 inserted subvec.size()=2
+  Data #2 destructed @0x7fe29d405ae0
+  Data #1 destructed @0x7fe29d405ad0
 
-    $ ./03_accumulate
-    * outer1 begins
+  * outer1 loop it=2 begins
+  ** inner1 begins with 3
+  Data #3 constructed @0x7ffee4a620c8
+  Data #3 moved to @0x7fe29d504080 from @0x7ffee4a620c8
+  Data #3 destructed @0x7ffee4a620c8
+  Data #4 constructed @0x7ffee4a620c8
+  Data #4 moved to @0x7fe29d5040a0 from @0x7ffee4a620c8
+  Data #3 copied to @0x7fe29d504090 from @0x7fe29d504080
+  Data #3 destructed @0x7fe29d504080
+  Data #4 destructed @0x7ffee4a620c8
+  Data #5 constructed @0x7ffee4a620c8
+  Data #5 moved to @0x7fe29d5040d0 from @0x7ffee4a620c8
+  Data #4 copied to @0x7fe29d5040c0 from @0x7fe29d5040a0
+  Data #3 copied to @0x7fe29d5040b0 from @0x7fe29d504090
+  Data #4 destructed @0x7fe29d5040a0
+  Data #3 destructed @0x7fe29d504090
+  Data #5 destructed @0x7ffee4a620c8
+  * outer1 obtained inner1 at 3
+  Data #3 moved to @0x7fe29d504120 from @0x7fe29d5040b0
+  Data #4 moved to @0x7fe29d504130 from @0x7fe29d5040c0
+  Data #5 moved to @0x7fe29d504140 from @0x7fe29d5040d0
+  Data #2 copied to @0x7fe29d504110 from @0x7fe29d405b10
+  Data #1 copied to @0x7fe29d504100 from @0x7fe29d405b00
+  Data #0 copied to @0x7fe29d5040f0 from @0x7fe29d405af0
+  Data #2 destructed @0x7fe29d405b10
+  Data #1 destructed @0x7fe29d405b00
+  Data #0 destructed @0x7fe29d405af0
+  * outer1 inserted subvec.size()=3
+  Data #5 destructed @0x7fe29d5040d0
+  Data #4 destructed @0x7fe29d5040c0
+  Data #3 destructed @0x7fe29d5040b0
+  * outer1 result.size() = 6
 
-    * outer1 loop it=0 begins
-    ** inner1 begins with 0
-    Data #0 constructed @0x7ffee4a620c8
-    Data #0 moved to @0x7fe29d405ab0 from @0x7ffee4a620c8
-    Data #0 destructed @0x7ffee4a620c8
-    * outer1 obtained inner1 at 0
-    Data #0 moved to @0x7fe29d405ac0 from @0x7fe29d405ab0
-    * outer1 inserted subvec.size()=1
-    Data #0 destructed @0x7fe29d405ab0
+  Data #5 destructed @0x7fe29d504140
+  Data #4 destructed @0x7fe29d504130
+  Data #3 destructed @0x7fe29d504120
+  Data #2 destructed @0x7fe29d504110
+  Data #1 destructed @0x7fe29d504100
+  Data #0 destructed @0x7fe29d5040f0
 
-    * outer1 loop it=1 begins
-    ** inner1 begins with 1
-    Data #1 constructed @0x7ffee4a620c8
-    Data #1 moved to @0x7fe29d405ab0 from @0x7ffee4a620c8
-    Data #1 destructed @0x7ffee4a620c8
-    Data #2 constructed @0x7ffee4a620c8
-    Data #2 moved to @0x7fe29d405ae0 from @0x7ffee4a620c8
-    Data #1 copied to @0x7fe29d405ad0 from @0x7fe29d405ab0
-    Data #1 destructed @0x7fe29d405ab0
-    Data #2 destructed @0x7ffee4a620c8
-    * outer1 obtained inner1 at 1
-    Data #1 moved to @0x7fe29d405b00 from @0x7fe29d405ad0
-    Data #2 moved to @0x7fe29d405b10 from @0x7fe29d405ae0
-    Data #0 copied to @0x7fe29d405af0 from @0x7fe29d405ac0
-    Data #0 destructed @0x7fe29d405ac0
-    * outer1 inserted subvec.size()=2
-    Data #2 destructed @0x7fe29d405ae0
-    Data #1 destructed @0x7fe29d405ad0
+``std::vector`` Resizing Requires ``noexcept`` Movement
+-------------------------------------------------------
 
-    * outer1 loop it=2 begins
-    ** inner1 begins with 3
-    Data #3 constructed @0x7ffee4a620c8
-    Data #3 moved to @0x7fe29d504080 from @0x7ffee4a620c8
-    Data #3 destructed @0x7ffee4a620c8
-    Data #4 constructed @0x7ffee4a620c8
-    Data #4 moved to @0x7fe29d5040a0 from @0x7ffee4a620c8
-    Data #3 copied to @0x7fe29d504090 from @0x7fe29d504080
-    Data #3 destructed @0x7fe29d504080
-    Data #4 destructed @0x7ffee4a620c8
-    Data #5 constructed @0x7ffee4a620c8
-    Data #5 moved to @0x7fe29d5040d0 from @0x7ffee4a620c8
-    Data #4 copied to @0x7fe29d5040c0 from @0x7fe29d5040a0
-    Data #3 copied to @0x7fe29d5040b0 from @0x7fe29d504090
-    Data #4 destructed @0x7fe29d5040a0
-    Data #3 destructed @0x7fe29d504090
-    Data #5 destructed @0x7ffee4a620c8
-    * outer1 obtained inner1 at 3
-    Data #3 moved to @0x7fe29d504120 from @0x7fe29d5040b0
-    Data #4 moved to @0x7fe29d504130 from @0x7fe29d5040c0
-    Data #5 moved to @0x7fe29d504140 from @0x7fe29d5040d0
-    Data #2 copied to @0x7fe29d504110 from @0x7fe29d405b10
-    Data #1 copied to @0x7fe29d504100 from @0x7fe29d405b00
-    Data #0 copied to @0x7fe29d5040f0 from @0x7fe29d405af0
-    Data #2 destructed @0x7fe29d405b10
-    Data #1 destructed @0x7fe29d405b00
-    Data #0 destructed @0x7fe29d405af0
-    * outer1 inserted subvec.size()=3
-    Data #5 destructed @0x7fe29d5040d0
-    Data #4 destructed @0x7fe29d5040c0
-    Data #3 destructed @0x7fe29d5040b0
-    * outer1 result.size() = 6
-
-    Data #5 destructed @0x7fe29d504140
-    Data #4 destructed @0x7fe29d504130
-    Data #3 destructed @0x7fe29d504120
-    Data #2 destructed @0x7fe29d504110
-    Data #1 destructed @0x7fe29d504100
-    Data #0 destructed @0x7fe29d5040f0
-
-The unwanted copies come from ``std::vector`` resizing.  To mitigate it, we
-should mark the move constructor with ``noexcept``:
+It is intriguing that we saw some copying in the highlighted lines above.
+Didn't we have the move constructor defined for the ``Data`` class?  The reason
+that the copy instead of the move constructor is called is that ``std::vector``
+requires the element's move constructor to be ``noexcept`` when constructing
+the elements during resizing.  We need to change the ``Data`` class
+accordingly:
 
 .. code-block:: cpp
 
@@ -574,96 +668,92 @@ should mark the move constructor with ``noexcept``:
       m_serial = other.m_serial;
       m_buffer = other.m_buffer;
       other.m_buffer = nullptr;
-      std::cout << "Data #" << m_serial << " moved to @" << this << " from @" << &other << std::endl;
+      std::cout << "Data #" << m_serial << " moved to @" << this
+                << " from @" << &other << std::endl;
   }
 
-.. admonition:: Execution Results
+With the correction, the execution results become:
 
-  :download:`code/03_elision/03_accumulate.cpp`
+.. code-block:: console
+  :linenos:
+  :emphasize-lines: 20,26,39,44-45,53-55
 
-  .. code-block:: console
-    :caption: Build ``03_accumulate.cpp`` with `-DMOVENOEXCEPT -DOTYPE=1`
+  * outer1 begins
 
-    $ g++ 03_accumulate.cpp -o 03_accumulate -std=c++17 -g -O3 -DMOVENOEXCEPT -DOTYPE=1
+  * outer1 loop it=0 begins
+  ** inner1 begins with 0
+  Data #0 constructed @0x7ffee11510a8
+  Data #0 moved to @0x7fcf16405ab0 from @0x7ffee11510a8
+  Data #0 destructed @0x7ffee11510a8
+  * outer1 obtained inner1 at 0
+  Data #0 moved to @0x7fcf16405ac0 from @0x7fcf16405ab0
+  * outer1 inserted subvec.size()=1
+  Data #0 destructed @0x7fcf16405ab0
 
-  .. code-block:: console
-    :caption: Run ``03_accumulate``
-    :linenos:
+  * outer1 loop it=1 begins
+  ** inner1 begins with 1
+  Data #1 constructed @0x7ffee11510a8
+  Data #1 moved to @0x7fcf16405ab0 from @0x7ffee11510a8
+  Data #1 destructed @0x7ffee11510a8
+  Data #2 constructed @0x7ffee11510a8
+  Data #2 moved to @0x7fcf16405ae0 from @0x7ffee11510a8
+  Data #1 moved to @0x7fcf16405ad0 from @0x7fcf16405ab0
+  Data #1 destructed @0x7fcf16405ab0
+  Data #2 destructed @0x7ffee11510a8
+  * outer1 obtained inner1 at 1
+  Data #1 moved to @0x7fcf16405b00 from @0x7fcf16405ad0
+  Data #2 moved to @0x7fcf16405b10 from @0x7fcf16405ae0
+  Data #0 moved to @0x7fcf16405af0 from @0x7fcf16405ac0
+  Data #0 destructed @0x7fcf16405ac0
+  * outer1 inserted subvec.size()=2
+  Data #2 destructed @0x7fcf16405ae0
+  Data #1 destructed @0x7fcf16405ad0
 
-    $ ./03_accumulate
-    * outer1 begins
+  * outer1 loop it=2 begins
+  ** inner1 begins with 3
+  Data #3 constructed @0x7ffee11510a8
+  Data #3 moved to @0x7fcf16504080 from @0x7ffee11510a8
+  Data #3 destructed @0x7ffee11510a8
+  Data #4 constructed @0x7ffee11510a8
+  Data #4 moved to @0x7fcf165040a0 from @0x7ffee11510a8
+  Data #3 moved to @0x7fcf16504090 from @0x7fcf16504080
+  Data #3 destructed @0x7fcf16504080
+  Data #4 destructed @0x7ffee11510a8
+  Data #5 constructed @0x7ffee11510a8
+  Data #5 moved to @0x7fcf165040d0 from @0x7ffee11510a8
+  Data #4 moved to @0x7fcf165040c0 from @0x7fcf165040a0
+  Data #3 moved to @0x7fcf165040b0 from @0x7fcf16504090
+  Data #4 destructed @0x7fcf165040a0
+  Data #3 destructed @0x7fcf16504090
+  Data #5 destructed @0x7ffee11510a8
+  * outer1 obtained inner1 at 3
+  Data #3 moved to @0x7fcf16504120 from @0x7fcf165040b0
+  Data #4 moved to @0x7fcf16504130 from @0x7fcf165040c0
+  Data #5 moved to @0x7fcf16504140 from @0x7fcf165040d0
+  Data #2 moved to @0x7fcf16504110 from @0x7fcf16405b10
+  Data #1 moved to @0x7fcf16504100 from @0x7fcf16405b00
+  Data #0 moved to @0x7fcf165040f0 from @0x7fcf16405af0
+  Data #2 destructed @0x7fcf16405b10
+  Data #1 destructed @0x7fcf16405b00
+  Data #0 destructed @0x7fcf16405af0
+  * outer1 inserted subvec.size()=3
+  Data #5 destructed @0x7fcf165040d0
+  Data #4 destructed @0x7fcf165040c0
+  Data #3 destructed @0x7fcf165040b0
+  * outer1 result.size() = 6
 
-    * outer1 loop it=0 begins
-    ** inner1 begins with 0
-    Data #0 constructed @0x7ffee11510a8
-    Data #0 moved to @0x7fcf16405ab0 from @0x7ffee11510a8
-    Data #0 destructed @0x7ffee11510a8
-    * outer1 obtained inner1 at 0
-    Data #0 moved to @0x7fcf16405ac0 from @0x7fcf16405ab0
-    * outer1 inserted subvec.size()=1
-    Data #0 destructed @0x7fcf16405ab0
+  Data #5 destructed @0x7fcf16504140
+  Data #4 destructed @0x7fcf16504130
+  Data #3 destructed @0x7fcf16504120
+  Data #2 destructed @0x7fcf16504110
+  Data #1 destructed @0x7fcf16504100
+  Data #0 destructed @0x7fcf165040f0
 
-    * outer1 loop it=1 begins
-    ** inner1 begins with 1
-    Data #1 constructed @0x7ffee11510a8
-    Data #1 moved to @0x7fcf16405ab0 from @0x7ffee11510a8
-    Data #1 destructed @0x7ffee11510a8
-    Data #2 constructed @0x7ffee11510a8
-    Data #2 moved to @0x7fcf16405ae0 from @0x7ffee11510a8
-    Data #1 moved to @0x7fcf16405ad0 from @0x7fcf16405ab0
-    Data #1 destructed @0x7fcf16405ab0
-    Data #2 destructed @0x7ffee11510a8
-    * outer1 obtained inner1 at 1
-    Data #1 moved to @0x7fcf16405b00 from @0x7fcf16405ad0
-    Data #2 moved to @0x7fcf16405b10 from @0x7fcf16405ae0
-    Data #0 moved to @0x7fcf16405af0 from @0x7fcf16405ac0
-    Data #0 destructed @0x7fcf16405ac0
-    * outer1 inserted subvec.size()=2
-    Data #2 destructed @0x7fcf16405ae0
-    Data #1 destructed @0x7fcf16405ad0
+``std::vector`` now uses the move construction to replace the copy
+construction.
 
-    * outer1 loop it=2 begins
-    ** inner1 begins with 3
-    Data #3 constructed @0x7ffee11510a8
-    Data #3 moved to @0x7fcf16504080 from @0x7ffee11510a8
-    Data #3 destructed @0x7ffee11510a8
-    Data #4 constructed @0x7ffee11510a8
-    Data #4 moved to @0x7fcf165040a0 from @0x7ffee11510a8
-    Data #3 moved to @0x7fcf16504090 from @0x7fcf16504080
-    Data #3 destructed @0x7fcf16504080
-    Data #4 destructed @0x7ffee11510a8
-    Data #5 constructed @0x7ffee11510a8
-    Data #5 moved to @0x7fcf165040d0 from @0x7ffee11510a8
-    Data #4 moved to @0x7fcf165040c0 from @0x7fcf165040a0
-    Data #3 moved to @0x7fcf165040b0 from @0x7fcf16504090
-    Data #4 destructed @0x7fcf165040a0
-    Data #3 destructed @0x7fcf16504090
-    Data #5 destructed @0x7ffee11510a8
-    * outer1 obtained inner1 at 3
-    Data #3 moved to @0x7fcf16504120 from @0x7fcf165040b0
-    Data #4 moved to @0x7fcf16504130 from @0x7fcf165040c0
-    Data #5 moved to @0x7fcf16504140 from @0x7fcf165040d0
-    Data #2 moved to @0x7fcf16504110 from @0x7fcf16405b10
-    Data #1 moved to @0x7fcf16504100 from @0x7fcf16405b00
-    Data #0 moved to @0x7fcf165040f0 from @0x7fcf16405af0
-    Data #2 destructed @0x7fcf16405b10
-    Data #1 destructed @0x7fcf16405b00
-    Data #0 destructed @0x7fcf16405af0
-    * outer1 inserted subvec.size()=3
-    Data #5 destructed @0x7fcf165040d0
-    Data #4 destructed @0x7fcf165040c0
-    Data #3 destructed @0x7fcf165040b0
-    * outer1 result.size() = 6
-
-    Data #5 destructed @0x7fcf16504140
-    Data #4 destructed @0x7fcf16504130
-    Data #3 destructed @0x7fcf16504120
-    Data #2 destructed @0x7fcf16504110
-    Data #1 destructed @0x7fcf16504100
-    Data #0 destructed @0x7fcf165040f0
-
-Style 2: Use Output ``vector``
-++++++++++++++++++++++++++++++
+Style 2: Use Output Argument
+++++++++++++++++++++++++++++
 
 The second style uses an output argument which is passed from outer to inner.
 The inner worker:
@@ -681,97 +771,97 @@ The inner worker:
       }
   }
 
-The outer worker:
+The accumulating code calls the inner helper and builds the final vector
+container:
 
 .. code-block:: cpp
-  :linenos:
 
-  void outer2(size_t len)
+  std::cout << "* outer2 begins" << std::endl;
+  std::vector<Data> vec;
+  for (size_t it=0; it < len; ++it)
   {
-      std::cout << "* outer2 begins" << std::endl;
-      std::vector<Data> vec;
-      for (size_t it=0; it < len; ++it)
-      {
-          std::cout << std::endl;
-          std::cout << "* outer2 loop it=" << it << " begins" << std::endl;
-          inner2(vec.size(), it+1, vec);
-      }
-      std::cout << "* outer2 result.size() = " << vec.size() << std::endl << std::endl;
+      std::cout << std::endl;
+      std::cout << "* outer2 loop it=" << it << " begins" << std::endl;
+      inner2(vec.size(), it+1, vec);
   }
+  std::cout << "* outer2 result.size() = " << vec.size() << std::endl << std::endl;
 
 There is no longer the intermediate vector and it saves quite a number of
-movement.  The prize we pay is less testability.
+movement.  The prize we pay is less testability.  The execution results are:
 
-.. admonition:: Execution Results
+.. code-block:: console
+  :linenos:
 
-  :download:`code/03_elision/03_accumulate.cpp`
+  * outer2 begins
 
-  .. code-block:: console
-    :caption: Build ``03_accumulate.cpp`` with `-DMOVENOEXCEPT -DOTYPE=2`
+  * outer2 loop it=0 begins
+  ** inner2 begins with 0
+  Data #0 constructed @0x7ffee68c60c8
+  Data #0 moved to @0x7f898c405ab0 from @0x7ffee68c60c8
+  Data #0 destructed @0x7ffee68c60c8
 
-    $ g++ 03_accumulate.cpp -o 03_accumulate -std=c++17 -g -O3 -DMOVENOEXCEPT -DOTYPE=2
+  * outer2 loop it=1 begins
+  ** inner2 begins with 1
+  Data #1 constructed @0x7ffee68c60c8
+  Data #1 moved to @0x7f898c405ad0 from @0x7ffee68c60c8
+  Data #0 moved to @0x7f898c405ac0 from @0x7f898c405ab0
+  Data #0 destructed @0x7f898c405ab0
+  Data #1 destructed @0x7ffee68c60c8
+  Data #2 constructed @0x7ffee68c60c8
+  Data #2 moved to @0x7f898c405b00 from @0x7ffee68c60c8
+  Data #1 moved to @0x7f898c405af0 from @0x7f898c405ad0
+  Data #0 moved to @0x7f898c405ae0 from @0x7f898c405ac0
+  Data #1 destructed @0x7f898c405ad0
+  Data #0 destructed @0x7f898c405ac0
+  Data #2 destructed @0x7ffee68c60c8
 
-  .. code-block:: console
-    :caption: Run ``03_accumulate``
-    :linenos:
+  * outer2 loop it=2 begins
+  ** inner2 begins with 3
+  Data #3 constructed @0x7ffee68c60c8
+  Data #3 moved to @0x7f898c405b10 from @0x7ffee68c60c8
+  Data #3 destructed @0x7ffee68c60c8
+  Data #4 constructed @0x7ffee68c60c8
+  Data #4 moved to @0x7f898c405b60 from @0x7ffee68c60c8
+  Data #3 moved to @0x7f898c405b50 from @0x7f898c405b10
+  Data #2 moved to @0x7f898c405b40 from @0x7f898c405b00
+  Data #1 moved to @0x7f898c405b30 from @0x7f898c405af0
+  Data #0 moved to @0x7f898c405b20 from @0x7f898c405ae0
+  Data #3 destructed @0x7f898c405b10
+  Data #2 destructed @0x7f898c405b00
+  Data #1 destructed @0x7f898c405af0
+  Data #0 destructed @0x7f898c405ae0
+  Data #4 destructed @0x7ffee68c60c8
+  Data #5 constructed @0x7ffee68c60c8
+  Data #5 moved to @0x7f898c405b70 from @0x7ffee68c60c8
+  Data #5 destructed @0x7ffee68c60c8
+  * outer2 result.size() = 6
 
-    $ ./03_accumulate
-    * outer2 begins
+  Data #5 destructed @0x7f898c405b70
+  Data #4 destructed @0x7f898c405b60
+  Data #3 destructed @0x7f898c405b50
+  Data #2 destructed @0x7f898c405b40
+  Data #1 destructed @0x7f898c405b30
+  Data #0 destructed @0x7f898c405b20
 
-    * outer2 loop it=0 begins
-    ** inner2 begins with 0
-    Data #0 constructed @0x7ffee68c60c8
-    Data #0 moved to @0x7f898c405ab0 from @0x7ffee68c60c8
-    Data #0 destructed @0x7ffee68c60c8
+The lines of prints reduce from 70 to 50, comparing with the first style.
 
-    * outer2 loop it=1 begins
-    ** inner2 begins with 1
-    Data #1 constructed @0x7ffee68c60c8
-    Data #1 moved to @0x7f898c405ad0 from @0x7ffee68c60c8
-    Data #0 moved to @0x7f898c405ac0 from @0x7f898c405ab0
-    Data #0 destructed @0x7f898c405ab0
-    Data #1 destructed @0x7ffee68c60c8
-    Data #2 constructed @0x7ffee68c60c8
-    Data #2 moved to @0x7f898c405b00 from @0x7ffee68c60c8
-    Data #1 moved to @0x7f898c405af0 from @0x7f898c405ad0
-    Data #0 moved to @0x7f898c405ae0 from @0x7f898c405ac0
-    Data #1 destructed @0x7f898c405ad0
-    Data #0 destructed @0x7f898c405ac0
-    Data #2 destructed @0x7ffee68c60c8
+Style 3: Encapsulate Concatenation (in a Class)
++++++++++++++++++++++++++++++++++++++++++++++++
 
-    * outer2 loop it=2 begins
-    ** inner2 begins with 3
-    Data #3 constructed @0x7ffee68c60c8
-    Data #3 moved to @0x7f898c405b10 from @0x7ffee68c60c8
-    Data #3 destructed @0x7ffee68c60c8
-    Data #4 constructed @0x7ffee68c60c8
-    Data #4 moved to @0x7f898c405b60 from @0x7ffee68c60c8
-    Data #3 moved to @0x7f898c405b50 from @0x7f898c405b10
-    Data #2 moved to @0x7f898c405b40 from @0x7f898c405b00
-    Data #1 moved to @0x7f898c405b30 from @0x7f898c405af0
-    Data #0 moved to @0x7f898c405b20 from @0x7f898c405ae0
-    Data #3 destructed @0x7f898c405b10
-    Data #2 destructed @0x7f898c405b00
-    Data #1 destructed @0x7f898c405af0
-    Data #0 destructed @0x7f898c405ae0
-    Data #4 destructed @0x7ffee68c60c8
-    Data #5 constructed @0x7ffee68c60c8
-    Data #5 moved to @0x7f898c405b70 from @0x7ffee68c60c8
-    Data #5 destructed @0x7ffee68c60c8
-    * outer2 result.size() = 6
+The third style uses a class to take advantage of the first and second styles
+and mitigate the drawbacks of them.
 
-    Data #5 destructed @0x7f898c405b70
-    Data #4 destructed @0x7f898c405b60
-    Data #3 destructed @0x7f898c405b50
-    Data #2 destructed @0x7f898c405b40
-    Data #1 destructed @0x7f898c405b30
-    Data #0 destructed @0x7f898c405b20
+There is a public API ``Accumulator::outer()`` calling a private helper
+function ``Accumulator::inner2()`` that takes an output argument.  In addition,
+there is also a public helper function ``Accumulator::inner1()`` that wraps
+around ``Accumulator::inner2`` and make it testable.
 
-Style 3: Use a Class for Both Return and Output Argument
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-The third style uses a class so that it support both vector returning and
-output argument for the vector.  The class is:
+In the ``Accumulator::outer()`` function, we move one step further to
+pre-calculate the number of elements to be populated in the result vector and
+reserve the space.  Although it is possible to play the same trick with the
+first and second styles, it is better to only do it with the third style.  The
+``Accumulator`` class is an encapsulation.  Without the encapsulation, element
+reserving may leak too much implementation detail and reduce maintainability.
 
 .. code-block:: cpp
   :linenos:
@@ -792,6 +882,7 @@ output argument for the vector.  The class is:
       }
 
   private:
+      // Caller does not see this private helper that takes an output argument.
       void inner2(size_t start, size_t len, std::vector<Data> & ret)
       {
           std::cout << "** Accumulator::inner2 begins with " << start << std::endl;
@@ -811,10 +902,14 @@ output argument for the vector.  The class is:
           for (size_t it=0; it < len; ++it)
           {
               std::cout << std::endl;
-              std::cout << "* Accumulator::outer loop it=" << it << " begins" << std::endl;
+              std::cout << "* Accumulator::outer loop it=" << it
+                        << " begins" << std::endl;
+              // The output argument passed into the private helper is a private
+              // member datum.
               inner2(result.size(), it+1, result);
           }
-          std::cout << "* Accumulator::outer result.size() = " << result.size() << std::endl << std::endl;
+          std::cout << "* Accumulator::outer result.size() = "
+                    << result.size() << std::endl << std::endl;
       }
 
   public:
@@ -822,67 +917,50 @@ output argument for the vector.  The class is:
 
   }; /* end struct Accumulator */
 
-Although ``Accumulator::outer`` still calls the function
-``Accumulator::inner2`` that takes an output argument, we also have the
-function ``Accumulator::inner1`` that wraps around ``Accumulator::inner2`` and
-make it testable.
+The execution results:
 
-To further reduce unwanted movements, we pre-calculate the number of elements
-to be populated in the vector and reserve the space.
+.. code-block:: console
+  :linenos:
 
-.. admonition:: Execution Results
+  * Accumulator::outer begins
 
-  :download:`code/03_elision/03_accumulate.cpp`
+  * Accumulator::outer loop it=0 begins
+  ** Accumulator::inner2 begins with 0
+  Data #0 constructed @0x7ffee47640a8
+  Data #0 moved to @0x7fdb66c05ab0 from @0x7ffee47640a8
+  Data #0 destructed @0x7ffee47640a8
 
-  .. code-block:: console
-    :caption: Build ``03_accumulate.cpp`` with `-DMOVENOEXCEPT -DOTYPE=3`
+  * Accumulator::outer loop it=1 begins
+  ** Accumulator::inner2 begins with 1
+  Data #1 constructed @0x7ffee47640a8
+  Data #1 moved to @0x7fdb66c05ac0 from @0x7ffee47640a8
+  Data #1 destructed @0x7ffee47640a8
+  Data #2 constructed @0x7ffee47640a8
+  Data #2 moved to @0x7fdb66c05ad0 from @0x7ffee47640a8
+  Data #2 destructed @0x7ffee47640a8
 
-    $ g++ 03_accumulate.cpp -o 03_accumulate -std=c++17 -g -O3 -DMOVENOEXCEPT -DOTYPE=3
+  * Accumulator::outer loop it=2 begins
+  ** Accumulator::inner2 begins with 3
+  Data #3 constructed @0x7ffee47640a8
+  Data #3 moved to @0x7fdb66c05ae0 from @0x7ffee47640a8
+  Data #3 destructed @0x7ffee47640a8
+  Data #4 constructed @0x7ffee47640a8
+  Data #4 moved to @0x7fdb66c05af0 from @0x7ffee47640a8
+  Data #4 destructed @0x7ffee47640a8
+  Data #5 constructed @0x7ffee47640a8
+  Data #5 moved to @0x7fdb66c05b00 from @0x7ffee47640a8
+  Data #5 destructed @0x7ffee47640a8
+  * Accumulator::outer result.size() = 6
 
-  .. code-block:: console
-    :caption: Run ``03_accumulate``
-    :linenos:
+  Data #5 destructed @0x7fdb66c05b00
+  Data #4 destructed @0x7fdb66c05af0
+  Data #3 destructed @0x7fdb66c05ae0
+  Data #2 destructed @0x7fdb66c05ad0
+  Data #1 destructed @0x7fdb66c05ac0
+  Data #0 destructed @0x7fdb66c05ab0
 
-    $ ./03_accumulate
-    * Accumulator::outer begins
-
-    * Accumulator::outer loop it=0 begins
-    ** Accumulator::inner2 begins with 0
-    Data #0 constructed @0x7ffee47640a8
-    Data #0 moved to @0x7fdb66c05ab0 from @0x7ffee47640a8
-    Data #0 destructed @0x7ffee47640a8
-
-    * Accumulator::outer loop it=1 begins
-    ** Accumulator::inner2 begins with 1
-    Data #1 constructed @0x7ffee47640a8
-    Data #1 moved to @0x7fdb66c05ac0 from @0x7ffee47640a8
-    Data #1 destructed @0x7ffee47640a8
-    Data #2 constructed @0x7ffee47640a8
-    Data #2 moved to @0x7fdb66c05ad0 from @0x7ffee47640a8
-    Data #2 destructed @0x7ffee47640a8
-
-    * Accumulator::outer loop it=2 begins
-    ** Accumulator::inner2 begins with 3
-    Data #3 constructed @0x7ffee47640a8
-    Data #3 moved to @0x7fdb66c05ae0 from @0x7ffee47640a8
-    Data #3 destructed @0x7ffee47640a8
-    Data #4 constructed @0x7ffee47640a8
-    Data #4 moved to @0x7fdb66c05af0 from @0x7ffee47640a8
-    Data #4 destructed @0x7ffee47640a8
-    Data #5 constructed @0x7ffee47640a8
-    Data #5 moved to @0x7fdb66c05b00 from @0x7ffee47640a8
-    Data #5 destructed @0x7ffee47640a8
-    * Accumulator::outer result.size() = 6
-
-    Data #5 destructed @0x7fdb66c05b00
-    Data #4 destructed @0x7fdb66c05af0
-    Data #3 destructed @0x7fdb66c05ae0
-    Data #2 destructed @0x7fdb66c05ad0
-    Data #1 destructed @0x7fdb66c05ac0
-    Data #0 destructed @0x7fdb66c05ab0
-
-Evolution of the three styles demonstrate how one may develop sophisticated
-code from a standalone helper to an optimized class library.
+Now the lines of terminal prints reduced to 36 lines, from 70 and 50.  We end
+up with a (rather) optimized class library for data processing.
 
 Variadic Template
 =================

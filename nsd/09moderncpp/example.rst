@@ -22,7 +22,7 @@ Example Code: Modern C++
 .. literalinclude:: code/03_elision/02_move.cpp
   :name: nsd-moderncpp-example-move
   :caption:
-    Manipulate data using a raw pointer (:download:`02_move.cpp
+    The interaction between movement and copy elision (:download:`02_move.cpp
     <code/03_elision/02_move.cpp>`).
   :language: cpp
   :linenos:
@@ -35,6 +35,25 @@ Example Code: Modern C++
 
   $ g++ 02_move.cpp -o 02_move -std=c++17 -g -O3
   $ g++ 02_move.cpp -o 02_move -std=c++17 -g -O3 -DFORCEMOVE
+
+.. literalinclude:: code/03_elision/03_accumulate.cpp
+  :name: nsd-moderncpp-example-accumulate
+  :caption:
+    Concatenate containers (:download:`03_accumulate.cpp
+    <code/03_elision/03_accumulate.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-moderncpp-example-accumulate-build
+  :caption:
+    Build :ref:`03_accumulate.cpp <nsd-modern-example-accumulate>`.
+
+  $ g++ 03_accumulate.cpp -o 03_accumulate -std=c++17 -g -O3 -DOTYPE=1
+  $ g++ 03_accumulate.cpp -o 03_accumulate -std=c++17 -g -O3 -DMOVENOEXCEPT -DOTYPE=1
+  $ g++ 03_accumulate.cpp -o 03_accumulate -std=c++17 -g -O3 -DMOVENOEXCEPT -DOTYPE=2
+  $ g++ 03_accumulate.cpp -o 03_accumulate -std=c++17 -g -O3 -DMOVENOEXCEPT -DOTYPE=3
 
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
