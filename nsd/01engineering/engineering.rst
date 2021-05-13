@@ -51,7 +51,10 @@ automate the work.
 Variables
 +++++++++
 
-Variables are essential in programming languages.  Variables in bash do not have types, but there are two kinds of variables distinguished by their scopes.  One is the _shell variable_, which lives in the current shell.  The other is the _environment variable_, which is also visible in child processes.
+Variables are essential in programming languages.  Variables in bash do not
+have types, but there are two kinds of variables distinguished by their scopes.
+One is the *shell variable*, which lives in the current shell.  The other is
+the *environment variable*, which is also visible in child processes.
 
 .. code-block:: bash
 
@@ -186,7 +189,7 @@ Function
 ``bash`` allows us to write functions to collect commands and rerun it over and
 over in a script.
 
-.. code-bash:: bash
+.. code-block:: bash
 
   #!/bin/bash
   runcmd () {
