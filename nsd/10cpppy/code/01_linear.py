@@ -3,15 +3,18 @@
 # [begin example]
 import numpy as np
 from matplotlib import pyplot as plt
+
+# Import the extension module that is written in C++
 import libst
 
+# Build the one-dimensional uniform grid and the corresponding solver
 grid = libst.Grid(0, 4*2*np.pi, 4*64)
 cfl = 1
 dx = (grid.xmax - grid.xmin) / grid.ncelm
 dt = dx * cfl
 svr = libst.LinearScalarSolver(grid=grid, time_increment=dt)
 
-# Initialize
+# Initialize the field using a sinusoidal
 for e in svr.selms(odd_plane=False):
     if e.xctr < 2*np.pi or e.xctr > 2*2*np.pi:
         v = 0
@@ -22,15 +25,21 @@ for e in svr.selms(odd_plane=False):
     e.set_so0(0, v)
     e.set_so1(0, dv)
 
+# Set up plotting
 plt.figure(figsize=(15,10))
 plt.xlim((0, 8))
 plt.xlabel('$x$ $(\pi)$')
 plt.ylabel('$u$')
 plt.grid()
+
+# Plot the initial condition
 plt.plot(svr.xctr() / np.pi, svr.get_so0(0).ndarray, '-', label='begin')
 
+# Time march
 svr.setup_march()
 svr.march_alpha2(50)
+
+# Plot the time marched solution
 plt.plot(svr.xctr() / np.pi, svr.get_so0(0).ndarray, '-', label='end')
 
 plt.legend()

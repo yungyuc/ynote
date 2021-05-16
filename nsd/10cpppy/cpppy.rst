@@ -2,25 +2,42 @@
 C++ and C for Python
 ====================
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 Expectation from Python
 =======================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Python is the choice of driving scripts for numerical calculations.  Before
+introducing how to connect the low-level C++ and C code to the high-level
+Python, I would like to introduce how it looks at the high level.
 
 Linear Wave
 +++++++++++
 
-The governing equation is
+Here is the governing equation of propagating linear waves:
 
 .. math::
 
   \frac{\partial u}{\partial t} + \frac{\partial u}{\partial x} = 0
 
-We will see a propagating wave from left to right with phase velocity of unity.
+Assume a sinusoidal wave is given as the initial condition.  Using the
+following code, we will see it propagating from left to right with the phase
+velocity of unity.
 
 .. literalinclude:: code/01_linear.py
   :language: python
   :linenos:
   :start-after: # [begin example]
   :end-before: # [end example]
+
+The full example code is in :ref:`01_linear.py <nsd-cpppy-example-linear>`.
+The plotted results are:
 
 .. figure:: image/01_linear.png
   :align: center
@@ -29,19 +46,24 @@ We will see a propagating wave from left to right with phase velocity of unity.
 Inviscid Burgers Equation
 +++++++++++++++++++++++++
 
-The second example is a non-linear equation:
+The second example is a non-linear equation (the inviscid Burgers equation):
 
 .. math::
 
   \frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} = 0
 
-The wave propagates in a way that is not predictable.
+The initial condition is still a sinusoidal wave.  But unlike the linear
+equation, with the inviscid Burgers equation, the non-linear wave propagates in
+a very different way.
 
 .. literalinclude:: code/01_burgers.py
   :language: python
   :linenos:
   :start-after: # [begin example]
   :end-before: # [end example]
+
+The full example code is in :ref:`01_burgers.py <nsd-cpppy-example-burgers>`.
+The plotted results are:
 
 .. figure:: image/01_burgers.png
   :align: center
