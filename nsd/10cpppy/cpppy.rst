@@ -1168,13 +1168,13 @@ CPython API with pybind11
 
 It is possible to use Python C API along with pybind11_ and we will see how to
 do it.  Please keep in mind that the examples here omit a lot of error checking
-code that is necessary for a system to run correctly.  When you need to use the
-C API, consult the manual: :doc:`python:c-api/index`.
+code that is necessary for a system to run correctly.  Consult the manual
+(:doc:`python:c-api/index`) when you need to use the C API.
 
 When importing ``pybind11/pybind11.h``, we don't need to import ``Python.h``,
-becuase the former does it for us.  But please note that
+because the former does it for us.  But please note that
 ``pybind11/pybind11.h`` or ``Python.h`` should be included before every other
-inclusion.
+inclusion.  The example code in the C++ side is:
 
 .. code-block:: cpp
 
@@ -1190,6 +1190,8 @@ inclusion.
       Py_DECREF(v);
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(type(integer_value), integer_value)
@@ -1198,7 +1200,10 @@ inclusion.
 Reference Counting
 ++++++++++++++++++
 
-:c:type:`python:PyObject` reference counting:
+The Python C API is more convenient for inspecting or debugging the
+:c:type:`python:PyObject` reference counting than the pybind11 class
+:cpp:class:`pybind11::object <pybind11:object>` that handles the reference
+count automatically:
 
 .. code-block:: cpp
   :linenos:
@@ -1242,6 +1247,8 @@ Reference Counting
       ;
   }
 
+The test code in the Python side is:
+
 .. code-block:: python
   :linenos:
 
@@ -1259,6 +1266,8 @@ Reference Counting
       print(sys.getrefcount(string_value), 'refcnt by sys')
       print(show_string_value_ref_count(), 'refcnt from c++')
 
+Check the results:
+
 .. code-block:: pycon
 
   >>> check_string_value()
@@ -1274,10 +1283,11 @@ Reference Counting
   6 refcnt by sys
   5 refcnt from c++
 
-pybind11 offers two low-level shorthands for reference counting:
-``handle::inc_ref()`` and ``handle::dec_ref()``.  If we don't want to go so
-low-level, it provides ``reinterpret_borrow`` and ``reinterpret_steal``
-function templates.
+pybind11 also offers two low-level short-hands for reference counting:
+:cpp:func:`pybind11:handle::inc_ref` and :cpp:func:`pybind11:handle::dec_ref`.
+If we don't want to go so low-level, it provides function templates
+:cpp:func:`pybind11:reinterpret_borrow` and
+:cpp:func:`pybind11:reinterpret_steal`.
 
 Cached Value
 ++++++++++++
@@ -1310,6 +1320,8 @@ Python interns strings consisting of alphanumerical and underscore characters.
   >>> print(sys.getrefcount(''))
   5552
 
+More examples for the string interning:
+
 .. code-block:: python
 
   def check_string_intern():
@@ -1319,6 +1331,8 @@ Python interns strings consisting of alphanumerical and underscore characters.
       s2 = 'num' + 'erical'
       print(s1 is s2)
       print(sys.getrefcount('numerical'))
+
+The results are:
 
 .. code-block:: pycon
 
@@ -1333,12 +1347,15 @@ Attribute Access
 
 :doc:`The Python object protocol <python:c-api/object>` defines a set of API
 for accessing object attributes.  Here is a simple example that sets and gets
-an attribute of an object using the API:
+an attribute of an object using the :c:func:`python:PyObject_SetAttr` and
+:c:func:`python:PyObject_GetAttr` API:
 
 .. code-block:: cpp
 
   int PyObject_SetAttr(PyObject *o, PyObject *attr_name, PyObject *v);
   PyObject* PyObject_GetAttr(PyObject *o, PyObject *attr_name);
+
+Use pybind11 to write test code for the two API:
 
 .. code-block:: cpp
   :linenos:
@@ -1381,31 +1398,50 @@ an attribute of an object using the API:
       ;
   }
 
-.. code-block:: pycon
-  :linenos:
+Use a Python sample class:
 
-  >>> class Cls():
-  >>>     pass
+.. code-block:: python
+
+  class Cls():
+      pass
+
+First, build the test objects and show the reference count:
+
+.. code-block:: pycon
+
   >>> obj = Cls()
   >>> val = 'attached value'
   >>> print(sys.getrefcount(val))
   3
-  >>>
+
+Second, attach ``val`` to ``obj`` and print the reference count:
+
+.. code-block:: pycon
+
   >>> attach_attr(obj, 'name', val)
   >>> print(sys.getrefcount(val))
   4
-  >>>
+
+Check the identity of the attached object (as ``name``):
+
+.. code-block:: pycon
+
   >>> print(obj.name is val)
   True
   >>> print(sys.getrefcount(val))
   4
-  >>>
+
+Test the C++ retrieval code:
+
+.. code-block:: pycon
+
   >>> val2 = retrieve_attr(obj, 'name')
   >>> print(sys.getrefcount(val))
   5
 
 There are shorthand versions of the API that takes C string for the attribute
-name:
+name: :c:func:`python:PyObject_SetAttrString` and
+:c:func:`python:PyObject_GetAttrString`.  The example code is:
 
 .. code-block:: cpp
   :linenos:
@@ -1452,35 +1488,46 @@ name:
       ;
   }
 
-.. code-block:: pycon
-  :linenos:
+Test again and the results are the same.  First, build the test objects and
+show the reference count:
 
-  >>> class Cls():
-  >>>     pass
+.. code-block:: pycon
+
   >>> obj = Cls()
   >>> val = 'attached value'
   >>> print(sys.getrefcount(val))
   3
-  >>>
+
+Second, attach ``val`` to ``obj`` and print the reference count:
+
+.. code-block:: pycon
+
   >>> attach_attr_by_string(obj, 'name', val)
   >>> print(sys.getrefcount(val))
   4
-  >>>
+
+Check the identity of the attached object (as ``name``):
+
+.. code-block:: pycon
+
   >>> print(obj.name is val)
   True
   >>> print(sys.getrefcount(val))
   4
-  >>>
+
+Test the C++ retrieval code:
+
+.. code-block:: pycon
+
   >>> val2 = retrieve_attr_by_string(obj, 'name')
   >>> print(sys.getrefcount(val))
   5
 
-See also the documentation of :doc:`python:c-api/object`.
-
 Function Call
 +++++++++++++
 
-This section shows how to make Python function call from C.
+Python C API allows to make Python function call from C.  The follow C++ code
+takes a Python callable and use :c:func:`python:PyObject_Call`:
 
 .. code-block:: cpp
   :linenos:
@@ -1511,28 +1558,93 @@ This section shows how to make Python function call from C.
       ;
   }
 
-.. code-block:: pycon
-  :linenos:
+Use the example Python function:
 
-  >>> def my_func(arg1, kw1='default'):
-  >>>     return 'results: {}, {}'.format(arg1, kw1)
-  >>>
+.. code-block:: python
+
+  def my_func(arg1, kw1='default'):
+      return 'results: {}, {}'.format(arg1, kw1)
+
+See the results by calling using only positional arguments:
+
+.. code-block:: pycon
+
   >>> print('(direct call)  ', my_func('first argument'))
   (direct call)   results: first argument, default
   >>> print('(function_call)', function_call(my_func, ('first argument',), {}))
   (function_call) results: first argument, default
-  >>>
+
+See the results by calling using both positional and keyword arguments:
+
+.. code-block:: pycon
+
   >>> print('(direct call)  ', my_func('first argument', kw1='non default'))
   (direct call)   results: first argument, non default
-  >>> print('(function_call)', function_call(my_func, ('first argument',), {'kw1': 'non default'}))
+  >>> print('(function_call)', function_call(my_func, ('first argument',),
+  ...       {'kw1': 'non default'}))
   (function_call) results: first argument, non default
 
-See the documentation of :doc:`python:c-api/object` for other variants of the API.
+Import
+++++++
+
+The Python C API for import a Python module is
+:c:func:`python:PyImport_ImportModule`.  The C++ test code:
+
+.. code-block:: cpp
+  :linenos:
+
+  #include "pybind11/pybind11.h"
+
+  #include <string>
+
+  using namespace pybind11;
+
+  PyObject * get_modules()
+  {
+      PyObject * sysmod = PyImport_ImportModule("sys");
+      PyObject * modules = PyObject_GetAttrString(sysmod, "modules");
+      Py_DECREF(sysmod);
+      return modules;
+  }
+
+  PYBIND11_MODULE(ex_import, m)
+  {
+      m
+          .def
+          (
+              "get_modules"
+            , []()
+              {
+                  PyObject * ret = get_modules();
+                  return handle(ret);
+              }
+          )
+      ;
+  }
+
+The results in the Python side are:
+
+.. code-block:: pycon
+
+  >>> modules = get_modules();
+  >>> print(type(modules), len(modules))
+  <class 'dict'> 1146
 
 Python C API for tuple
 ++++++++++++++++++++++
 
-:py:class:`python:tuple`:
+Here we use a simple C++ example to show how to create and operate
+:py:class:`python:tuple` using the following Python C API in the :ref:`tuple
+protocol <python:tupleobjects>`:
+
+* :c:func:`python:PyTuple_New` creates :c:type:`python:PyTupleObject`
+* :c:func:`python:PyTuple_GetItem` retrieves an element from
+  :c:type:`python:PyTupleObject`
+* :c:func:`python:PyTuple_SetItem` sets an element to
+  :c:type:`python:PyTupleObject`
+
+The example code returns a new :py:class:`python:tuple` that has the order
+reversed:
 
 .. code-block:: cpp
   :linenos:
@@ -1571,6 +1683,8 @@ Python C API for tuple
       ;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> tv0 = "value0"
@@ -1582,82 +1696,31 @@ Python C API for tuple
   >>> print(sys.getrefcount(tv1))
   4
 
-See :ref:`the C API documentation for the tuple protocol <python:tupleobjects>`
-and the `code implementing
-<https://github.com/python/cpython/blob/v3.8.0/Objects/tupleobject.c#L167>`__
-:c:func:`python:PyTuple_SetItem`.
+.. note::
 
-Python C API for dict
-+++++++++++++++++++++
-
-Python C API for :py:class:`python:dict`:
-
-.. code-block:: cpp
-  :linenos:
-
-  #include "pybind11/pybind11.h"
-
-  #include <string>
-
-  using namespace pybind11;
-
-  PyObject * make_dict()
-  {
-      PyObject * ret = PyDict_New();
-      return ret;
-  }
-
-  void add_dict_item(PyObject * d, PyObject * k, PyObject * v)
-  {
-      /*int ret =*/
-      PyDict_SetItem(d, k, v);
-  }
-
-  PYBIND11_MODULE(ex_dict, m)
-  {
-      m
-          .def
-          (
-              "make_dict"
-            , []()
-              {
-                  return handle(make_dict());
-              }
-          )
-          .def
-          (
-              "add_dict_item"
-            , [](dict & d, object & k, object & v)
-              {
-                  add_dict_item(d.ptr(), k.ptr(), v.ptr());
-              }
-          )
-      ;
-  }
-
-.. code-block:: pycon
-
-  >>> d0 = {}
-  >>> d1 = make_dict()
-  >>> print(d0 is d1)
-  False
-  >>> print(d0 == d1)
-  True
-  >>> d0['k1'] = 'value1'
-  >>> print(d0)
-  {'k1': 'value1'}
-  >>> add_dict_item(d1, 'k1', 'value1')
-  >>> print(d1)
-  {'k1': 'value1'}
-  >>> print(d0 == d1)
-  True
-
-See :ref:`the C API documentation for the dict protocol <python:dictobjects>`.
+  It is interesting to read `the code implementing
+  <https://github.com/python/cpython/blob/v3.8.0/Objects/tupleobject.c#L167>`__
+  :c:func:`python:PyTuple_SetItem` for :py:class:`python:tuple` that is
+  immutable.
 
 Python C API for list
 +++++++++++++++++++++
 
-Python C API for :py:class:`python:list`:
+Here we use a simple C++ example to show how to create and operate
+:py:class:`python:list` using the following Python C API in the :ref:`list
+protocol <python:listobjects>`:
+
+* :c:func:`python:PyList_New` creates :c:type:`python:PyListObject`
+* :c:func:`python:PyList_Append` appends an element in
+  :c:type:`python:PyListObject`
+
+It also shows the some C API of the :ref:`iterator protocol <python:iterator>`:
+
+* :c:func:`python:PyObject_GetIter` obtains a Python iterator
+* :c:func:`python:PyObject_Next` obtains the next element from a Python iterator
+
+The following C++ example code iterates through each element of the input
+:py:class:`python:list` and return a shallow copy of that list:
 
 .. code-block:: cpp
   :linenos:
@@ -1711,11 +1774,19 @@ Python C API for :py:class:`python:list`:
   >>> print(lst)
   ['first value', 'second value']
 
-See :ref:`the C API documentation for the list protocol <python:listobjects>`
-and :ref:`the C API documentation for the iterator protocol <python:iterator>`.
+Python C API for dict
++++++++++++++++++++++
 
-Import
-++++++
+Here we use a simple C++ example to show how to create and operate
+:py:class:`python:dict` using the following Python C API in the :ref:`dict
+protocol <python:dictobjects>`:
+
+* :c:func:`python:PyDict_New` creates :c:type:`python:PyDictObject`
+* :c:func:`python:PyDict_SetItem` appends an element in
+  :c:type:`python:PyDictObject`
+
+The C++ example code create a :py:class:`python:dict` and provides an alternate
+function for adding a key-value pair in it:
 
 .. code-block:: cpp
   :linenos:
@@ -1726,37 +1797,64 @@ Import
 
   using namespace pybind11;
 
-  PyObject * get_modules()
+  PyObject * make_dict()
   {
-      PyObject * sysmod = PyImport_ImportModule("sys");
-      PyObject * modules = PyObject_GetAttrString(sysmod, "modules");
-      Py_DECREF(sysmod);
-      return modules;
+      PyObject * ret = PyDict_New();
+      return ret;
   }
 
-  PYBIND11_MODULE(ex_import, m)
+  void add_dict_item(PyObject * d, PyObject * k, PyObject * v)
+  {
+      /*int ret =*/
+      PyDict_SetItem(d, k, v);
+  }
+
+  PYBIND11_MODULE(ex_dict, m)
   {
       m
           .def
           (
-              "get_modules"
+              "make_dict"
             , []()
               {
-                  PyObject * ret = get_modules();
-                  return handle(ret);
+                  return handle(make_dict());
+              }
+          )
+          .def
+          (
+              "add_dict_item"
+            , [](dict & d, object & k, object & v)
+              {
+                  add_dict_item(d.ptr(), k.ptr(), v.ptr());
               }
           )
       ;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
-  >>> modules = get_modules();
-  >>> print(type(modules), len(modules))
-  <class 'dict'> 1146
+  >>> d0 = {}
+  >>> d1 = make_dict()
+  >>> print(d0 is d1)
+  False
+  >>> print(d0 == d1)
+  True
+  >>> d0['k1'] = 'value1'
+  >>> print(d0)
+  {'k1': 'value1'}
+  >>> add_dict_item(d1, 'k1', 'value1')
+  >>> print(d1)
+  {'k1': 'value1'}
+  >>> print(d0 == d1)
+  True
 
 Exception
 +++++++++
+
+Here is a simple example for using Python exceptions from C++ (see also
+:ref:`python:api-exceptions` and :doc:`python:c-api/exceptions`):
 
 .. code-block:: cpp
   :linenos:
@@ -1809,6 +1907,8 @@ Exception
       ;
   }
 
+The exception-free results in the Python side are:
+
 .. code-block:: pycon
 
   >>> try:
@@ -1818,6 +1918,8 @@ Exception
   >>> else:
   >>>     print('error not raised')
   'int' object is not iterable
+
+The exception results in the Python side are:
 
 .. code-block:: pycon
 
@@ -1829,8 +1931,6 @@ Exception
   >>> else:
   >>>     print('error not raised')
   intentional exception
-
-See also :ref:`python:api-exceptions` and :doc:`python:c-api/exceptions`.
 
 Python Memory Management
 ========================
@@ -1934,8 +2034,8 @@ Also see `the code
 Small Memory Optimization
 +++++++++++++++++++++++++
 
-Take a look at the documentation in `the
-code<https://github.com/python/cpython/blob/v3.8.0/Objects/obmalloc.c#L766>`__.
+Take a look at the documentation in `the code
+<https://github.com/python/cpython/blob/v3.8.0/Objects/obmalloc.c#L766>`__.
 This is the 'pymalloc', and it uses 256 KB for allocation not greater than 512
 bytes.
 
