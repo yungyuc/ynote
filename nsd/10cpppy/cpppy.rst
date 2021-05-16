@@ -589,23 +589,20 @@ the commonality of the wrapper classes and significantly shortens the code.
       ;
   }
 
-pybind11 API
-============
+pybind11 Wrapping API
+=====================
 
 .. contents:: Contents in the section
   :local:
   :depth: 1
 
-pybind11_ provides C++ API for creating and manipulating the most important
-Python containers: :py:class:`python:tuple`, :py:class:`python:list`, and
-:py:class:`python:dict`.  See
-https://pybind11.readthedocs.io/en/stable/advanced/pycpp/object.html and the
-unit tests for more information.
+pybind11_ provides API to wrap between C++ and Python.
 
 Function and Property
 +++++++++++++++++++++
 
-Let's use the `Grid` class as an example to demonstrate how to expose functions and properties.  We have a constructor:
+Let's use the :cpp:class:`!Grid` class as an example to demonstrate how to
+expose functions and properties.  We have a constructor:
 
 .. code-block:: cpp
 
@@ -621,47 +618,64 @@ Let's use the `Grid` class as an example to demonstrate how to expose functions 
     , py::arg("xmin"), py::arg("xmax"), py::arg("nelm")
   )
 
-and a special-purpose function:
+It allows creating the :cpp:class:`!Grid` object from Python:
+
+.. code-block:: pycon
+
+  >>> grid = libst.Grid(0, 8, 4*64)
+
+By wrapping for the special special function :py:func:`!__str__`:
 
 .. code-block:: cpp
 
   .def("__str__", &detail::to_str<wrapped_type>)
 
+It allows to support :py:class:`python:str` for :cpp:class:`!Grid`:
+
 .. code-block:: pycon
 
-  >>> grid = libst.Grid(0, 8, 4*64)
-  >>> print('directly call Grid.__str__():', grid.__str__())
-  directly call Grid.__str__(): Grid(xmin=0, xmax=8, ncelm=256)
   >>> print('call str(Grid):', str(grid))
   call str(Grid): Grid(xmin=0, xmax=8, ncelm=256)
+  >>> print('directly call Grid.__str__():', grid.__str__())
+  directly call Grid.__str__(): Grid(xmin=0, xmax=8, ncelm=256)
 
-Sometimes properties are more suitable for certain getters:
+Define properties.  pybind11_ supports both instance properties and static
+properties:
 
 .. code-block:: cpp
 
   .def_property_readonly("xmin", &wrapped_type::xmin)
   .def_property_readonly("xmax", &wrapped_type::xmax)
-  .def_property_readonly_static("BOUND_COUNT", [](py::object const &){ return Grid::BOUND_COUNT; })
+  .def_property_readonly_static
+  (
+      "BOUND_COUNT"
+    , [](py::object const &){ return Grid::BOUND_COUNT; }
+  )
 
-As shown above, pybind11 supports static properties that are associated on the class instead of the instance.
+Check the properties from the instance:
 
 .. code-block:: pycon
 
-  >>> print('grid.BOUND_COUNT =', grid.BOUND_COUNT)
-  grid.BOUND_COUNT = 2
-  >>> print('grid.xmin =', grid.xmin)
-  grid.xmin = 0.0
-  >>> print('grid.xmax =', grid.xmax)
-  grid.xmax = 8.0
+  >>> print(grid.BOUND_COUNT)
+  2
+  >>> print(grid.xmin)
+  0.0
+  >>> print(grid.xmax)
+  8.0
 
-  >>> print('Grid.BOUND_COUNT (number of points beyond spatial boundary) =', libst.Grid.BOUND_COUNT)
-  Grid.BOUND_COUNT (number of points beyond spatial boundary) = 2
-  >>> print('Grid.xmin =', libst.Grid.xmin)
-  Grid.xmin = <property object at 0x110e9ffb0>
-  >>> print('Grid.xmax =', libst.Grid.xmax)
-  Grid.xmax = <property object at 0x110ea60b0>
+Check the properties from the class:
 
-Compare to pure Python object:
+.. code-block:: pycon
+
+  >>> print(libst.Grid.BOUND_COUNT)
+  2
+  >>> print(libst.Grid.xmin)
+  <property object at 0x110e9ffb0>
+  >>> print(libst.Grid.xmax)
+  <property object at 0x110ea60b0>
+
+Define a pure Python class that can be compared with the pybind11
+wrapped class:
 
 .. code-block:: python
 
@@ -674,7 +688,10 @@ Compare to pure Python object:
       def xmax(self):
           return 8
 
-.. code-block:: python
+Compare the execution results with that of the C++ :cpp:class:`!Grid`.  They
+are identical:
+
+.. code-block:: pycon
 
   >>> print(PythonGrid.BOUND_COUNT)
   2
@@ -683,9 +700,10 @@ Compare to pure Python object:
   >>> print(PythonGrid.xmax)
   <property object at 0x1112dab30>
 
-In addition to ``def_property_readonly`` and ``def_property_readonly_static``,
-pybind11 also provides:
+Here is a list of property-related API:
 
+* ``def_property_readonly`` and ``def_property_readonly_static`` for read-only
+  properties with C++ accessors.
 * ``def_property`` and ``def_property_static`` for read/write properties with
   C++ accessors.
 * ``def_readonly`` and ``def_readonly_static`` for read-only access to C++ data
@@ -693,11 +711,13 @@ pybind11 also provides:
 * ``def_readwrite`` and ``def_readwrite_static`` for read/write access to C++
   data members.
 
+See the pybind11 document of :ref:`pybind11:properties` for more information.
+
 Named and Keyword Arguments
 +++++++++++++++++++++++++++
 
-Pybind11 allows named arguments.  I take the advantage for wrapping the
-constructor of ``Grid``:
+pybind11 allows named arguments.  In the above example, we already take the
+advantage for wrapping the constructor of :cpp:class:`!Grid``:
 
 .. code-block:: cpp
 
@@ -713,22 +733,16 @@ constructor of ``Grid``:
     , py::arg("xmin"), py::arg("xmax"), py::arg("nelm")
   )
 
-and a special-purpose function:
-
-.. code-block:: cpp
-
-  .def("__str__", &detail::to_str<wrapped_type>)
+It has been shown how the named arguments are used in Python:
 
 .. code-block:: pycon
 
   >>> grid = libst.Grid(xmin=0, xmax=8, nelm=4*64)
-  >>> print('directly call Grid.__str__():', grid.__str__())
-  directly call Grid.__str__(): Grid(xmin=0, xmax=8, ncelm=256)
-  >>> print('call str(Grid):', str(grid))
-  call str(Grid): Grid(xmin=0, xmax=8, ncelm=256)
 
-``pybind11::arg`` also allows default value to the arguments (keyword
-arguments).  For example, see what I have for all the solver classes:
+See the pybind11 document of :ref:`pybind11:keyword_args` for more information.
+
+:cpp:class:`!pybind11::arg` also allows default value to the arguments (keyword
+arguments).  The wrapper code of the class :cpp:class:`!Solver` has an example:
 
 .. code-block:: cpp
 
@@ -740,6 +754,8 @@ arguments).  For example, see what I have for all the solver classes:
     , py::arg("odd_plane")=false
   )
 
+Before seeing how it is used, we run some setup code:
+
 .. code-block:: python
 
   grid = libst.Grid(0, 4*2*np.pi, 4*64)
@@ -748,18 +764,32 @@ arguments).  For example, see what I have for all the solver classes:
   dt = dx * cfl
   svr = libst.LinearScalarSolver(grid=grid, time_increment=dt)
 
+The argument *odd_plane* can be accepted in multiple forms.  This uses the default value:
+
 .. code-block:: pycon
 
   >>> print(svr.selms())
   SolverElementIterator(selm, on_even_plane, current=0, nelem=257)
+
+Pass the argument as positional:
+
+.. code-block:: pycon
+
   >>> print(svr.selms(False))
   SolverElementIterator(selm, on_even_plane, current=0, nelem=257)
   >>> print(svr.selms(True))
   SolverElementIterator(selm, on_odd_plane, current=0, nelem=256)
+
+Pass the argument as keyword:
+
+.. code-block:: pycon
+
   >>> print(svr.selms(odd_plane=False))
   SolverElementIterator(selm, on_even_plane, current=0, nelem=257)
   >>> print(svr.selms(odd_plane=True))
   SolverElementIterator(selm, on_odd_plane, current=0, nelem=256)
+
+See the pybind11 document of :ref:`pybind11:default_args` for more information.
 
 What Happens in Python Stays in Python (or pybind11)
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -769,11 +799,17 @@ scripting language but not the low-level implementation.  When it happens,
 write the adapting code in the pybind11 layer and do not pollute the low-level
 implementation.
 
-One example is Python iterator protocol.  The adapting code is:
+One example is :ref:`the Python iterator protocol <python:typeiter>`.  To adapt
+the C++ iterator to Python, an adapting class is created in the Python wrapping
+layer, along with other code that calls pybind11 API, and above the low-level
+C++ library in "turgon".
 
 .. code-block:: cpp
   :linenos:
+  :emphasize-lines: 29-30, 40-41
 
+  // The whole class is defined along with other code that calls pybind11 API
+  // and includes Python.h.
   template< typename ST >
   class SolverElementIterator
   {
@@ -783,14 +819,24 @@ One example is Python iterator protocol.  The adapting code is:
       using solver_type = ST;
 
       SolverElementIterator() = delete;
-      SolverElementIterator(std::shared_ptr<ST> sol, bool odd_plane, size_t starting, bool selm)
-        : m_solver(std::move(sol)), m_odd_plane(odd_plane), m_current(starting), m_selm(selm)
+      SolverElementIterator
+      (
+          std::shared_ptr<ST> sol
+        , bool odd_plane
+        , size_t starting
+        , bool selm
+      )
+        : m_solver(std::move(sol))
+        , m_odd_plane(odd_plane)
+        , m_current(starting)
+        , m_selm(selm)
       {}
 
       typename ST::celm_type next_celm()
       {
           size_t ncelm = m_solver->grid().ncelm();
           if (m_odd_plane) { --ncelm; }
+          // Use pybind11 API:
           if (m_current >= ncelm) { throw pybind11::stop_iteration(); }
           typename ST::celm_type ret = m_solver->celm(m_current, m_odd_plane);
           ++m_current;
@@ -801,6 +847,7 @@ One example is Python iterator protocol.  The adapting code is:
       {
           size_t nselm = m_solver->grid().nselm();
           if (m_odd_plane) { --nselm; }
+          // Use pybind11 API:
           if (m_current >= nselm) { throw pybind11::stop_iteration(); }
           typename ST::selm_type ret = m_solver->selm(m_current, m_odd_plane);
           ++m_current;
@@ -829,6 +876,8 @@ One example is Python iterator protocol.  The adapting code is:
 The wrapping code is:
 
 .. code-block:: cpp
+  :linenos:
+  :emphasize-lines: 1
 
   using elm_iter_type = SolverElementIterator<wrapped_type>;
   std::string elm_pyname = std::string(pyname) + "ElementIterator";
@@ -847,8 +896,8 @@ The wrapping code is:
       )
   ;
 
-Let's use a concrete solver of linear wave (governing equation is :math:`u_t +
-u_x = 0`) to demonstrate how it works in Python:
+Here we use a concrete solver of linear wave (governing equation is :math:`u_t
++ u_x = 0`) to demonstrate how it works in Python:
 
 .. literalinclude:: code/04_iter.py
   :language: python
@@ -856,9 +905,28 @@ u_x = 0`) to demonstrate how it works in Python:
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The code shows the initial condition of the linear wave:
+
 .. figure:: image/04_iter.png
   :align: center
   :width: 100%
+
+The full example code is in :ref:`04_iter.py <nsd-cpppy-example-iter>` (which
+is the part of :ref:`01_linear.py <nsd-cpppy-example-linear>` that skips the
+final time marching).
+
+pybind11 Operating API
+======================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+pybind11_ does not only provide API to wrap between C++ and Python, but also
+C++ API for operating the Python interpreter and the some Python containers:
+:py:class:`python:tuple`, :py:class:`python:list`, and :py:class:`python:dict`.
+See the document of :doc:`pybind11:advanced/pycpp/object` and the unit tests
+for more information.
 
 Python Objects in C++
 +++++++++++++++++++++

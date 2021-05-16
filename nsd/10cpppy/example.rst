@@ -46,6 +46,15 @@ Example Code: C++ and C for Python
 
   $ python3 setup.py build_ext --inplace
 
+.. literalinclude:: code/04_iter.py
+  :name: nsd-cpppy-example-iter
+  :caption:
+    Show how the C++-to-Python adapter for iterator works
+    (:download:`04_iter.py <code/04_iter.py>`).
+  :language: python
+  :linenos:
+  :end-before: # vim: set
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 
