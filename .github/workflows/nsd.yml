@@ -24,6 +24,7 @@ jobs:
       MEMROOT: nsd/07mem/code
       SMARTROOT: nsd/08smart/code
       MODERNCPPROOT: nsd/09moderncpp/code
+      CPPPYROOT: nsd/10cpppy/code
       ARRAYDESIGNROOT: nsd/11arraydesign/code
 
     strategy:
@@ -190,6 +191,11 @@ jobs:
         make -C ${{ env.MODERNCPPROOT }}/04_template runall
         make -C ${{ env.MODERNCPPROOT }}/05_lambda clean
         make -C ${{ env.MODERNCPPROOT }}/05_lambda runall
+
+    - name: 10cpppy
+      run: |
+        make -C ${{ env.CPPPYROOT }}/pybind11_python_example clean
+        make -C ${{ env.CPPPYROOT }}/pybind11_python_example run
 
     - name: 11arraydesign_solve_cpp
       run: |

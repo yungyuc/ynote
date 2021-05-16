@@ -145,14 +145,15 @@ There is `an example for using setuptools to build pybind11
       zip_safe=False,
   )
 
+The full example code is available in :ref:`setup.py <nsd-cpppy-example-setup>`
+and :ref:`main.cpp <nsd-cpppy-example-setup-main>`.
+
 cmake with pybind11 in a Sub-Directory
 ++++++++++++++++++++++++++++++++++++++
 
 When the source tree is put in a sub-directory in your project, as mentioned in
-the `document
-<https://pybind11.readthedocs.io/en/stable/compiling.html#building-with-cmake>`__,
-you can use `cmake <https://cmake.org>`_ ``add_subdirectory`` to include the
-pybind11_ package:
+the :ref:`document <pybind11:cmake>`.  you can use `cmake <https://cmake.org>`_
+``add_subdirectory`` to include the pybind11_ package:
 
 .. code-block:: cmake
 
@@ -162,7 +163,7 @@ pybind11_ package:
   add_subdirectory(pybind11)
   pybind11_add_module(example example.cpp)
 
-pybind11 provides the cmake command ``pybind11_add_module``.  It set various
+pybind11 provides a cmake command ``pybind11_add_module``.  It sets various
 flags to build your C++ code as an extension module.
 
 cmake with Installed pybind11
@@ -225,10 +226,17 @@ Here is one way to implement the additional wrapping layer:
   /**
    * Helper template for pybind11 class wrappers.
    */
-  template< class Wrapper, class Wrapped, class Holder = std::unique_ptr<Wrapped>, class WrappedBase = Wrapped >
+  template
+  <
+      class Wrapper
+    , class Wrapped
+    , class Holder = std::unique_ptr<Wrapped>
+    , class WrappedBase = Wrapped
+  >
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
-  WrapBase {
+  WrapBase
+  {
 
   public:
 
@@ -237,13 +245,15 @@ Here is one way to implement the additional wrapping layer:
       using wrapped_base_type = WrappedBase;
       using holder_type = Holder;
       using base_type = WrapBase< wrapper_type, wrapped_type, holder_type, wrapped_base_type >;
-      using class_ = typename std::conditional<
+      using class_ = typename std::conditional
+      <
           std::is_same< Wrapped, WrappedBase >::value
         , pybind11::class_< wrapped_type, holder_type >
         , pybind11::class_< wrapped_type, wrapped_base_type, holder_type >
       >::type;
 
-      static wrapper_type & commit(pybind11::module * mod, const char * pyname, const char * clsdoc) {
+      static wrapper_type & commit(pybind11::module * mod, const char * pyname, const char * clsdoc)
+      {
           static wrapper_type derived(mod, pyname, clsdoc);
           return derived;
       }

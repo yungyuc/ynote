@@ -20,6 +20,32 @@ Example Code: C++ and C for Python
   :linenos:
   :end-before: # vim: set
 
+.. literalinclude:: code/pybind11_python_example/setup.py
+  :name: nsd-cpppy-example-setup
+  :caption:
+    ``setup.py`` for pybind11 (:download:`setup.py
+    <code/pybind11_python_example/setup.py>`).
+  :language: python
+  :linenos:
+  :end-before: # vim: set
+
+.. literalinclude:: code/pybind11_python_example/main.cpp
+  :name: nsd-cpppy-example-setup-main
+  :caption:
+    Simple C++ code for using pybind11 (:download:`main.cpp
+    <code/pybind11_python_example/main.cpp>`).
+  :language: cpp
+  :linenos:
+  :end-before: // vim: set
+
+.. code-block:: console
+  :name: nsd-cpppy-example-setup-build
+  :caption:
+    Build :ref:`setup.py <nsd-cpppy-example-setup>` with :ref:`main.cpp
+    <nsd-cpppy-example-setup-main>`.
+
+  $ python3 setup.py build_ext --inplace
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 
