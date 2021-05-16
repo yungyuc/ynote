@@ -185,43 +185,18 @@ Python and the staticity in C++.  You can directly call pybind11_ API, but a
 better way is to create an additional wrapping layer between the code that uses
 pybind11 and your library code.  It allows to insert additional code in a
 systematic way.  Since it is not easy to see the point in a small example, I
-pull the code for `a bigger project 'turgon'
+pull in the code for `a bigger project "turgon"
 <https://github.com/yungyuc/turgon>`__ for demonstration.
+
+Intermediate Class Template
++++++++++++++++++++++++++++
 
 Here is one way to implement the additional wrapping layer:
 
 .. code-block:: cpp
+  :name: nsd-cpppy-wrap-base
+  :caption: The base class template for custom wrappers.
   :linenos:
-
-  #pragma once
-
-  /*
-   * Copyright (c) 2017, Yung-Yu Chen <yyc@solvcon.net>
-   * BSD 3-Clause License, see COPYING
-   */
-
-  #include <pybind11/pybind11.h>
-  #include <pybind11/numpy.h>
-  #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-  #include <numpy/arrayobject.h>
-
-  #include <memory>
-  #include <type_traits>
-
-  PYBIND11_DECLARE_HOLDER_TYPE(T, std::unique_ptr<T>);
-  PYBIND11_DECLARE_HOLDER_TYPE(T, std::shared_ptr<T>);
-
-  #ifdef __GNUG__
-  #  define SPACETIME_PYTHON_WRAPPER_VISIBILITY __attribute__((visibility("hidden")))
-  #else
-  #  define SPACETIME_PYTHON_WRAPPER_VISIBILITY
-  #endif
-
-  namespace spacetime
-  {
-
-  namespace python
-  {
 
   /**
    * Helper template for pybind11 class wrappers.
@@ -230,6 +205,7 @@ Here is one way to implement the additional wrapping layer:
   <
       class Wrapper
     , class Wrapped
+      /* The default holder type is a unique pointer. */
     , class Holder = std::unique_ptr<Wrapped>
     , class WrappedBase = Wrapped
   >
@@ -240,11 +216,20 @@ Here is one way to implement the additional wrapping layer:
 
   public:
 
+      // These aliases will be used in derived classes.
       using wrapper_type = Wrapper;
       using wrapped_type = Wrapped;
       using wrapped_base_type = WrappedBase;
       using holder_type = Holder;
-      using base_type = WrapBase< wrapper_type, wrapped_type, holder_type, wrapped_base_type >;
+      using base_type = WrapBase
+      <
+          wrapper_type
+        , wrapped_type
+        , holder_type
+        , wrapped_base_type
+      >;
+
+      // This alias is to help the pybind11 code in this template.
       using class_ = typename std::conditional
       <
           std::is_same< Wrapped, WrappedBase >::value
@@ -252,7 +237,12 @@ Here is one way to implement the additional wrapping layer:
         , pybind11::class_< wrapped_type, wrapped_base_type, holder_type >
       >::type;
 
-      static wrapper_type & commit(pybind11::module * mod, const char * pyname, const char * clsdoc)
+      static wrapper_type & commit
+      (
+          pybind11::module * mod
+        , const char * pyname
+        , const char * clsdoc
+      )
       {
           static wrapper_type derived(mod, pyname, clsdoc);
           return derived;
@@ -265,9 +255,9 @@ Here is one way to implement the additional wrapping layer:
       WrapBase & operator=(WrapBase       &&) = delete;
       ~WrapBase() = default;
 
+  // Make a macro for the wrapping functions by using perfect forwarding.
   #define DECL_ST_PYBIND_CLASS_METHOD(METHOD) \
       template< class... Args > \
-      /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
       wrapper_type & METHOD(Args&&... args) { \
           m_cls.METHOD(std::forward<Args>(args)...); \
           return *static_cast<wrapper_type*>(this); \
@@ -279,6 +269,7 @@ Here is one way to implement the additional wrapping layer:
       DECL_ST_PYBIND_CLASS_METHOD(def_property_readonly)
       DECL_ST_PYBIND_CLASS_METHOD(def_property_readonly_static)
 
+  // Delete the macro after it is not used anymore.
   #undef DECL_ST_PYBIND_CLASS_METHOD
 
   protected:
@@ -289,34 +280,22 @@ Here is one way to implement the additional wrapping layer:
 
   private:
 
+      // This "class_" is the alias we made above, not directly the pybind11::class_.
       class_ m_cls;
 
   }; /* end class WrapBase */
 
-  } /* end namespace python */
+Wrappers for Data Classes
++++++++++++++++++++++++++
 
-  } /* end namespace spacetime */
+The "turgon" code is built upon several data classes.  The most basic one is
+the grid definition class :cpp:class:`!Grid`.  Its wrapper is the simplest:
 
-The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
-``WrapCelm``, and ``WrapSelm`` show how ``WrapBase`` is used:
-
-.. code-block:: c++
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-grid
+  :caption: The custom wrapper class for the class :cpp:class:`!Grid`.
   :linenos:
-
-  #pragma once
-
-  /*
-   * Copyright (c) 2018, Yung-Yu Chen <yyc@solvcon.net>
-   * BSD 3-Clause License, see COPYING
-   */
-
-  #include "spacetime/python/common.hpp"
-
-  namespace spacetime
-  {
-
-  namespace python
-  {
+  :emphasize-lines: 45
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -324,6 +303,7 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
     : public WrapBase< WrapGrid, Grid, std::shared_ptr<Grid> >
   {
 
+      // Need this friendship to access the protected constructor in the base class.
       friend base_type;
 
       WrapGrid(pybind11::module * mod, const char * pyname, const char * clsdoc)
@@ -331,16 +311,26 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
       {
           namespace py = pybind11;
           (*this)
-              .def(
-                  py::init([](real_type xmin, real_type xmax, size_t nelm) {
+              .def
+              (
+                  py::init
+                  (
+                      [](real_type xmin, real_type xmax, size_t nelm)
+                      {
                       return Grid::construct(xmin, xmax, nelm);
-                  }),
+                      }
+                  ),
                   py::arg("xmin"), py::arg("xmax"), py::arg("nelm")
               )
-              .def(
-                  py::init([](xt::pyarray<wrapped_type::value_type> & xloc) {
-                      return Grid::construct(xloc);
-                  }),
+              .def
+              (
+                  py::init
+                  (
+                      [](xt::pyarray<wrapped_type::value_type> & xloc)
+                      {
+                          return Grid::construct(xloc);
+                      }
+                  ),
                   py::arg("xloc")
               )
               .def("__str__", &detail::to_str<wrapped_type>)
@@ -348,15 +338,35 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
               .def_property_readonly("xmax", &wrapped_type::xmax)
               .def_property_readonly("ncelm", &wrapped_type::ncelm)
               .def_property_readonly("nselm", &wrapped_type::nselm)
-              .def_property_readonly(
+              .def_property_readonly
+              (
                   "xcoord",
-                  static_cast<wrapped_type::array_type & (wrapped_type::*)()>(&wrapped_type::xcoord)
+                  static_cast<wrapped_type::array_type & (wrapped_type::*)()>
+                  (&wrapped_type::xcoord)
               )
-              .def_property_readonly_static("BOUND_COUNT", [](py::object const &){ return Grid::BOUND_COUNT; })
+              .def_property_readonly_static
+              (
+                  "BOUND_COUNT"
+                , [](py::object const &){ return Grid::BOUND_COUNT; }
+              )
           ;
       }
 
   }; /* end class WrapGrid */
+
+When there are overloads in the C++ code, sometimes we may need to specify the
+function signature using ``static_cast`` like that in (highlighted) line 45.
+An alternate way is to use a lambda expression.
+
+A slightly more complex wrapper is for the class :cpp:class:`!Field`.  In
+(highlighted) line 19, a :cpp:class:`!Grid` is returned from the wrapper of
+:cpp:class:`!Field`.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-field
+  :caption: The custom wrapper class for the class :cpp:class:`!Field`.
+  :linenos:
+  :emphasize-lines: 19
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -364,6 +374,7 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
     : public WrapBase< WrapField, Field, std::shared_ptr<Field> >
   {
 
+      // Need this friendship to access the protected constructor in the base class.
       friend base_type;
 
       WrapField(pybind11::module * mod, const char * pyname, const char * clsdoc)
@@ -372,30 +383,57 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
           namespace py = pybind11;
           (*this)
               .def("__str__", &detail::to_str<wrapped_type>)
-              .def_property_readonly("grid", [](wrapped_type & self){ return self.grid().shared_from_this(); })
+              .def_property_readonly
+              (
+                  "grid"
+                , [](wrapped_type & self){ return self.grid().shared_from_this(); }
+              )
               .def_property_readonly("nvar", &wrapped_type::nvar)
-              .def_property(
-                  "time_increment",
-                  &wrapped_type::time_increment,
-                  &wrapped_type::set_time_increment
+              .def_property
+              (
+                  "time_increment"
+                , &wrapped_type::time_increment
+                , &wrapped_type::set_time_increment
                )
               .def_property_readonly("dt", &wrapped_type::dt)
               .def_property_readonly("hdt", &wrapped_type::hdt)
               .def_property_readonly("qdt", &wrapped_type::qdt)
-              .def(
+              .def
+              (
                   "celm",
-                  static_cast<Celm (wrapped_type::*)(sindex_type, bool)>(&wrapped_type::celm_at<Celm>),
-                  py::arg("ielm"), py::arg("odd_plane")=false
+                  static_cast<Celm (wrapped_type::*)(sindex_type, bool)>
+                  (&wrapped_type::celm_at<Celm>)
+                , py::arg("ielm"), py::arg("odd_plane")=false
               )
-              .def(
+              .def
+              (
                   "selm",
-                  static_cast<Selm (wrapped_type::*)(sindex_type, bool)>(&wrapped_type::selm_at<Selm>),
-                  py::arg("ielm"), py::arg("odd_plane")=false
+                  static_cast<Selm (wrapped_type::*)(sindex_type, bool)>
+                  (&wrapped_type::selm_at<Selm>)
+                , py::arg("ielm"), py::arg("odd_plane")=false
               )
           ;
       }
 
   }; /* end class WrapField */
+
+Hierarchical Wrapper
+++++++++++++++++++++
+
+The "turgon" code defines a hierarchy of classes and wrapping them does not
+only require :cpp:class:`!WrapBase`, but also other class templates between
+:cpp:class:`!WrapBase` and the concrete wrappers.
+
+For example, the following :ref:`Solver <nsd-cpppy-wrap-solver>` and uses
+:cpp:class:`!WrapSolverBase` (which is not shown in the notes).  Because
+:cpp:class:`!WrapSolver` does not directly inherit from :ref:`WrapBase
+<nsd-cpppy-wrap-base>`, it needs more aliases than the previous use cases.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-solver
+  :caption: The custom wrapper class for the class :cpp:class:`!Solver`.
+  :linenos:
+  :emphasize-lines: 7-14
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -403,10 +441,12 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
     : public WrapSolverBase< WrapSolver, Solver >
   {
 
+      // The base class becomes more complex.
       using base_type = WrapSolverBase< WrapSolver, Solver >;
       using wrapper_type = typename base_type::wrapper_type;
       using wrapped_type = typename base_type::wrapped_type;
 
+      // Need these friendships to access the protected constructor in the base class.
       friend base_type;
       friend base_type::base_type;
 
@@ -417,9 +457,19 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
           (*this)
               .def
               (
-                  py::init(static_cast<std::shared_ptr<wrapped_type> (*) (
-                      std::shared_ptr<Grid> const &, typename wrapped_type::value_type, size_t
-                  )>(&wrapped_type::construct))
+                  py::init
+                  (
+                      static_cast
+                      <
+                          std::shared_ptr<wrapped_type> (*)
+                          (
+                              std::shared_ptr<Grid> const &
+                            , typename wrapped_type::value_type
+                            , size_t
+                          )
+                      >
+                      (&wrapped_type::construct)
+                  )
                 , py::arg("grid"), py::arg("time_increment"), py::arg("nvar")
               )
           ;
@@ -427,20 +477,50 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
 
   }; /* end class WrapSolver */
 
+Wrappers for Element Classes
+++++++++++++++++++++++++++++
+
+The following :ref:`WrapCelm <nsd-cpppy-wrap-celm>` and :ref:`WrapSelm
+<nsd-cpppy-wrap-selm>` are wrapper classes for elements in the "turgon" code.
+They use :cpp:class:`!WrapCelmBase` and :cpp:class:`!WrapSelmBase` (which are
+not shown in the notes), respectively.
+
+The element wrappers are not very different from data wrappers, but we should
+keep in mind that there may be many more element objects than data objects in
+the system.  The element objects are implemented as handles and their data are
+stored in the data objects.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-celm
+  :caption: The custom wrapper class for the class :cpp:class:`!Celm`.
+  :linenos:
+
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
   WrapCelm
     : public WrapCelmBase< WrapCelm, Celm >
   {
 
+      // The base class becomes more complex.
       using base_type = WrapCelmBase< WrapCelm, Celm >;
+      // Need this friendship to access the protected constructor in the base class.
       friend base_type::base_type::base_type;
 
       WrapCelm(pybind11::module * mod, const char * pyname, const char * clsdoc)
         : base_type(mod, pyname, clsdoc)
-      {}
+      {
+          namespace py = pybind11;
+          (*this)
+              ... wrapper code ...
+          ;
+      }
 
   }; /* end class WrapCelm */
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-selm
+  :caption: The custom wrapper class for the class and :cpp:class:`!Selm`.
+  :linenos:
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -448,69 +528,62 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
     : public WrapSelmBase< WrapSelm, Selm >
   {
 
+      // The base class becomes more complex.
       using base_type = WrapSelmBase< WrapSelm, Selm >;
+      // Need this friendship to access the protected constructor in the base class.
       friend base_type::base_type::base_type;
 
       WrapSelm(pybind11::module * mod, const char * pyname, const char * clsdoc)
         : base_type(mod, pyname, clsdoc)
-      {}
+      {
+          namespace py = pybind11;
+          (*this)
+              ... wrapper code ...
+          ;
+      }
 
-  }; /* end class WrapSelm */
+  }; /* end class WrapCelm */
 
-  } /* end namespace python */
+Define the Extension Module
++++++++++++++++++++++++++++
 
-  } /* end namespace spacetime */
-
-  // vim: set et sw=4 ts=4:
-
-
-Note that the use of ``WrapperBase`` saves little duplicated code, if any.  But
-it facilitates to keep the ``.cpp`` file for building the Python extension to
-be very short:
+So far, we have used :ref:`WrapperBase <nsd-cpppy-wrap-base>` to save some
+duplicated code, but more can be saved.  Another important use of it is to
+reduce the ``.cpp`` file used for the Python extension.  The function template
+:cpp:func:`!add_solver` (which is not shown in the notes) takes advantage of
+the commonality of the wrapper classes and significantly shortens the code.
 
 .. code-block:: cpp
+  :name: nsd-cpppy-wrap-module
+  :caption: C++ code to define extension module.
   :linenos:
-
-  /*
-   * Copyright (c) 2018, Yung-Yu Chen <yyc@solvcon.net>
-   * BSD 3-Clause License, see COPYING
-   */
+  :emphasize-lines: 10, 15-17, 22-24
 
   #include "spacetime/python.hpp" // must be first
-
   #include "spacetime.hpp"
 
-  #include <algorithm>
-  #include <cstring>
-  #include <memory>
-  #include <utility>
-  #include <vector>
-
-  namespace
-  {
-
-  PyObject * initialize_spacetime(pybind11::module * mod)
-  {
-      namespace spy = spacetime::python;
-      xt::import_numpy(); // otherwise numpy c api segfault.
-      mod->doc() = "_libst: One-dimensional space-time CESE method code";
-      spy::WrapGrid::commit(mod, "Grid", "Spatial grid data");
-      spy::WrapField::commit(mod, "Field", "Solution data");
-      return mod->ptr();
-  }
-
-  } /* end namespace */
-
-  PYBIND11_MODULE(_libst, mod) // NOLINT
+  PYBIND11_MODULE(_libst, mod)
   {
       namespace spy = spacetime::python;
       spy::ModuleInitializer::get_instance()
-          .add(initialize_spacetime)
-          .add_solver<spy::WrapSolver, spy::WrapCelm, spy::WrapSelm>
+          .add_solver
+          <
+              spy::WrapSolver, spy::WrapCelm, spy::WrapSelm
+          >
           (&mod, "", "no equation")
-          .add_solver<spy::WrapLinearScalarSolver, spy::WrapLinearScalarCelm, spy::WrapLinearScalarSelm>
+          .add_solver
+          <
+              spy::WrapLinearScalarSolver
+            , spy::WrapLinearScalarCelm
+            , spy::WrapLinearScalarSelm
+          >
           (&mod, "LinearScalar", "a linear scalar equation")
-          .add_solver<spy::WrapInviscidBurgersSolver, spy::WrapInviscidBurgersCelm, spy::WrapInviscidBurgersSelm>
+          .add_solver
+          <
+              spy::WrapInviscidBurgersSolver
+            , spy::WrapInviscidBurgersCelm
+            , spy::WrapInviscidBurgersSelm
+          >
           (&mod, "InviscidBurgers", "the inviscid Burgers equation")
           .initialize(&mod)
       ;
