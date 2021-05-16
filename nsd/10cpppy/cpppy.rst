@@ -69,10 +69,14 @@ The plotted results are:
   :align: center
   :width: 100%
 
-Pybind11 Build System
+pybind11 Build System
 =====================
 
-`Pybind11 <https://pybind11.readthedocs.io/>`__ is a header-only C++ template
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+`pybind11 <https://pybind11.readthedocs.io/>`_ is a header-only C++ template
 library, that allows calling CPython API and provides C++ friendly semantics to
 allow Python to call C++ constructs and vise versa.
 
@@ -82,170 +86,106 @@ A header-only library doesn't have anything to be built.  When we say
 To build pybind11, we need CPython.  It optionally depends on numpy and eigen.
 There are several suggested ways to build.  Here list those I think important:
 
-Setuptools
+setuptools
 ++++++++++
 
-`Setuptools <https://setuptools.readthedocs.io/en/latest/>`__ is an enhancement
+`setuptools <https://setuptools.readthedocs.io/en/latest/>`_ is an enhancement
 to Python built-in `distutils
-<https://docs.python.org/3/library/distutils.html>`__.  Because pybind11 is
-released to `PyPI <https://pypi.org>`__ as a Python package
+<https://docs.python.org/3/library/distutils.html>`__.  Because pybind11_ is
+released on `PyPI <https://pypi.org>`__ as a Python package
 (https://pypi.org/project/pybind11/), both setuptools and distutils can get the
 header files and use them to build C++ file that use pybind11.
 
-There is an example for using setuptools to build pybind11
-(https://github.com/pybind/python_example/blob/master/setup.py):
+There is `an example for using setuptools to build pybind11
+<https://github.com/pybind/python_example/blob/master/setup.py>`__:
 
 .. code-block:: python
   :linenos:
 
-  from setuptools import setup, Extension
-  from setuptools.command.build_ext import build_ext
+  from setuptools import setup
+
+  # Available at setup time due to pyproject.toml
+  from pybind11.setup_helpers import Pybind11Extension, build_ext
+  from pybind11 import get_cmake_dir
+
   import sys
-  import setuptools
 
-  __version__ = '0.0.1'
+  __version__ = "0.0.1"
 
-
-  class get_pybind_include(object):
-      """Helper class to determine the pybind11 include path
-      The purpose of this class is to postpone importing pybind11
-      until it is actually installed, so that the ``get_include()``
-      method can be invoked. """
-
-      def __init__(self, user=False):
-          self.user = user
-
-      def __str__(self):
-          import pybind11
-          return pybind11.get_include(self.user)
-
+  # The main interface is through Pybind11Extension.
+  # * You can add cxx_std=11/14/17, and then build_ext can be removed.
+  # * You can set include_pybind11=false to add the include directory yourself,
+  #   say from a submodule.
+  #
+  # Note:
+  #   Sort input source files if you glob sources to ensure bit-for-bit
+  #   reproducible builds (https://github.com/pybind/python_example/pull/53)
 
   ext_modules = [
-      Extension(
-          'python_example',
-          ['src/main.cpp'],
-          include_dirs=[
-              # Path to pybind11 headers
-              get_pybind_include(),
-              get_pybind_include(user=True)
-          ],
-          language='c++'
+      Pybind11Extension("python_example",
+          ["src/main.cpp"],
+          # Example: passing in the version to the compiled code
+          define_macros = [('VERSION_INFO', __version__)],
       ),
   ]
 
-
-  # As of Python 3.6, CCompiler has a `has_flag` method.
-  # cf http://bugs.python.org/issue26689
-  def has_flag(compiler, flagname):
-      """Return a boolean indicating whether a flag name is supported on
-      the specified compiler.
-      """
-      import tempfile
-      with tempfile.NamedTemporaryFile('w', suffix='.cpp') as f:
-          f.write('int main (int argc, char **argv) { return 0; }')
-          try:
-              compiler.compile([f.name], extra_postargs=[flagname])
-          except setuptools.distutils.errors.CompileError:
-              return False
-      return True
-
-
-  def cpp_flag(compiler):
-      """Return the -std=c++[11/14/17] compiler flag.
-      The newer version is prefered over c++11 (when it is available).
-      """
-      flags = ['-std=c++17', '-std=c++14', '-std=c++11']
-
-      for flag in flags:
-          if has_flag(compiler, flag): return flag
-
-      raise RuntimeError('Unsupported compiler -- at least C++11 support '
-                         'is needed!')
-
-
-  class BuildExt(build_ext):
-      """A custom build extension for adding compiler-specific options."""
-      c_opts = {
-          'msvc': ['/EHsc'],
-          'unix': [],
-      }
-      l_opts = {
-          'msvc': [],
-          'unix': [],
-      }
-
-      if sys.platform == 'darwin':
-          darwin_opts = ['-stdlib=libc++', '-mmacosx-version-min=10.7']
-          c_opts['unix'] += darwin_opts
-          l_opts['unix'] += darwin_opts
-
-      def build_extensions(self):
-          ct = self.compiler.compiler_type
-          opts = self.c_opts.get(ct, [])
-          link_opts = self.l_opts.get(ct, [])
-          if ct == 'unix':
-              opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
-              opts.append(cpp_flag(self.compiler))
-              if has_flag(self.compiler, '-fvisibility=hidden'):
-                  opts.append('-fvisibility=hidden')
-          elif ct == 'msvc':
-              opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
-          for ext in self.extensions:
-              ext.extra_compile_args = opts
-              ext.extra_link_args = link_opts
-          build_ext.build_extensions(self)
-
   setup(
-      name='python_example',
+      name="python_example",
       version=__version__,
-      author='Sylvain Corlay',
-      author_email='sylvain.corlay@gmail.com',
-      url='https://github.com/pybind/python_example',
-      description='A test project using pybind11',
-      long_description='',
+      author="Sylvain Corlay",
+      author_email="sylvain.corlay@gmail.com",
+      url="https://github.com/pybind/python_example",
+      description="A test project using pybind11",
+      long_description="",
       ext_modules=ext_modules,
-      install_requires=['pybind11>=2.4'],
-      setup_requires=['pybind11>=2.4'],
-      cmdclass={'build_ext': BuildExt},
+      extras_require={"test": "pytest"},
+      # Currently, build_ext only provides an optional "highest supported C++
+      # level" feature, but in the future it may provide more features.
+      cmdclass={"build_ext": build_ext},
       zip_safe=False,
   )
 
-Cmake with a Sub-Directory
-++++++++++++++++++++++++++
+cmake with pybind11 in a Sub-Directory
+++++++++++++++++++++++++++++++++++++++
 
 When the source tree is put in a sub-directory in your project, as mentioned in
 the `document
 <https://pybind11.readthedocs.io/en/stable/compiling.html#building-with-cmake>`__,
-you can use cmake ``add_subdirectory`` to include the pybind11:
+you can use `cmake <https://cmake.org>`_ ``add_subdirectory`` to include the
+pybind11_ package:
 
 .. code-block:: cmake
 
-  cmake_minimum_required(VERSION 2.8.12)
+  cmake_minimum_required(VERSION 3.9)
   project(example)
 
   add_subdirectory(pybind11)
   pybind11_add_module(example example.cpp)
 
-Pybind11 provides the cmake command ``pybind11_add_module``.  It set various
+pybind11 provides the cmake command ``pybind11_add_module``.  It set various
 flags to build your C++ code as an extension module.
 
-Cmake with installed pybind11
+cmake with Installed pybind11
 +++++++++++++++++++++++++++++
 
-If pybind11 is installed using cmake itself, the ``*.cmake`` files that
-pybind11 supplies are installed to the specified location.  It's not needed to
-write ``add_subdirectory`` in the ``CMakeLists.txt`` in your project.
+If pybind11_ is installed using cmake_ itself, the ``*.cmake`` files that
+pybind11 supplies are installed to the specified location.  It is not necessary
+to write ``add_subdirectory`` in the ``CMakeLists.txt`` in your project.
 
-Additional Wrapping Layer for Customization
-===========================================
+Custom Wrapping Layer
+=====================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Wrapper needs to take care of the differences between the dynamic behaviors in
-Python and the staticity in C++.  You can directly call pybind11 API.  But a
-better way is to create another wrapping layer between the pybind11 and your
-library code.  It allows us to insert additional code in a systematic way.
-Since it is difficult to see the point in a small example, I pull the code for
-`a bigger project 'turgon' <https://github.com/yungyuc/turgon>`__ for
-demonstration.
+Python and the staticity in C++.  You can directly call pybind11_ API, but a
+better way is to create an additional wrapping layer between the code that uses
+pybind11 and your library code.  It allows to insert additional code in a
+systematic way.  Since it is not easy to see the point in a small example, I
+pull the code for `a bigger project 'turgon'
+<https://github.com/yungyuc/turgon>`__ for demonstration.
 
 Here is one way to implement the additional wrapping layer:
 
@@ -566,10 +506,18 @@ be very short:
       ;
   }
 
-Wrapping API
+pybind11 API
 ============
 
-Let's take a look at the helpers that pybind11 provides.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+pybind11_ provides C++ API for creating and manipulating the most important
+Python containers: :py:class:`python:tuple`, :py:class:`python:list`, and
+:py:class:`python:dict`.  See
+https://pybind11.readthedocs.io/en/stable/advanced/pycpp/object.html and the
+unit tests for more information.
 
 Function and Property
 +++++++++++++++++++++
@@ -730,7 +678,7 @@ arguments).  For example, see what I have for all the solver classes:
   >>> print(svr.selms(odd_plane=True))
   SolverElementIterator(selm, on_odd_plane, current=0, nelem=256)
 
-What Happens in Python Stays in Python (or Pybind11)
+What Happens in Python Stays in Python (or pybind11)
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 When wrapping from C++ to Python, there are constructs only available in the
@@ -829,14 +777,16 @@ u_x = 0`) to demonstrate how it works in Python:
   :align: center
   :width: 100%
 
-Manipulate Python Objects in C++
-================================
+Python Objects in C++
++++++++++++++++++++++
 
-Pybind11 provides C++ API for manipulating Python object (the C ``struct``
-:c:type:`python:PyObject`), so that we don't need to dig into the Python C API
-and worry about the reference counting by hand.
+pybind11_ provides C++ API for manipulating Python object (the C struct
+:c:type:`python:PyObject`) using the generic :doc:`object protocol
+<python:c-api/object>`, so that we don't need to dig into the Python C API and
+worry about the reference counting by hand.
 
-The first example is to create a ``None`` object from C++.
+The first example is to create a :ref:`None object <python:noneobject>` from
+C++.
 
 .. code-block:: cpp
 
@@ -910,7 +860,7 @@ Python object.
   >>> print(type(string_name), string_name)
   <class 'str'> string_content
 
-Pybind11 provides helpers to import Python module and access attibutes of every
+pybind11 provides helpers to import Python module and access attibutes of every
 Python object, including a Python module.
 
 .. code-block:: cpp
@@ -949,17 +899,10 @@ Python object, including a Python module.
   >>> print(alias_to_return_numpy_version)
   <built-in method return_numpy_version of PyCapsule object at 0x1111b4060>
 
-Python Containers
-=================
+pybind11 for tuple
+++++++++++++++++++
 
-Pybind11 provides C++ API for creating and manipulating the most important
-Python containers: :py:class:`python:tuple`, :py:class:`python:list`, and
-:py:class:`python:dict`.  See
-https://pybind11.readthedocs.io/en/stable/advanced/pycpp/object.html and the
-unit tests for more information.
-
-:py:class:`python:tuple`
-++++++++++++++++++++++++
+:py:class:`python:tuple`:
 
 .. code-block:: cpp
 
@@ -979,8 +922,10 @@ unit tests for more information.
   >>> print(type(my_tuple), my_tuple)
   <class 'tuple'> ('string_data_in_tuple', 10, 3.1415926)
 
-:py:class:`python:list`
-+++++++++++++++++++++++
+pybind11 for list
++++++++++++++++++
+
+:py:class:`python:list`:
 
 .. code-block:: cpp
 
@@ -1010,8 +955,10 @@ unit tests for more information.
   >>> print(type(my_list2), my_list2)
   <class 'list'> ['string_data_in_list2', 12]
 
-:py:class:`python:dict`
-+++++++++++++++++++++++
+pybind11 for dict
++++++++++++++++++
+
+:py:class:`python:dict`:
 
 .. code-block:: cpp
 
@@ -1035,12 +982,19 @@ unit tests for more information.
   >>> print(type(my_dict), my_dict)
   <class 'dict'> {'key_string': 'string_data_in_dict', 'key_int': 13, 'key_real': 1.414}
 
-Use CPython API with Pybind11
-=============================
+CPython API with pybind11
+=========================
 
-We can use any Python C API with pybind11.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
-When we import ``pybind11/pybind11.h``, we don't need to import ``Python.h``,
+It is possible to use Python C API along with pybind11_ and we will see how to
+do it.  Please keep in mind that the examples here omit a lot of error checking
+code that is necessary for a system to run correctly.  When you need to use the
+C API, consult the manual: :doc:`python:c-api/index`.
+
+When importing ``pybind11/pybind11.h``, we don't need to import ``Python.h``,
 becuase the former does it for us.  But please note that
 ``pybind11/pybind11.h`` or ``Python.h`` should be included before every other
 inclusion.
@@ -1064,8 +1018,10 @@ inclusion.
   >>> print(type(integer_value), integer_value)
   <class 'int'> 2000000
 
-:c:type:`python:PyObject` reference counting
-++++++++++++++++++++++++++++++++++++++++++++
+Reference Counting
+++++++++++++++++++
+
+:c:type:`python:PyObject` reference counting:
 
 .. code-block:: cpp
   :linenos:
@@ -1141,18 +1097,10 @@ inclusion.
   6 refcnt by sys
   5 refcnt from c++
 
-Pybind11 offers two low-level shorthands for reference counting:
+pybind11 offers two low-level shorthands for reference counting:
 ``handle::inc_ref()`` and ``handle::dec_ref()``.  If we don't want to go so
 low-level, it provides ``reinterpret_borrow`` and ``reinterpret_steal``
 function templates.
-
-Built-in Types
-==============
-
-It is possible to use Python C API along with pybind11.  I am going to should
-how to do it.  Please keep in mind that the examples in the notes omit a lot of
-error checking code that is necessary for a system to run correctly.  When you
-need to use the C API, consult the manual: :doc:`python:c-api/index`.
 
 Cached Value
 ++++++++++++
@@ -1206,7 +1154,9 @@ Python interns strings consisting of alphanumerical and underscore characters.
 Attribute Access
 ++++++++++++++++
 
-The Python object protocol defines a set of API for accessing object attributes.  Here is a simple example that sets and gets an attribute of an object using the API:
+:doc:`The Python object protocol <python:c-api/object>` defines a set of API
+for accessing object attributes.  Here is a simple example that sets and gets
+an attribute of an object using the API:
 
 .. code-block:: cpp
 
@@ -1402,8 +1352,10 @@ This section shows how to make Python function call from C.
 
 See the documentation of :doc:`python:c-api/object` for other variants of the API.
 
-Python C API for :py:class:`python:tuple`
-+++++++++++++++++++++++++++++++++++++++++
+Python C API for tuple
+++++++++++++++++++++++
+
+:py:class:`python:tuple`:
 
 .. code-block:: cpp
   :linenos:
@@ -1458,8 +1410,10 @@ and the `code implementing
 <https://github.com/python/cpython/blob/v3.8.0/Objects/tupleobject.c#L167>`__
 :c:func:`python:PyTuple_SetItem`.
 
-Python C API for :py:class:`python:dict`
-++++++++++++++++++++++++++++++++++++++++
+Python C API for dict
++++++++++++++++++++++
+
+Python C API for :py:class:`python:dict`:
 
 .. code-block:: cpp
   :linenos:
@@ -1523,8 +1477,10 @@ Python C API for :py:class:`python:dict`
 
 See :ref:`the C API documentation for the dict protocol <python:dictobjects>`.
 
-Python C API for :py:class:`python:list`
-++++++++++++++++++++++++++++++++++++++++
+Python C API for list
++++++++++++++++++++++
+
+Python C API for :py:class:`python:list`:
 
 .. code-block:: cpp
   :linenos:
@@ -1580,9 +1536,6 @@ Python C API for :py:class:`python:list`
 
 See :ref:`the C API documentation for the list protocol <python:listobjects>`
 and :ref:`the C API documentation for the iterator protocol <python:iterator>`.
-
-Useful Operations
-=================
 
 Import
 ++++++
@@ -1705,15 +1658,19 @@ See also :ref:`python:api-exceptions` and :doc:`python:c-api/exceptions`.
 Python Memory Management
 ========================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Python has its own memory manager.  When writing Python extension, they should
 be used for :c:type:`python:PyObject`.  The memory managing system has three levels:
 
 1. Raw memory interface: wrapper to the C standard memory managers.  It allows
-  distinct addressed returned when requesting 0 byte.  GIL is not involved.
+   distinct addressed returned when requesting 0 byte.  GIL is not involved.
 2. Normal memory interface: 'pymalloc' with small memory optimization.  GIL is
-  required when calling.
+   required when calling.
 3. Object memory interface: allocate for :c:type:`python:PyObject`.  GIL is
-  required when calling.
+   required when calling.
 
 The public API are:
 
