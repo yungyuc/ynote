@@ -937,7 +937,7 @@ pybind11_ provides C++ API for manipulating Python object (the C struct
 worry about the reference counting by hand.
 
 The first example is to create a :ref:`None object <python:noneobject>` from
-C++.
+C++:
 
 .. code-block:: cpp
 
@@ -955,6 +955,8 @@ C++.
       ;
   }
 
+The results:
+
 .. code-block:: pycon
 
   >>> print(type(create_none()))
@@ -963,8 +965,10 @@ C++.
   >>> print(create_none())
   None
 
-``pybind11::object`` is the C++ counterpart of :c:type:`python:PyObject` in C,
-but automatically does reference counting for us.
+:cpp:class:`pybind11::object <pybind11:object>` is the C++ counterpart of the C
+struct :c:type:`python:PyObject`, and it does reference counting for us.  The
+following example shows how to use :cpp:class:`pybind11::object
+<pybind11:object>` to hold a :ref:`None <python:noneobject>` object:
 
 .. code-block:: cpp
 
@@ -987,13 +991,15 @@ but automatically does reference counting for us.
       ;
   }
 
+The result:
+
 .. code-block:: pycon
 
   >>> print(return_none, return_none())
   <built-in method return_none of PyCapsule object at 0x1111b4300> None
 
-Pybind11 allows to use ``pybind11::object::attr`` to assign attribute to a
-Python object.
+pybind11 allows to use :cpp:func:`pybind11::object::attr()
+<pybind11:object_api::attr>` to assign attribute to a Python object:
 
 .. code-block:: cpp
 
@@ -1006,13 +1012,19 @@ Python object.
       m.attr("string_name") = "string_content";
   }
 
+The result:
+
 .. code-block:: pycon
 
   >>> print(type(string_name), string_name)
   <class 'str'> string_content
 
-pybind11 provides helpers to import Python module and access attibutes of every
-Python object, including a Python module.
+Import Module Using pybind11
+++++++++++++++++++++++++++++
+
+pybind11 provides a helper, :cpp:func:`pybind::module::import()
+<pybind11:module_::import>`, to import Python module and access attributes of
+every Python object, including a Python module:
 
 .. code-block:: cpp
 
@@ -1037,6 +1049,8 @@ Python object, including a Python module.
       m.attr("alias_to_return_numpy_version") = m.attr("return_numpy_version");
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(return_numpy_version())
@@ -1053,7 +1067,9 @@ Python object, including a Python module.
 pybind11 for tuple
 ++++++++++++++++++
 
-:py:class:`python:tuple`:
+To support Python :py:class:`python:tuple`, pybind11 provides the C++ class
+:cpp:class:`pybind11::tuple <pybind11:tuple>`.  Since tuple is immutable, its
+creation should use :cpp:func:`!pybind11::make_tuple()`:
 
 .. code-block:: cpp
 
@@ -1068,6 +1084,8 @@ pybind11 for tuple
       m.attr("my_tuple") = my_tuple;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(type(my_tuple), my_tuple)
@@ -1076,7 +1094,10 @@ pybind11 for tuple
 pybind11 for list
 +++++++++++++++++
 
-:py:class:`python:list`:
+To support Python :py:class:`python:list`, pybind11 provides the C++ class
+:cpp:class:`pybind11::list <pybind11:list>`.  It is mutable and the function
+:cpp:func:`!pybind11::list::append` can be used for populating the container in
+the C++ side:
 
 .. code-block:: cpp
 
@@ -1098,6 +1119,8 @@ pybind11 for list
       m.attr("my_list2") = my_list2;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(type(my_list), my_list)
@@ -1109,7 +1132,8 @@ pybind11 for list
 pybind11 for dict
 +++++++++++++++++
 
-:py:class:`python:dict`:
+To support Python :py:class:`python:dict`, pybind11 provides the C++ class
+:cpp:class:`pybind11::dict <pybind11:dict>`.  The example in the C++ side:
 
 .. code-block:: cpp
 
@@ -1127,6 +1151,8 @@ pybind11 for dict
 
       m.attr("my_dict") = my_dict;
   }
+
+The results in the Python side are:
 
 .. code-block:: pycon
 
