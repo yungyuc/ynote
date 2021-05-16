@@ -3,8 +3,11 @@
 # [begin example]
 import numpy as np
 from matplotlib import pyplot as plt
+
+# Import the extension module that is written in C++
 import libst
 
+# Build the one-dimensional uniform grid and the corresponding solver
 grid = libst.Grid(0, 4*2*np.pi, 4*64)
 cfl = 1
 dx = (grid.xmax - grid.xmin) / grid.ncelm
@@ -23,12 +26,14 @@ for e in svr.selms(odd_plane=False):
     e.set_so0(0, v)
     e.set_so1(0, dv)
 
-# Plot it
+# Set up plotting
 plt.figure(figsize=(15,10))
 plt.xlim((0, 8))
 plt.xlabel('$x$ $(\pi)$')
 plt.ylabel('$u$')
 plt.grid()
+
+# Plot the initial condition
 plt.plot(svr.xctr() / np.pi, svr.get_so0(0).ndarray, '-')
 # [end example]
 

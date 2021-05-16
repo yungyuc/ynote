@@ -2,25 +2,42 @@
 C++ and C for Python
 ====================
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 Expectation from Python
 =======================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Python is the choice of driving scripts for numerical calculations.  Before
+introducing how to connect the low-level C++ and C code to the high-level
+Python, I would like to introduce how it looks at the high level.
 
 Linear Wave
 +++++++++++
 
-The governing equation is
+Here is the governing equation of propagating linear waves:
 
 .. math::
 
   \frac{\partial u}{\partial t} + \frac{\partial u}{\partial x} = 0
 
-We will see a propagating wave from left to right with phase velocity of unity.
+Assume a sinusoidal wave is given as the initial condition.  Using the
+following code, we will see it propagating from left to right with the phase
+velocity of unity.
 
 .. literalinclude:: code/01_linear.py
   :language: python
   :linenos:
   :start-after: # [begin example]
   :end-before: # [end example]
+
+The full example code is in :ref:`01_linear.py <nsd-cpppy-example-linear>`.
+The plotted results are:
 
 .. figure:: image/01_linear.png
   :align: center
@@ -29,13 +46,15 @@ We will see a propagating wave from left to right with phase velocity of unity.
 Inviscid Burgers Equation
 +++++++++++++++++++++++++
 
-The second example is a non-linear equation:
+The second example is a non-linear equation (the inviscid Burgers equation):
 
 .. math::
 
   \frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} = 0
 
-The wave propagates in a way that is not predictable.
+The initial condition is still a sinusoidal wave.  But unlike the linear
+equation, with the inviscid Burgers equation, the non-linear wave propagates in
+a very different way.
 
 .. literalinclude:: code/01_burgers.py
   :language: python
@@ -43,14 +62,21 @@ The wave propagates in a way that is not predictable.
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full example code is in :ref:`01_burgers.py <nsd-cpppy-example-burgers>`.
+The plotted results are:
+
 .. figure:: image/01_burgers.png
   :align: center
   :width: 100%
 
-Pybind11 Build System
+pybind11 Build System
 =====================
 
-`Pybind11 <https://pybind11.readthedocs.io/>`__ is a header-only C++ template
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+`pybind11 <https://pybind11.readthedocs.io/>`_ is a header-only C++ template
 library, that allows calling CPython API and provides C++ friendly semantics to
 allow Python to call C++ constructs and vise versa.
 
@@ -60,228 +86,164 @@ A header-only library doesn't have anything to be built.  When we say
 To build pybind11, we need CPython.  It optionally depends on numpy and eigen.
 There are several suggested ways to build.  Here list those I think important:
 
-Setuptools
+setuptools
 ++++++++++
 
-`Setuptools <https://setuptools.readthedocs.io/en/latest/>`__ is an enhancement
+`setuptools <https://setuptools.readthedocs.io/en/latest/>`_ is an enhancement
 to Python built-in `distutils
-<https://docs.python.org/3/library/distutils.html>`__.  Because pybind11 is
-released to `PyPI <https://pypi.org>`__ as a Python package
+<https://docs.python.org/3/library/distutils.html>`__.  Because pybind11_ is
+released on `PyPI <https://pypi.org>`__ as a Python package
 (https://pypi.org/project/pybind11/), both setuptools and distutils can get the
 header files and use them to build C++ file that use pybind11.
 
-There is an example for using setuptools to build pybind11
-(https://github.com/pybind/python_example/blob/master/setup.py):
+There is `an example for using setuptools to build pybind11
+<https://github.com/pybind/python_example/blob/master/setup.py>`__:
 
 .. code-block:: python
   :linenos:
 
-  from setuptools import setup, Extension
-  from setuptools.command.build_ext import build_ext
+  from setuptools import setup
+
+  # Available at setup time due to pyproject.toml
+  from pybind11.setup_helpers import Pybind11Extension, build_ext
+  from pybind11 import get_cmake_dir
+
   import sys
-  import setuptools
 
-  __version__ = '0.0.1'
+  __version__ = "0.0.1"
 
-
-  class get_pybind_include(object):
-      """Helper class to determine the pybind11 include path
-      The purpose of this class is to postpone importing pybind11
-      until it is actually installed, so that the ``get_include()``
-      method can be invoked. """
-
-      def __init__(self, user=False):
-          self.user = user
-
-      def __str__(self):
-          import pybind11
-          return pybind11.get_include(self.user)
-
+  # The main interface is through Pybind11Extension.
+  # * You can add cxx_std=11/14/17, and then build_ext can be removed.
+  # * You can set include_pybind11=false to add the include directory yourself,
+  #   say from a submodule.
+  #
+  # Note:
+  #   Sort input source files if you glob sources to ensure bit-for-bit
+  #   reproducible builds (https://github.com/pybind/python_example/pull/53)
 
   ext_modules = [
-      Extension(
-          'python_example',
-          ['src/main.cpp'],
-          include_dirs=[
-              # Path to pybind11 headers
-              get_pybind_include(),
-              get_pybind_include(user=True)
-          ],
-          language='c++'
+      Pybind11Extension("python_example",
+          ["src/main.cpp"],
+          # Example: passing in the version to the compiled code
+          define_macros = [('VERSION_INFO', __version__)],
       ),
   ]
 
-
-  # As of Python 3.6, CCompiler has a `has_flag` method.
-  # cf http://bugs.python.org/issue26689
-  def has_flag(compiler, flagname):
-      """Return a boolean indicating whether a flag name is supported on
-      the specified compiler.
-      """
-      import tempfile
-      with tempfile.NamedTemporaryFile('w', suffix='.cpp') as f:
-          f.write('int main (int argc, char **argv) { return 0; }')
-          try:
-              compiler.compile([f.name], extra_postargs=[flagname])
-          except setuptools.distutils.errors.CompileError:
-              return False
-      return True
-
-
-  def cpp_flag(compiler):
-      """Return the -std=c++[11/14/17] compiler flag.
-      The newer version is prefered over c++11 (when it is available).
-      """
-      flags = ['-std=c++17', '-std=c++14', '-std=c++11']
-
-      for flag in flags:
-          if has_flag(compiler, flag): return flag
-
-      raise RuntimeError('Unsupported compiler -- at least C++11 support '
-                         'is needed!')
-
-
-  class BuildExt(build_ext):
-      """A custom build extension for adding compiler-specific options."""
-      c_opts = {
-          'msvc': ['/EHsc'],
-          'unix': [],
-      }
-      l_opts = {
-          'msvc': [],
-          'unix': [],
-      }
-
-      if sys.platform == 'darwin':
-          darwin_opts = ['-stdlib=libc++', '-mmacosx-version-min=10.7']
-          c_opts['unix'] += darwin_opts
-          l_opts['unix'] += darwin_opts
-
-      def build_extensions(self):
-          ct = self.compiler.compiler_type
-          opts = self.c_opts.get(ct, [])
-          link_opts = self.l_opts.get(ct, [])
-          if ct == 'unix':
-              opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
-              opts.append(cpp_flag(self.compiler))
-              if has_flag(self.compiler, '-fvisibility=hidden'):
-                  opts.append('-fvisibility=hidden')
-          elif ct == 'msvc':
-              opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
-          for ext in self.extensions:
-              ext.extra_compile_args = opts
-              ext.extra_link_args = link_opts
-          build_ext.build_extensions(self)
-
   setup(
-      name='python_example',
+      name="python_example",
       version=__version__,
-      author='Sylvain Corlay',
-      author_email='sylvain.corlay@gmail.com',
-      url='https://github.com/pybind/python_example',
-      description='A test project using pybind11',
-      long_description='',
+      author="Sylvain Corlay",
+      author_email="sylvain.corlay@gmail.com",
+      url="https://github.com/pybind/python_example",
+      description="A test project using pybind11",
+      long_description="",
       ext_modules=ext_modules,
-      install_requires=['pybind11>=2.4'],
-      setup_requires=['pybind11>=2.4'],
-      cmdclass={'build_ext': BuildExt},
+      extras_require={"test": "pytest"},
+      # Currently, build_ext only provides an optional "highest supported C++
+      # level" feature, but in the future it may provide more features.
+      cmdclass={"build_ext": build_ext},
       zip_safe=False,
   )
 
-Cmake with a Sub-Directory
-++++++++++++++++++++++++++
+The full example code is available in :ref:`setup.py <nsd-cpppy-example-setup>`
+and :ref:`main.cpp <nsd-cpppy-example-setup-main>`.
+
+cmake with pybind11 in a Sub-Directory
+++++++++++++++++++++++++++++++++++++++
 
 When the source tree is put in a sub-directory in your project, as mentioned in
-the `document
-<https://pybind11.readthedocs.io/en/stable/compiling.html#building-with-cmake>`__,
-you can use cmake ``add_subdirectory`` to include the pybind11:
+the :ref:`document <pybind11:cmake>`.  you can use `cmake <https://cmake.org>`_
+``add_subdirectory`` to include the pybind11_ package:
 
 .. code-block:: cmake
 
-  cmake_minimum_required(VERSION 2.8.12)
+  cmake_minimum_required(VERSION 3.9)
   project(example)
 
   add_subdirectory(pybind11)
   pybind11_add_module(example example.cpp)
 
-Pybind11 provides the cmake command ``pybind11_add_module``.  It set various
+pybind11 provides a cmake command ``pybind11_add_module``.  It sets various
 flags to build your C++ code as an extension module.
 
-Cmake with installed pybind11
+cmake with Installed pybind11
 +++++++++++++++++++++++++++++
 
-If pybind11 is installed using cmake itself, the ``*.cmake`` files that
-pybind11 supplies are installed to the specified location.  It's not needed to
-write ``add_subdirectory`` in the ``CMakeLists.txt`` in your project.
+If pybind11_ is installed using cmake_ itself, the ``*.cmake`` files that
+pybind11 supplies are installed to the specified location.  It is not necessary
+to write ``add_subdirectory`` in the ``CMakeLists.txt`` in your project.
 
-Additional Wrapping Layer for Customization
-===========================================
+Custom Wrapping Layer
+=====================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Wrapper needs to take care of the differences between the dynamic behaviors in
-Python and the staticity in C++.  You can directly call pybind11 API.  But a
-better way is to create another wrapping layer between the pybind11 and your
-library code.  It allows us to insert additional code in a systematic way.
-Since it is difficult to see the point in a small example, I pull the code for
-`a bigger project 'turgon' <https://github.com/yungyuc/turgon>`__ for
-demonstration.
+Python and the staticity in C++.  You can directly call pybind11_ API, but a
+better way is to create an additional wrapping layer between the code that uses
+pybind11 and your library code.  It allows to insert additional code in a
+systematic way.  Since it is not easy to see the point in a small example, I
+pull in the code for `a bigger project "turgon"
+<https://github.com/yungyuc/turgon>`__ for demonstration.
+
+Intermediate Class Template
++++++++++++++++++++++++++++
 
 Here is one way to implement the additional wrapping layer:
 
 .. code-block:: cpp
+  :name: nsd-cpppy-wrap-base
+  :caption: The base class template for custom wrappers.
   :linenos:
-
-  #pragma once
-
-  /*
-   * Copyright (c) 2017, Yung-Yu Chen <yyc@solvcon.net>
-   * BSD 3-Clause License, see COPYING
-   */
-
-  #include <pybind11/pybind11.h>
-  #include <pybind11/numpy.h>
-  #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-  #include <numpy/arrayobject.h>
-
-  #include <memory>
-  #include <type_traits>
-
-  PYBIND11_DECLARE_HOLDER_TYPE(T, std::unique_ptr<T>);
-  PYBIND11_DECLARE_HOLDER_TYPE(T, std::shared_ptr<T>);
-
-  #ifdef __GNUG__
-  #  define SPACETIME_PYTHON_WRAPPER_VISIBILITY __attribute__((visibility("hidden")))
-  #else
-  #  define SPACETIME_PYTHON_WRAPPER_VISIBILITY
-  #endif
-
-  namespace spacetime
-  {
-
-  namespace python
-  {
 
   /**
    * Helper template for pybind11 class wrappers.
    */
-  template< class Wrapper, class Wrapped, class Holder = std::unique_ptr<Wrapped>, class WrappedBase = Wrapped >
+  template
+  <
+      class Wrapper
+    , class Wrapped
+      /* The default holder type is a unique pointer. */
+    , class Holder = std::unique_ptr<Wrapped>
+    , class WrappedBase = Wrapped
+  >
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
-  WrapBase {
+  WrapBase
+  {
 
   public:
 
+      // These aliases will be used in derived classes.
       using wrapper_type = Wrapper;
       using wrapped_type = Wrapped;
       using wrapped_base_type = WrappedBase;
       using holder_type = Holder;
-      using base_type = WrapBase< wrapper_type, wrapped_type, holder_type, wrapped_base_type >;
-      using class_ = typename std::conditional<
+      using base_type = WrapBase
+      <
+          wrapper_type
+        , wrapped_type
+        , holder_type
+        , wrapped_base_type
+      >;
+
+      // This alias is to help the pybind11 code in this template.
+      using class_ = typename std::conditional
+      <
           std::is_same< Wrapped, WrappedBase >::value
         , pybind11::class_< wrapped_type, holder_type >
         , pybind11::class_< wrapped_type, wrapped_base_type, holder_type >
       >::type;
 
-      static wrapper_type & commit(pybind11::module * mod, const char * pyname, const char * clsdoc) {
+      static wrapper_type & commit
+      (
+          pybind11::module * mod
+        , const char * pyname
+        , const char * clsdoc
+      )
+      {
           static wrapper_type derived(mod, pyname, clsdoc);
           return derived;
       }
@@ -293,9 +255,9 @@ Here is one way to implement the additional wrapping layer:
       WrapBase & operator=(WrapBase       &&) = delete;
       ~WrapBase() = default;
 
+  // Make a macro for the wrapping functions by using perfect forwarding.
   #define DECL_ST_PYBIND_CLASS_METHOD(METHOD) \
       template< class... Args > \
-      /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
       wrapper_type & METHOD(Args&&... args) { \
           m_cls.METHOD(std::forward<Args>(args)...); \
           return *static_cast<wrapper_type*>(this); \
@@ -307,6 +269,7 @@ Here is one way to implement the additional wrapping layer:
       DECL_ST_PYBIND_CLASS_METHOD(def_property_readonly)
       DECL_ST_PYBIND_CLASS_METHOD(def_property_readonly_static)
 
+  // Delete the macro after it is not used anymore.
   #undef DECL_ST_PYBIND_CLASS_METHOD
 
   protected:
@@ -317,34 +280,22 @@ Here is one way to implement the additional wrapping layer:
 
   private:
 
+      // This "class_" is the alias we made above, not directly the pybind11::class_.
       class_ m_cls;
 
   }; /* end class WrapBase */
 
-  } /* end namespace python */
+Wrappers for Data Classes
++++++++++++++++++++++++++
 
-  } /* end namespace spacetime */
+The "turgon" code is built upon several data classes.  The most basic one is
+the grid definition class :cpp:class:`!Grid`.  Its wrapper is the simplest:
 
-The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
-``WrapCelm``, and ``WrapSelm`` show how ``WrapBase`` is used:
-
-.. code-block:: c++
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-grid
+  :caption: The custom wrapper class for the class :cpp:class:`!Grid`.
   :linenos:
-
-  #pragma once
-
-  /*
-   * Copyright (c) 2018, Yung-Yu Chen <yyc@solvcon.net>
-   * BSD 3-Clause License, see COPYING
-   */
-
-  #include "spacetime/python/common.hpp"
-
-  namespace spacetime
-  {
-
-  namespace python
-  {
+  :emphasize-lines: 45
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -352,6 +303,7 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
     : public WrapBase< WrapGrid, Grid, std::shared_ptr<Grid> >
   {
 
+      // Need this friendship to access the protected constructor in the base class.
       friend base_type;
 
       WrapGrid(pybind11::module * mod, const char * pyname, const char * clsdoc)
@@ -359,16 +311,26 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
       {
           namespace py = pybind11;
           (*this)
-              .def(
-                  py::init([](real_type xmin, real_type xmax, size_t nelm) {
+              .def
+              (
+                  py::init
+                  (
+                      [](real_type xmin, real_type xmax, size_t nelm)
+                      {
                       return Grid::construct(xmin, xmax, nelm);
-                  }),
+                      }
+                  ),
                   py::arg("xmin"), py::arg("xmax"), py::arg("nelm")
               )
-              .def(
-                  py::init([](xt::pyarray<wrapped_type::value_type> & xloc) {
-                      return Grid::construct(xloc);
-                  }),
+              .def
+              (
+                  py::init
+                  (
+                      [](xt::pyarray<wrapped_type::value_type> & xloc)
+                      {
+                          return Grid::construct(xloc);
+                      }
+                  ),
                   py::arg("xloc")
               )
               .def("__str__", &detail::to_str<wrapped_type>)
@@ -376,15 +338,35 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
               .def_property_readonly("xmax", &wrapped_type::xmax)
               .def_property_readonly("ncelm", &wrapped_type::ncelm)
               .def_property_readonly("nselm", &wrapped_type::nselm)
-              .def_property_readonly(
+              .def_property_readonly
+              (
                   "xcoord",
-                  static_cast<wrapped_type::array_type & (wrapped_type::*)()>(&wrapped_type::xcoord)
+                  static_cast<wrapped_type::array_type & (wrapped_type::*)()>
+                  (&wrapped_type::xcoord)
               )
-              .def_property_readonly_static("BOUND_COUNT", [](py::object const &){ return Grid::BOUND_COUNT; })
+              .def_property_readonly_static
+              (
+                  "BOUND_COUNT"
+                , [](py::object const &){ return Grid::BOUND_COUNT; }
+              )
           ;
       }
 
   }; /* end class WrapGrid */
+
+When there are overloads in the C++ code, sometimes we may need to specify the
+function signature using ``static_cast`` like that in (highlighted) line 45.
+An alternate way is to use a lambda expression.
+
+A slightly more complex wrapper is for the class :cpp:class:`!Field`.  In
+(highlighted) line 19, a :cpp:class:`!Grid` is returned from the wrapper of
+:cpp:class:`!Field`.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-field
+  :caption: The custom wrapper class for the class :cpp:class:`!Field`.
+  :linenos:
+  :emphasize-lines: 19
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -392,6 +374,7 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
     : public WrapBase< WrapField, Field, std::shared_ptr<Field> >
   {
 
+      // Need this friendship to access the protected constructor in the base class.
       friend base_type;
 
       WrapField(pybind11::module * mod, const char * pyname, const char * clsdoc)
@@ -400,30 +383,57 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
           namespace py = pybind11;
           (*this)
               .def("__str__", &detail::to_str<wrapped_type>)
-              .def_property_readonly("grid", [](wrapped_type & self){ return self.grid().shared_from_this(); })
+              .def_property_readonly
+              (
+                  "grid"
+                , [](wrapped_type & self){ return self.grid().shared_from_this(); }
+              )
               .def_property_readonly("nvar", &wrapped_type::nvar)
-              .def_property(
-                  "time_increment",
-                  &wrapped_type::time_increment,
-                  &wrapped_type::set_time_increment
+              .def_property
+              (
+                  "time_increment"
+                , &wrapped_type::time_increment
+                , &wrapped_type::set_time_increment
                )
               .def_property_readonly("dt", &wrapped_type::dt)
               .def_property_readonly("hdt", &wrapped_type::hdt)
               .def_property_readonly("qdt", &wrapped_type::qdt)
-              .def(
+              .def
+              (
                   "celm",
-                  static_cast<Celm (wrapped_type::*)(sindex_type, bool)>(&wrapped_type::celm_at<Celm>),
-                  py::arg("ielm"), py::arg("odd_plane")=false
+                  static_cast<Celm (wrapped_type::*)(sindex_type, bool)>
+                  (&wrapped_type::celm_at<Celm>)
+                , py::arg("ielm"), py::arg("odd_plane")=false
               )
-              .def(
+              .def
+              (
                   "selm",
-                  static_cast<Selm (wrapped_type::*)(sindex_type, bool)>(&wrapped_type::selm_at<Selm>),
-                  py::arg("ielm"), py::arg("odd_plane")=false
+                  static_cast<Selm (wrapped_type::*)(sindex_type, bool)>
+                  (&wrapped_type::selm_at<Selm>)
+                , py::arg("ielm"), py::arg("odd_plane")=false
               )
           ;
       }
 
   }; /* end class WrapField */
+
+Hierarchical Wrapper
+++++++++++++++++++++
+
+The "turgon" code defines a hierarchy of classes and wrapping them does not
+only require :cpp:class:`!WrapBase`, but also other class templates between
+:cpp:class:`!WrapBase` and the concrete wrappers.
+
+For example, the following :ref:`Solver <nsd-cpppy-wrap-solver>` and uses
+:cpp:class:`!WrapSolverBase` (which is not shown in the notes).  Because
+:cpp:class:`!WrapSolver` does not directly inherit from :ref:`WrapBase
+<nsd-cpppy-wrap-base>`, it needs more aliases than the previous use cases.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-solver
+  :caption: The custom wrapper class for the class :cpp:class:`!Solver`.
+  :linenos:
+  :emphasize-lines: 7-14
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -431,10 +441,12 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
     : public WrapSolverBase< WrapSolver, Solver >
   {
 
+      // The base class becomes more complex.
       using base_type = WrapSolverBase< WrapSolver, Solver >;
       using wrapper_type = typename base_type::wrapper_type;
       using wrapped_type = typename base_type::wrapped_type;
 
+      // Need these friendships to access the protected constructor in the base class.
       friend base_type;
       friend base_type::base_type;
 
@@ -445,9 +457,19 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
           (*this)
               .def
               (
-                  py::init(static_cast<std::shared_ptr<wrapped_type> (*) (
-                      std::shared_ptr<Grid> const &, typename wrapped_type::value_type, size_t
-                  )>(&wrapped_type::construct))
+                  py::init
+                  (
+                      static_cast
+                      <
+                          std::shared_ptr<wrapped_type> (*)
+                          (
+                              std::shared_ptr<Grid> const &
+                            , typename wrapped_type::value_type
+                            , size_t
+                          )
+                      >
+                      (&wrapped_type::construct)
+                  )
                 , py::arg("grid"), py::arg("time_increment"), py::arg("nvar")
               )
           ;
@@ -455,20 +477,50 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
 
   }; /* end class WrapSolver */
 
+Wrappers for Element Classes
+++++++++++++++++++++++++++++
+
+The following :ref:`WrapCelm <nsd-cpppy-wrap-celm>` and :ref:`WrapSelm
+<nsd-cpppy-wrap-selm>` are wrapper classes for elements in the "turgon" code.
+They use :cpp:class:`!WrapCelmBase` and :cpp:class:`!WrapSelmBase` (which are
+not shown in the notes), respectively.
+
+The element wrappers are not very different from data wrappers, but we should
+keep in mind that there may be many more element objects than data objects in
+the system.  The element objects are implemented as handles and their data are
+stored in the data objects.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-celm
+  :caption: The custom wrapper class for the class :cpp:class:`!Celm`.
+  :linenos:
+
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
   WrapCelm
     : public WrapCelmBase< WrapCelm, Celm >
   {
 
+      // The base class becomes more complex.
       using base_type = WrapCelmBase< WrapCelm, Celm >;
+      // Need this friendship to access the protected constructor in the base class.
       friend base_type::base_type::base_type;
 
       WrapCelm(pybind11::module * mod, const char * pyname, const char * clsdoc)
         : base_type(mod, pyname, clsdoc)
-      {}
+      {
+          namespace py = pybind11;
+          (*this)
+              ... wrapper code ...
+          ;
+      }
 
   }; /* end class WrapCelm */
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-selm
+  :caption: The custom wrapper class for the class and :cpp:class:`!Selm`.
+  :linenos:
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -476,83 +528,81 @@ The following classes ``WrapGrid``, ``WrapField``, ``WrapSolver``,
     : public WrapSelmBase< WrapSelm, Selm >
   {
 
+      // The base class becomes more complex.
       using base_type = WrapSelmBase< WrapSelm, Selm >;
+      // Need this friendship to access the protected constructor in the base class.
       friend base_type::base_type::base_type;
 
       WrapSelm(pybind11::module * mod, const char * pyname, const char * clsdoc)
         : base_type(mod, pyname, clsdoc)
-      {}
+      {
+          namespace py = pybind11;
+          (*this)
+              ... wrapper code ...
+          ;
+      }
 
-  }; /* end class WrapSelm */
+  }; /* end class WrapCelm */
 
-  } /* end namespace python */
+Define the Extension Module
++++++++++++++++++++++++++++
 
-  } /* end namespace spacetime */
-
-  // vim: set et sw=4 ts=4:
-
-
-Note that the use of ``WrapperBase`` saves little duplicated code, if any.  But
-it facilitates to keep the ``.cpp`` file for building the Python extension to
-be very short:
+So far, we have used :ref:`WrapperBase <nsd-cpppy-wrap-base>` to save some
+duplicated code, but more can be saved.  Another important use of it is to
+reduce the ``.cpp`` file used for the Python extension.  The function template
+:cpp:func:`!add_solver` (which is not shown in the notes) takes advantage of
+the commonality of the wrapper classes and significantly shortens the code.
 
 .. code-block:: cpp
+  :name: nsd-cpppy-wrap-module
+  :caption: C++ code to define extension module.
   :linenos:
-
-  /*
-   * Copyright (c) 2018, Yung-Yu Chen <yyc@solvcon.net>
-   * BSD 3-Clause License, see COPYING
-   */
+  :emphasize-lines: 10, 15-17, 22-24
 
   #include "spacetime/python.hpp" // must be first
-
   #include "spacetime.hpp"
 
-  #include <algorithm>
-  #include <cstring>
-  #include <memory>
-  #include <utility>
-  #include <vector>
-
-  namespace
-  {
-
-  PyObject * initialize_spacetime(pybind11::module * mod)
-  {
-      namespace spy = spacetime::python;
-      xt::import_numpy(); // otherwise numpy c api segfault.
-      mod->doc() = "_libst: One-dimensional space-time CESE method code";
-      spy::WrapGrid::commit(mod, "Grid", "Spatial grid data");
-      spy::WrapField::commit(mod, "Field", "Solution data");
-      return mod->ptr();
-  }
-
-  } /* end namespace */
-
-  PYBIND11_MODULE(_libst, mod) // NOLINT
+  PYBIND11_MODULE(_libst, mod)
   {
       namespace spy = spacetime::python;
       spy::ModuleInitializer::get_instance()
-          .add(initialize_spacetime)
-          .add_solver<spy::WrapSolver, spy::WrapCelm, spy::WrapSelm>
+          .add_solver
+          <
+              spy::WrapSolver, spy::WrapCelm, spy::WrapSelm
+          >
           (&mod, "", "no equation")
-          .add_solver<spy::WrapLinearScalarSolver, spy::WrapLinearScalarCelm, spy::WrapLinearScalarSelm>
+          .add_solver
+          <
+              spy::WrapLinearScalarSolver
+            , spy::WrapLinearScalarCelm
+            , spy::WrapLinearScalarSelm
+          >
           (&mod, "LinearScalar", "a linear scalar equation")
-          .add_solver<spy::WrapInviscidBurgersSolver, spy::WrapInviscidBurgersCelm, spy::WrapInviscidBurgersSelm>
+          .add_solver
+          <
+              spy::WrapInviscidBurgersSolver
+            , spy::WrapInviscidBurgersCelm
+            , spy::WrapInviscidBurgersSelm
+          >
           (&mod, "InviscidBurgers", "the inviscid Burgers equation")
           .initialize(&mod)
       ;
   }
 
-Wrapping API
-============
+pybind11 Wrapping API
+=====================
 
-Let's take a look at the helpers that pybind11 provides.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+pybind11_ provides API to wrap between C++ and Python.
 
 Function and Property
 +++++++++++++++++++++
 
-Let's use the `Grid` class as an example to demonstrate how to expose functions and properties.  We have a constructor:
+Let's use the :cpp:class:`!Grid` class as an example to demonstrate how to
+expose functions and properties.  We have a constructor:
 
 .. code-block:: cpp
 
@@ -568,47 +618,64 @@ Let's use the `Grid` class as an example to demonstrate how to expose functions 
     , py::arg("xmin"), py::arg("xmax"), py::arg("nelm")
   )
 
-and a special-purpose function:
+It allows creating the :cpp:class:`!Grid` object from Python:
+
+.. code-block:: pycon
+
+  >>> grid = libst.Grid(0, 8, 4*64)
+
+By wrapping for the special special function :py:func:`!__str__`:
 
 .. code-block:: cpp
 
   .def("__str__", &detail::to_str<wrapped_type>)
 
+It allows to support :py:class:`python:str` for :cpp:class:`!Grid`:
+
 .. code-block:: pycon
 
-  >>> grid = libst.Grid(0, 8, 4*64)
-  >>> print('directly call Grid.__str__():', grid.__str__())
-  directly call Grid.__str__(): Grid(xmin=0, xmax=8, ncelm=256)
   >>> print('call str(Grid):', str(grid))
   call str(Grid): Grid(xmin=0, xmax=8, ncelm=256)
+  >>> print('directly call Grid.__str__():', grid.__str__())
+  directly call Grid.__str__(): Grid(xmin=0, xmax=8, ncelm=256)
 
-Sometimes properties are more suitable for certain getters:
+Define properties.  pybind11_ supports both instance properties and static
+properties:
 
 .. code-block:: cpp
 
   .def_property_readonly("xmin", &wrapped_type::xmin)
   .def_property_readonly("xmax", &wrapped_type::xmax)
-  .def_property_readonly_static("BOUND_COUNT", [](py::object const &){ return Grid::BOUND_COUNT; })
+  .def_property_readonly_static
+  (
+      "BOUND_COUNT"
+    , [](py::object const &){ return Grid::BOUND_COUNT; }
+  )
 
-As shown above, pybind11 supports static properties that are associated on the class instead of the instance.
+Check the properties from the instance:
 
 .. code-block:: pycon
 
-  >>> print('grid.BOUND_COUNT =', grid.BOUND_COUNT)
-  grid.BOUND_COUNT = 2
-  >>> print('grid.xmin =', grid.xmin)
-  grid.xmin = 0.0
-  >>> print('grid.xmax =', grid.xmax)
-  grid.xmax = 8.0
+  >>> print(grid.BOUND_COUNT)
+  2
+  >>> print(grid.xmin)
+  0.0
+  >>> print(grid.xmax)
+  8.0
 
-  >>> print('Grid.BOUND_COUNT (number of points beyond spatial boundary) =', libst.Grid.BOUND_COUNT)
-  Grid.BOUND_COUNT (number of points beyond spatial boundary) = 2
-  >>> print('Grid.xmin =', libst.Grid.xmin)
-  Grid.xmin = <property object at 0x110e9ffb0>
-  >>> print('Grid.xmax =', libst.Grid.xmax)
-  Grid.xmax = <property object at 0x110ea60b0>
+Check the properties from the class:
 
-Compare to pure Python object:
+.. code-block:: pycon
+
+  >>> print(libst.Grid.BOUND_COUNT)
+  2
+  >>> print(libst.Grid.xmin)
+  <property object at 0x110e9ffb0>
+  >>> print(libst.Grid.xmax)
+  <property object at 0x110ea60b0>
+
+Define a pure Python class that can be compared with the pybind11
+wrapped class:
 
 .. code-block:: python
 
@@ -621,7 +688,10 @@ Compare to pure Python object:
       def xmax(self):
           return 8
 
-.. code-block:: python
+Compare the execution results with that of the C++ :cpp:class:`!Grid`.  They
+are identical:
+
+.. code-block:: pycon
 
   >>> print(PythonGrid.BOUND_COUNT)
   2
@@ -630,9 +700,10 @@ Compare to pure Python object:
   >>> print(PythonGrid.xmax)
   <property object at 0x1112dab30>
 
-In addition to ``def_property_readonly`` and ``def_property_readonly_static``,
-pybind11 also provides:
+Here is a list of property-related API:
 
+* ``def_property_readonly`` and ``def_property_readonly_static`` for read-only
+  properties with C++ accessors.
 * ``def_property`` and ``def_property_static`` for read/write properties with
   C++ accessors.
 * ``def_readonly`` and ``def_readonly_static`` for read-only access to C++ data
@@ -640,11 +711,13 @@ pybind11 also provides:
 * ``def_readwrite`` and ``def_readwrite_static`` for read/write access to C++
   data members.
 
+See the pybind11 document of :ref:`pybind11:properties` for more information.
+
 Named and Keyword Arguments
 +++++++++++++++++++++++++++
 
-Pybind11 allows named arguments.  I take the advantage for wrapping the
-constructor of ``Grid``:
+pybind11 allows named arguments.  In the above example, we already take the
+advantage for wrapping the constructor of :cpp:class:`!Grid``:
 
 .. code-block:: cpp
 
@@ -660,22 +733,16 @@ constructor of ``Grid``:
     , py::arg("xmin"), py::arg("xmax"), py::arg("nelm")
   )
 
-and a special-purpose function:
-
-.. code-block:: cpp
-
-  .def("__str__", &detail::to_str<wrapped_type>)
+It has been shown how the named arguments are used in Python:
 
 .. code-block:: pycon
 
   >>> grid = libst.Grid(xmin=0, xmax=8, nelm=4*64)
-  >>> print('directly call Grid.__str__():', grid.__str__())
-  directly call Grid.__str__(): Grid(xmin=0, xmax=8, ncelm=256)
-  >>> print('call str(Grid):', str(grid))
-  call str(Grid): Grid(xmin=0, xmax=8, ncelm=256)
 
-``pybind11::arg`` also allows default value to the arguments (keyword
-arguments).  For example, see what I have for all the solver classes:
+See the pybind11 document of :ref:`pybind11:keyword_args` for more information.
+
+:cpp:class:`!pybind11::arg` also allows default value to the arguments (keyword
+arguments).  The wrapper code of the class :cpp:class:`!Solver` has an example:
 
 .. code-block:: cpp
 
@@ -687,6 +754,8 @@ arguments).  For example, see what I have for all the solver classes:
     , py::arg("odd_plane")=false
   )
 
+Before seeing how it is used, we run some setup code:
+
 .. code-block:: python
 
   grid = libst.Grid(0, 4*2*np.pi, 4*64)
@@ -695,20 +764,34 @@ arguments).  For example, see what I have for all the solver classes:
   dt = dx * cfl
   svr = libst.LinearScalarSolver(grid=grid, time_increment=dt)
 
+The argument *odd_plane* can be accepted in multiple forms.  This uses the default value:
+
 .. code-block:: pycon
 
   >>> print(svr.selms())
   SolverElementIterator(selm, on_even_plane, current=0, nelem=257)
+
+Pass the argument as positional:
+
+.. code-block:: pycon
+
   >>> print(svr.selms(False))
   SolverElementIterator(selm, on_even_plane, current=0, nelem=257)
   >>> print(svr.selms(True))
   SolverElementIterator(selm, on_odd_plane, current=0, nelem=256)
+
+Pass the argument as keyword:
+
+.. code-block:: pycon
+
   >>> print(svr.selms(odd_plane=False))
   SolverElementIterator(selm, on_even_plane, current=0, nelem=257)
   >>> print(svr.selms(odd_plane=True))
   SolverElementIterator(selm, on_odd_plane, current=0, nelem=256)
 
-What Happens in Python Stays in Python (or Pybind11)
+See the pybind11 document of :ref:`pybind11:default_args` for more information.
+
+What Happens in Python Stays in Python (or pybind11)
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 When wrapping from C++ to Python, there are constructs only available in the
@@ -716,11 +799,17 @@ scripting language but not the low-level implementation.  When it happens,
 write the adapting code in the pybind11 layer and do not pollute the low-level
 implementation.
 
-One example is Python iterator protocol.  The adapting code is:
+One example is :ref:`the Python iterator protocol <python:typeiter>`.  To adapt
+the C++ iterator to Python, an adapting class is created in the Python wrapping
+layer, along with other code that calls pybind11 API, and above the low-level
+C++ library in "turgon".
 
 .. code-block:: cpp
   :linenos:
+  :emphasize-lines: 29-30, 40-41
 
+  // The whole class is defined along with other code that calls pybind11 API
+  // and includes Python.h.
   template< typename ST >
   class SolverElementIterator
   {
@@ -730,14 +819,24 @@ One example is Python iterator protocol.  The adapting code is:
       using solver_type = ST;
 
       SolverElementIterator() = delete;
-      SolverElementIterator(std::shared_ptr<ST> sol, bool odd_plane, size_t starting, bool selm)
-        : m_solver(std::move(sol)), m_odd_plane(odd_plane), m_current(starting), m_selm(selm)
+      SolverElementIterator
+      (
+          std::shared_ptr<ST> sol
+        , bool odd_plane
+        , size_t starting
+        , bool selm
+      )
+        : m_solver(std::move(sol))
+        , m_odd_plane(odd_plane)
+        , m_current(starting)
+        , m_selm(selm)
       {}
 
       typename ST::celm_type next_celm()
       {
           size_t ncelm = m_solver->grid().ncelm();
           if (m_odd_plane) { --ncelm; }
+          // Use pybind11 API:
           if (m_current >= ncelm) { throw pybind11::stop_iteration(); }
           typename ST::celm_type ret = m_solver->celm(m_current, m_odd_plane);
           ++m_current;
@@ -748,6 +847,7 @@ One example is Python iterator protocol.  The adapting code is:
       {
           size_t nselm = m_solver->grid().nselm();
           if (m_odd_plane) { --nselm; }
+          // Use pybind11 API:
           if (m_current >= nselm) { throw pybind11::stop_iteration(); }
           typename ST::selm_type ret = m_solver->selm(m_current, m_odd_plane);
           ++m_current;
@@ -776,6 +876,8 @@ One example is Python iterator protocol.  The adapting code is:
 The wrapping code is:
 
 .. code-block:: cpp
+  :linenos:
+  :emphasize-lines: 1
 
   using elm_iter_type = SolverElementIterator<wrapped_type>;
   std::string elm_pyname = std::string(pyname) + "ElementIterator";
@@ -794,8 +896,8 @@ The wrapping code is:
       )
   ;
 
-Let's use a concrete solver of linear wave (governing equation is :math:`u_t +
-u_x = 0`) to demonstrate how it works in Python:
+Here we use a concrete solver of linear wave (governing equation is :math:`u_t
++ u_x = 0`) to demonstrate how it works in Python:
 
 .. literalinclude:: code/04_iter.py
   :language: python
@@ -803,18 +905,39 @@ u_x = 0`) to demonstrate how it works in Python:
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The code shows the initial condition of the linear wave:
+
 .. figure:: image/04_iter.png
   :align: center
   :width: 100%
 
-Manipulate Python Objects in C++
-================================
+The full example code is in :ref:`04_iter.py <nsd-cpppy-example-iter>` (which
+is the part of :ref:`01_linear.py <nsd-cpppy-example-linear>` that skips the
+final time marching).
 
-Pybind11 provides C++ API for manipulating Python object (the C ``struct``
-:c:type:`python:PyObject`), so that we don't need to dig into the Python C API
-and worry about the reference counting by hand.
+pybind11 Operating API
+======================
 
-The first example is to create a ``None`` object from C++.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+pybind11_ does not only provide API to wrap between C++ and Python, but also
+C++ API for operating the Python interpreter and the some Python containers:
+:py:class:`python:tuple`, :py:class:`python:list`, and :py:class:`python:dict`.
+See the document of :doc:`pybind11:advanced/pycpp/object` and the unit tests
+for more information.
+
+Python Objects in C++
++++++++++++++++++++++
+
+pybind11_ provides C++ API for manipulating Python object (the C struct
+:c:type:`python:PyObject`) using the generic :doc:`object protocol
+<python:c-api/object>`, so that we don't need to dig into the Python C API and
+worry about the reference counting by hand.
+
+The first example is to create a :ref:`None object <python:noneobject>` from
+C++:
 
 .. code-block:: cpp
 
@@ -832,6 +955,8 @@ The first example is to create a ``None`` object from C++.
       ;
   }
 
+The results:
+
 .. code-block:: pycon
 
   >>> print(type(create_none()))
@@ -840,8 +965,10 @@ The first example is to create a ``None`` object from C++.
   >>> print(create_none())
   None
 
-``pybind11::object`` is the C++ counterpart of :c:type:`python:PyObject` in C,
-but automatically does reference counting for us.
+:cpp:class:`pybind11::object <pybind11:object>` is the C++ counterpart of the C
+struct :c:type:`python:PyObject`, and it does reference counting for us.  The
+following example shows how to use :cpp:class:`pybind11::object
+<pybind11:object>` to hold a :ref:`None <python:noneobject>` object:
 
 .. code-block:: cpp
 
@@ -864,13 +991,15 @@ but automatically does reference counting for us.
       ;
   }
 
+The result:
+
 .. code-block:: pycon
 
   >>> print(return_none, return_none())
   <built-in method return_none of PyCapsule object at 0x1111b4300> None
 
-Pybind11 allows to use ``pybind11::object::attr`` to assign attribute to a
-Python object.
+pybind11 allows to use :cpp:func:`pybind11::object::attr()
+<pybind11:object_api::attr>` to assign attribute to a Python object:
 
 .. code-block:: cpp
 
@@ -883,13 +1012,19 @@ Python object.
       m.attr("string_name") = "string_content";
   }
 
+The result:
+
 .. code-block:: pycon
 
   >>> print(type(string_name), string_name)
   <class 'str'> string_content
 
-Pybind11 provides helpers to import Python module and access attibutes of every
-Python object, including a Python module.
+Import Module Using pybind11
+++++++++++++++++++++++++++++
+
+pybind11 provides a helper, :cpp:func:`pybind::module::import()
+<pybind11:module_::import>`, to import Python module and access attributes of
+every Python object, including a Python module:
 
 .. code-block:: cpp
 
@@ -914,6 +1049,8 @@ Python object, including a Python module.
       m.attr("alias_to_return_numpy_version") = m.attr("return_numpy_version");
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(return_numpy_version())
@@ -927,17 +1064,12 @@ Python object, including a Python module.
   >>> print(alias_to_return_numpy_version)
   <built-in method return_numpy_version of PyCapsule object at 0x1111b4060>
 
-Python Containers
-=================
+pybind11 for tuple
+++++++++++++++++++
 
-Pybind11 provides C++ API for creating and manipulating the most important
-Python containers: :py:class:`python:tuple`, :py:class:`python:list`, and
-:py:class:`python:dict`.  See
-https://pybind11.readthedocs.io/en/stable/advanced/pycpp/object.html and the
-unit tests for more information.
-
-:py:class:`python:tuple`
-++++++++++++++++++++++++
+To support Python :py:class:`python:tuple`, pybind11 provides the C++ class
+:cpp:class:`pybind11::tuple <pybind11:tuple>`.  Since tuple is immutable, its
+creation should use :cpp:func:`!pybind11::make_tuple()`:
 
 .. code-block:: cpp
 
@@ -952,13 +1084,20 @@ unit tests for more information.
       m.attr("my_tuple") = my_tuple;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(type(my_tuple), my_tuple)
   <class 'tuple'> ('string_data_in_tuple', 10, 3.1415926)
 
-:py:class:`python:list`
-+++++++++++++++++++++++
+pybind11 for list
++++++++++++++++++
+
+To support Python :py:class:`python:list`, pybind11 provides the C++ class
+:cpp:class:`pybind11::list <pybind11:list>`.  It is mutable and the function
+:cpp:func:`!pybind11::list::append` can be used for populating the container in
+the C++ side:
 
 .. code-block:: cpp
 
@@ -980,6 +1119,8 @@ unit tests for more information.
       m.attr("my_list2") = my_list2;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(type(my_list), my_list)
@@ -988,8 +1129,11 @@ unit tests for more information.
   >>> print(type(my_list2), my_list2)
   <class 'list'> ['string_data_in_list2', 12]
 
-:py:class:`python:dict`
-+++++++++++++++++++++++
+pybind11 for dict
++++++++++++++++++
+
+To support Python :py:class:`python:dict`, pybind11 provides the C++ class
+:cpp:class:`pybind11::dict <pybind11:dict>`.  The example in the C++ side:
 
 .. code-block:: cpp
 
@@ -1008,20 +1152,29 @@ unit tests for more information.
       m.attr("my_dict") = my_dict;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(type(my_dict), my_dict)
   <class 'dict'> {'key_string': 'string_data_in_dict', 'key_int': 13, 'key_real': 1.414}
 
-Use CPython API with Pybind11
-=============================
+CPython API with pybind11
+=========================
 
-We can use any Python C API with pybind11.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
-When we import ``pybind11/pybind11.h``, we don't need to import ``Python.h``,
-becuase the former does it for us.  But please note that
+It is possible to use Python C API along with pybind11_ and we will see how to
+do it.  Please keep in mind that the examples here omit a lot of error checking
+code that is necessary for a system to run correctly.  Consult the manual
+(:doc:`python:c-api/index`) when you need to use the C API.
+
+When importing ``pybind11/pybind11.h``, we don't need to import ``Python.h``,
+because the former does it for us.  But please note that
 ``pybind11/pybind11.h`` or ``Python.h`` should be included before every other
-inclusion.
+inclusion.  The example code in the C++ side is:
 
 .. code-block:: cpp
 
@@ -1037,13 +1190,20 @@ inclusion.
       Py_DECREF(v);
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> print(type(integer_value), integer_value)
   <class 'int'> 2000000
 
-:c:type:`python:PyObject` reference counting
-++++++++++++++++++++++++++++++++++++++++++++
+Reference Counting
+++++++++++++++++++
+
+The Python C API is more convenient for inspecting or debugging the
+:c:type:`python:PyObject` reference counting than the pybind11 class
+:cpp:class:`pybind11::object <pybind11:object>` that handles the reference
+count automatically:
 
 .. code-block:: cpp
   :linenos:
@@ -1087,6 +1247,8 @@ inclusion.
       ;
   }
 
+The test code in the Python side is:
+
 .. code-block:: python
   :linenos:
 
@@ -1104,6 +1266,8 @@ inclusion.
       print(sys.getrefcount(string_value), 'refcnt by sys')
       print(show_string_value_ref_count(), 'refcnt from c++')
 
+Check the results:
+
 .. code-block:: pycon
 
   >>> check_string_value()
@@ -1119,18 +1283,11 @@ inclusion.
   6 refcnt by sys
   5 refcnt from c++
 
-Pybind11 offers two low-level shorthands for reference counting:
-``handle::inc_ref()`` and ``handle::dec_ref()``.  If we don't want to go so
-low-level, it provides ``reinterpret_borrow`` and ``reinterpret_steal``
-function templates.
-
-Built-in Types
-==============
-
-It is possible to use Python C API along with pybind11.  I am going to should
-how to do it.  Please keep in mind that the examples in the notes omit a lot of
-error checking code that is necessary for a system to run correctly.  When you
-need to use the C API, consult the manual: :doc:`python:c-api/index`.
+pybind11 also offers two low-level short-hands for reference counting:
+:cpp:func:`pybind11:handle::inc_ref` and :cpp:func:`pybind11:handle::dec_ref`.
+If we don't want to go so low-level, it provides function templates
+:cpp:func:`pybind11:reinterpret_borrow` and
+:cpp:func:`pybind11:reinterpret_steal`.
 
 Cached Value
 ++++++++++++
@@ -1163,6 +1320,8 @@ Python interns strings consisting of alphanumerical and underscore characters.
   >>> print(sys.getrefcount(''))
   5552
 
+More examples for the string interning:
+
 .. code-block:: python
 
   def check_string_intern():
@@ -1172,6 +1331,8 @@ Python interns strings consisting of alphanumerical and underscore characters.
       s2 = 'num' + 'erical'
       print(s1 is s2)
       print(sys.getrefcount('numerical'))
+
+The results are:
 
 .. code-block:: pycon
 
@@ -1184,12 +1345,17 @@ Python interns strings consisting of alphanumerical and underscore characters.
 Attribute Access
 ++++++++++++++++
 
-The Python object protocol defines a set of API for accessing object attributes.  Here is a simple example that sets and gets an attribute of an object using the API:
+:doc:`The Python object protocol <python:c-api/object>` defines a set of API
+for accessing object attributes.  Here is a simple example that sets and gets
+an attribute of an object using the :c:func:`python:PyObject_SetAttr` and
+:c:func:`python:PyObject_GetAttr` API:
 
 .. code-block:: cpp
 
   int PyObject_SetAttr(PyObject *o, PyObject *attr_name, PyObject *v);
   PyObject* PyObject_GetAttr(PyObject *o, PyObject *attr_name);
+
+Use pybind11 to write test code for the two API:
 
 .. code-block:: cpp
   :linenos:
@@ -1232,31 +1398,50 @@ The Python object protocol defines a set of API for accessing object attributes.
       ;
   }
 
-.. code-block:: pycon
-  :linenos:
+Use a Python sample class:
 
-  >>> class Cls():
-  >>>     pass
+.. code-block:: python
+
+  class Cls():
+      pass
+
+First, build the test objects and show the reference count:
+
+.. code-block:: pycon
+
   >>> obj = Cls()
   >>> val = 'attached value'
   >>> print(sys.getrefcount(val))
   3
-  >>>
+
+Second, attach ``val`` to ``obj`` and print the reference count:
+
+.. code-block:: pycon
+
   >>> attach_attr(obj, 'name', val)
   >>> print(sys.getrefcount(val))
   4
-  >>>
+
+Check the identity of the attached object (as ``name``):
+
+.. code-block:: pycon
+
   >>> print(obj.name is val)
   True
   >>> print(sys.getrefcount(val))
   4
-  >>>
+
+Test the C++ retrieval code:
+
+.. code-block:: pycon
+
   >>> val2 = retrieve_attr(obj, 'name')
   >>> print(sys.getrefcount(val))
   5
 
 There are shorthand versions of the API that takes C string for the attribute
-name:
+name: :c:func:`python:PyObject_SetAttrString` and
+:c:func:`python:PyObject_GetAttrString`.  The example code is:
 
 .. code-block:: cpp
   :linenos:
@@ -1303,35 +1488,46 @@ name:
       ;
   }
 
-.. code-block:: pycon
-  :linenos:
+Test again and the results are the same.  First, build the test objects and
+show the reference count:
 
-  >>> class Cls():
-  >>>     pass
+.. code-block:: pycon
+
   >>> obj = Cls()
   >>> val = 'attached value'
   >>> print(sys.getrefcount(val))
   3
-  >>>
+
+Second, attach ``val`` to ``obj`` and print the reference count:
+
+.. code-block:: pycon
+
   >>> attach_attr_by_string(obj, 'name', val)
   >>> print(sys.getrefcount(val))
   4
-  >>>
+
+Check the identity of the attached object (as ``name``):
+
+.. code-block:: pycon
+
   >>> print(obj.name is val)
   True
   >>> print(sys.getrefcount(val))
   4
-  >>>
+
+Test the C++ retrieval code:
+
+.. code-block:: pycon
+
   >>> val2 = retrieve_attr_by_string(obj, 'name')
   >>> print(sys.getrefcount(val))
   5
 
-See also the documentation of :doc:`python:c-api/object`.
-
 Function Call
 +++++++++++++
 
-This section shows how to make Python function call from C.
+Python C API allows to make Python function call from C.  The follow C++ code
+takes a Python callable and use :c:func:`python:PyObject_Call`:
 
 .. code-block:: cpp
   :linenos:
@@ -1362,26 +1558,93 @@ This section shows how to make Python function call from C.
       ;
   }
 
-.. code-block:: pycon
-  :linenos:
+Use the example Python function:
 
-  >>> def my_func(arg1, kw1='default'):
-  >>>     return 'results: {}, {}'.format(arg1, kw1)
-  >>>
+.. code-block:: python
+
+  def my_func(arg1, kw1='default'):
+      return 'results: {}, {}'.format(arg1, kw1)
+
+See the results by calling using only positional arguments:
+
+.. code-block:: pycon
+
   >>> print('(direct call)  ', my_func('first argument'))
   (direct call)   results: first argument, default
   >>> print('(function_call)', function_call(my_func, ('first argument',), {}))
   (function_call) results: first argument, default
-  >>>
+
+See the results by calling using both positional and keyword arguments:
+
+.. code-block:: pycon
+
   >>> print('(direct call)  ', my_func('first argument', kw1='non default'))
   (direct call)   results: first argument, non default
-  >>> print('(function_call)', function_call(my_func, ('first argument',), {'kw1': 'non default'}))
+  >>> print('(function_call)', function_call(my_func, ('first argument',),
+  ...       {'kw1': 'non default'}))
   (function_call) results: first argument, non default
 
-See the documentation of :doc:`python:c-api/object` for other variants of the API.
+Import
+++++++
 
-Python C API for :py:class:`python:tuple`
-+++++++++++++++++++++++++++++++++++++++++
+The Python C API for import a Python module is
+:c:func:`python:PyImport_ImportModule`.  The C++ test code:
+
+.. code-block:: cpp
+  :linenos:
+
+  #include "pybind11/pybind11.h"
+
+  #include <string>
+
+  using namespace pybind11;
+
+  PyObject * get_modules()
+  {
+      PyObject * sysmod = PyImport_ImportModule("sys");
+      PyObject * modules = PyObject_GetAttrString(sysmod, "modules");
+      Py_DECREF(sysmod);
+      return modules;
+  }
+
+  PYBIND11_MODULE(ex_import, m)
+  {
+      m
+          .def
+          (
+              "get_modules"
+            , []()
+              {
+                  PyObject * ret = get_modules();
+                  return handle(ret);
+              }
+          )
+      ;
+  }
+
+The results in the Python side are:
+
+.. code-block:: pycon
+
+  >>> modules = get_modules();
+  >>> print(type(modules), len(modules))
+  <class 'dict'> 1146
+
+Python C API for tuple
+++++++++++++++++++++++
+
+Here we use a simple C++ example to show how to create and operate
+:py:class:`python:tuple` using the following Python C API in the :ref:`tuple
+protocol <python:tupleobjects>`:
+
+* :c:func:`python:PyTuple_New` creates :c:type:`python:PyTupleObject`
+* :c:func:`python:PyTuple_GetItem` retrieves an element from
+  :c:type:`python:PyTupleObject`
+* :c:func:`python:PyTuple_SetItem` sets an element to
+  :c:type:`python:PyTupleObject`
+
+The example code returns a new :py:class:`python:tuple` that has the order
+reversed:
 
 .. code-block:: cpp
   :linenos:
@@ -1420,6 +1683,8 @@ Python C API for :py:class:`python:tuple`
       ;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
   >>> tv0 = "value0"
@@ -1431,78 +1696,31 @@ Python C API for :py:class:`python:tuple`
   >>> print(sys.getrefcount(tv1))
   4
 
-See :ref:`the C API documentation for the tuple protocol <python:tupleobjects>`
-and the `code implementing
-<https://github.com/python/cpython/blob/v3.8.0/Objects/tupleobject.c#L167>`__
-:c:func:`python:PyTuple_SetItem`.
+.. note::
 
-Python C API for :py:class:`python:dict`
-++++++++++++++++++++++++++++++++++++++++
+  It is interesting to read `the code implementing
+  <https://github.com/python/cpython/blob/v3.8.0/Objects/tupleobject.c#L167>`__
+  :c:func:`python:PyTuple_SetItem` for :py:class:`python:tuple` that is
+  immutable.
 
-.. code-block:: cpp
-  :linenos:
+Python C API for list
++++++++++++++++++++++
 
-  #include "pybind11/pybind11.h"
+Here we use a simple C++ example to show how to create and operate
+:py:class:`python:list` using the following Python C API in the :ref:`list
+protocol <python:listobjects>`:
 
-  #include <string>
+* :c:func:`python:PyList_New` creates :c:type:`python:PyListObject`
+* :c:func:`python:PyList_Append` appends an element in
+  :c:type:`python:PyListObject`
 
-  using namespace pybind11;
+It also shows the some C API of the :ref:`iterator protocol <python:iterator>`:
 
-  PyObject * make_dict()
-  {
-      PyObject * ret = PyDict_New();
-      return ret;
-  }
+* :c:func:`python:PyObject_GetIter` obtains a Python iterator
+* :c:func:`python:PyObject_Next` obtains the next element from a Python iterator
 
-  void add_dict_item(PyObject * d, PyObject * k, PyObject * v)
-  {
-      /*int ret =*/
-      PyDict_SetItem(d, k, v);
-  }
-
-  PYBIND11_MODULE(ex_dict, m)
-  {
-      m
-          .def
-          (
-              "make_dict"
-            , []()
-              {
-                  return handle(make_dict());
-              }
-          )
-          .def
-          (
-              "add_dict_item"
-            , [](dict & d, object & k, object & v)
-              {
-                  add_dict_item(d.ptr(), k.ptr(), v.ptr());
-              }
-          )
-      ;
-  }
-
-.. code-block:: pycon
-
-  >>> d0 = {}
-  >>> d1 = make_dict()
-  >>> print(d0 is d1)
-  False
-  >>> print(d0 == d1)
-  True
-  >>> d0['k1'] = 'value1'
-  >>> print(d0)
-  {'k1': 'value1'}
-  >>> add_dict_item(d1, 'k1', 'value1')
-  >>> print(d1)
-  {'k1': 'value1'}
-  >>> print(d0 == d1)
-  True
-
-See :ref:`the C API documentation for the dict protocol <python:dictobjects>`.
-
-Python C API for :py:class:`python:list`
-++++++++++++++++++++++++++++++++++++++++
+The following C++ example code iterates through each element of the input
+:py:class:`python:list` and return a shallow copy of that list:
 
 .. code-block:: cpp
   :linenos:
@@ -1556,14 +1774,19 @@ Python C API for :py:class:`python:list`
   >>> print(lst)
   ['first value', 'second value']
 
-See :ref:`the C API documentation for the list protocol <python:listobjects>`
-and :ref:`the C API documentation for the iterator protocol <python:iterator>`.
+Python C API for dict
++++++++++++++++++++++
 
-Useful Operations
-=================
+Here we use a simple C++ example to show how to create and operate
+:py:class:`python:dict` using the following Python C API in the :ref:`dict
+protocol <python:dictobjects>`:
 
-Import
-++++++
+* :c:func:`python:PyDict_New` creates :c:type:`python:PyDictObject`
+* :c:func:`python:PyDict_SetItem` appends an element in
+  :c:type:`python:PyDictObject`
+
+The C++ example code create a :py:class:`python:dict` and provides an alternate
+function for adding a key-value pair in it:
 
 .. code-block:: cpp
   :linenos:
@@ -1574,37 +1797,64 @@ Import
 
   using namespace pybind11;
 
-  PyObject * get_modules()
+  PyObject * make_dict()
   {
-      PyObject * sysmod = PyImport_ImportModule("sys");
-      PyObject * modules = PyObject_GetAttrString(sysmod, "modules");
-      Py_DECREF(sysmod);
-      return modules;
+      PyObject * ret = PyDict_New();
+      return ret;
   }
 
-  PYBIND11_MODULE(ex_import, m)
+  void add_dict_item(PyObject * d, PyObject * k, PyObject * v)
+  {
+      /*int ret =*/
+      PyDict_SetItem(d, k, v);
+  }
+
+  PYBIND11_MODULE(ex_dict, m)
   {
       m
           .def
           (
-              "get_modules"
+              "make_dict"
             , []()
               {
-                  PyObject * ret = get_modules();
-                  return handle(ret);
+                  return handle(make_dict());
+              }
+          )
+          .def
+          (
+              "add_dict_item"
+            , [](dict & d, object & k, object & v)
+              {
+                  add_dict_item(d.ptr(), k.ptr(), v.ptr());
               }
           )
       ;
   }
 
+The results in the Python side are:
+
 .. code-block:: pycon
 
-  >>> modules = get_modules();
-  >>> print(type(modules), len(modules))
-  <class 'dict'> 1146
+  >>> d0 = {}
+  >>> d1 = make_dict()
+  >>> print(d0 is d1)
+  False
+  >>> print(d0 == d1)
+  True
+  >>> d0['k1'] = 'value1'
+  >>> print(d0)
+  {'k1': 'value1'}
+  >>> add_dict_item(d1, 'k1', 'value1')
+  >>> print(d1)
+  {'k1': 'value1'}
+  >>> print(d0 == d1)
+  True
 
 Exception
 +++++++++
+
+Here is a simple example for using Python exceptions from C++ (see also
+:ref:`python:api-exceptions` and :doc:`python:c-api/exceptions`):
 
 .. code-block:: cpp
   :linenos:
@@ -1657,6 +1907,8 @@ Exception
       ;
   }
 
+The exception-free results in the Python side are:
+
 .. code-block:: pycon
 
   >>> try:
@@ -1666,6 +1918,8 @@ Exception
   >>> else:
   >>>     print('error not raised')
   'int' object is not iterable
+
+The exception results in the Python side are:
 
 .. code-block:: pycon
 
@@ -1678,20 +1932,22 @@ Exception
   >>>     print('error not raised')
   intentional exception
 
-See also :ref:`python:api-exceptions` and :doc:`python:c-api/exceptions`.
-
 Python Memory Management
 ========================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Python has its own memory manager.  When writing Python extension, they should
 be used for :c:type:`python:PyObject`.  The memory managing system has three levels:
 
 1. Raw memory interface: wrapper to the C standard memory managers.  It allows
-  distinct addressed returned when requesting 0 byte.  GIL is not involved.
+   distinct addressed returned when requesting 0 byte.  GIL is not involved.
 2. Normal memory interface: 'pymalloc' with small memory optimization.  GIL is
-  required when calling.
+   required when calling.
 3. Object memory interface: allocate for :c:type:`python:PyObject`.  GIL is
-  required when calling.
+   required when calling.
 
 The public API are:
 
@@ -1778,8 +2034,8 @@ Also see `the code
 Small Memory Optimization
 +++++++++++++++++++++++++
 
-Take a look at the documentation in `the
-code<https://github.com/python/cpython/blob/v3.8.0/Objects/obmalloc.c#L766>`__.
+Take a look at the documentation in `the code
+<https://github.com/python/cpython/blob/v3.8.0/Objects/obmalloc.c#L766>`__.
 This is the 'pymalloc', and it uses 256 KB for allocation not greater than 512
 bytes.
 

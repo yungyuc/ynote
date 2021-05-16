@@ -1,0 +1,6 @@
+build/
+tmp/
+*.pyc
+*.pyo
+*.so
+*.dylib
