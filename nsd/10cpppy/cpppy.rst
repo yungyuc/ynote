@@ -317,7 +317,7 @@ the grid definition class :cpp:class:`!Grid`.  Its wrapper is the simplest:
                   (
                       [](real_type xmin, real_type xmax, size_t nelm)
                       {
-                      return Grid::construct(xmin, xmax, nelm);
+                          return Grid::construct(xmin, xmax, nelm);
                       }
                   ),
                   py::arg("xmin"), py::arg("xmax"), py::arg("nelm")
