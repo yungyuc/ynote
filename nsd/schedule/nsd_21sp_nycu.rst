@@ -2,8 +2,8 @@
 NSD Schedule 2021 Spring NYCU
 =============================
 
-`Link to NYCU course system
-<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=109&Sem=2&CrsNo=5301>`__.
+`Link to NYCU course system.
+<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=109&Sem=2&CrsNo=5301>`__
 
 .. list-table::
   :header-rows: 1

@@ -1,6 +1,6 @@
-=================================
-Fundamental Engineering Practices
-=================================
+=======================
+Fundamental Engineering
+=======================
 
 Writing computer code is only a fraction of software engineering.  A large
 chunk of efforts is spent in the coding infrastructure.  The keyword is
