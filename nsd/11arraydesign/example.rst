@@ -50,6 +50,22 @@ Example Code: C++ and C for Python
   :language: python
   :linenos:
 
+.. literalinclude:: code/data_prep.cpp
+  :name: nsd-arraydesign-example-dataprep
+  :caption:
+    C++ code for least-square regression to polynomial functions
+    (:download:`data_prep.cpp <code/data_prep.cpp>`).
+  :language: cpp
+  :linenos:
+
+.. literalinclude:: code/04_fit_poly.py
+  :name: nsd-arraydesign-example-fitpoly
+  :caption:
+    The Python driver to the least-square regression using the C++ code
+    (:download:`04_fit_poly.py <code/04_fit_poly.py>`).
+  :language: python
+  :linenos:
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 

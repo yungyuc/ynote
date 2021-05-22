@@ -390,8 +390,8 @@ different computing kernels side by side:
       }
   }
 
-Major Source of Overhead: Data Preparation
-==========================================
+Overhead in Data Preparation
+============================
 
 .. contents:: Contents in the section
   :local:
@@ -405,15 +405,125 @@ results is equally important.
 In our previous example of solving the Laplace equation, all the conditions are
 hard-coded.  It's OK for the teaching purpose, but not useful to those who
 don't know so much about the math and numerical.  This time, I will use an
-example of curve fitting to show how the house-keeping code affects
-performance, and xtensor comes to help.
+example of polynomial curve fitting for variable-size data groups to show how
+the house-keeping code affects performance.
 
-We will do polynomial curve fitting for data in groups of variable length.
+Least-Square Regression
++++++++++++++++++++++++
+
+The problem is to find an :math:`n`\ -th order algebraic polynomial function
+
+.. math::
+
+  p_n(x) = \sum_{i=0}^n a_ix^i
+
+such that there is :math:`\min(f(\mathbf{a}))`, where the :math:`L_2` norm is
+
+.. math::
+
+  f(\mathbf{a}) = \sum_{k=1}^m\left(p_n(x_k) - y_k\right)^2
+
+for the point cloud :math:`(x_k, y_k), \; k = 1, 2, \ldots, m`.  For the
+function :math:`f` to have global minimal, there must exist a vector
+:math:`\mathbf{a}` such that :math:`\nabla f = 0`.  Take the partial derivative
+with respected to each of the polynomial coefficients :math:`a_0, a_1, \ldots,
+a_n`
+
+.. math::
+
+  \frac{\partial f}{\partial a_i}
+  & =
+    \frac{\partial}{\partial a_i}
+    \left[
+      \sum_{k=1}^m
+      \left(
+        \sum_{j=0}^n a_jx_k^j - y_k
+      \right)
+    \right]^2 \\
+  & = 
+    2 \sum_{k=1}^m x_k^i
+      \left(
+        \sum_{j=0}^n a_jx_k^j - y_k
+      \right) \\
+  & = 
+    2 \sum_{k=1}^m
+      \left(
+        \sum_{j=0}^n a_jx_k^{i+j} - x_k^iy_k
+      \right)
+  , \; i = 0, 1, \ldots, n
+
+Because :math:`\frac{\partial f}{\partial a_i} = 0`, we obtain
+
+.. math::
+
+    \sum_{j=0}^n a_j \sum_{k=1}^m x_k^{i+j} = \sum_{k=1}^m x_k^iy_k
+
+The equations may be written in the matrix-vector form
+
+.. math::
+
+  \mathrm{M}\mathbf{a} = \mathbf{b}
+
+The system
+
+.. math::
+
+  \mathrm{M} = \left(\begin{array}{ccccc}
+    m & \sum_{k=1}^m x_k^1 & \sum_{k=1}^m x_k^2 & \cdots & \sum_{k=1}^m x_k^n \\
+    \sum_{k=1}^m x_k^1 & \sum_{k=1}^m x_k^2 & \sum_{k=1}^m x_k^2 &
+      \cdots & \sum_{k=1}^m x_k^{1+n} \\
+    \sum_{k=1}^m x_k^2 & \sum_{k=1}^m x_k^3 & \sum_{k=1}^m x_k^4 &
+      \cdots & \sum_{k=1}^m x_k^{2+n} \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    \sum_{k=1}^m x_k^n & \sum_{k=1}^m x_k^{n+1} & \sum_{k=1}^m x_k^{n+2} &
+      \cdots & \sum_{k=1}^m x_k^{2n}
+  \end{array}\right)
+
+The vector for the polynomial coefficients and the right-hand side vector are
+
+.. math::
+
+  \mathbf{a} = \left(\begin{array}{c}
+    a_0 \\ a_1 \\ a_2 \\ \vdots \\ a_n
+  \end{array}\right), \;
+  \mathbf{b} = \left(\begin{array}{c}
+    \sum_{k=1}^m y_k \\
+    \sum_{k=1}^m x_ky_k \\
+    \sum_{k=1}^m x_k^2y_k \\
+    \vdots \\
+    \sum_{k=1}^m x_k^ny_k
+  \end{array}\right)
+
+The full example code is in :ref:`data_prep.cpp
+<nsd-arraydesign-example-dataprep>`.  The Python driver is in
+:ref:`04_fit_poly.py <nsd-arraydesign-example-fitpoly>`.
+
+This is the helper function calculating the coefficients of one fitted
+polynomial by using the least square regression:
 
 .. literalinclude:: code/data_prep.cpp
+  :name: nsd-arraydesign-fit-single
+  :caption: C++ function for fitting a single polynomial function.
   :language: cpp
   :linenos:
-  :end-before: // [end example]
+  :start-after: // [begin example: single fit]
+  :end-before: // [end example: single fit]
+
+This is another helper function calculating the coefficients of a sequence of
+fitted polynomials:
+
+.. literalinclude:: code/data_prep.cpp
+  :name: nsd-arraydesign-fit-multi
+  :caption: C++ function for fitting multiple polynomial functions.
+  :language: cpp
+  :linenos:
+  :start-after: // [begin example: multiple fit]
+  :end-before: // [end example: multiple fit]
+
+Prepare Data in Python
+++++++++++++++++++++++
+
+Now we create the data to test for how much time is spent in data preparation:
 
 .. code-block:: pycon
 
@@ -423,7 +533,17 @@ We will do polynomial curve fitting for data in groups of variable length.
   >>>     ydata = np.random.sample(len(xdata)) * 1000
   Wall time: 0.114635 s
 
+.. note::
+
+  The data is created in a certain way so that :ref:`the multi-polynomial
+  helper <nsd-arraydesign-fit-multi>` can automatically determine the grouping
+  of the variable-size groups of the input.
+
+Before testing the runtime, we take a look at a fitted polynomial:
+
 .. code-block:: python
+  :linenos:
+  :emphasize-lines: 9
 
   import data_prep
 
@@ -439,16 +559,14 @@ We will do polynomial curve fitting for data in groups of variable length.
       xp = np.linspace(sub_x.min(), sub_x.max(), 100)
       plt.plot(sub_x, sub_y, '.', xp, poly(xp), '-')
 
-.. code-block:: pycon
-
-  >>> plot_poly_fitted(10)
+  plot_poly_fitted(10)
 
 .. figure:: image/04_fit_poly.png
   :align: center
   :width: 100%
 
-Now, let's see the impact to runtime from the house-keeping code outside the
-calculating helper.
+Fitting a single polynomial is fairly fast.  In what follows, we test the
+runtime by fitting many polynomials:
 
 .. code-block:: pycon
 
@@ -463,6 +581,8 @@ calculating helper.
   >>>         polygroup[i,:] = data_prep.fit_poly(sub_x, sub_y, 2)
   Wall time: 1.49671 s
 
+To analyze, we separate the house-keeping code outside the calculating helper:
+
 .. code-block:: pycon
 
   >>> with Timer():
@@ -473,6 +593,8 @@ calculating helper.
   >>>         data_groups.append((xdata[slct], ydata[slct]))
   Wall time: 1.24653 s
 
+The real fitting code:
+
 .. code-block:: pycon
 
   >>> with Timer():
@@ -482,19 +604,24 @@ calculating helper.
   >>>         polygroup[it,:] = data_prep.fit_poly(sub_x, sub_y, 2)
   Wall time: 0.215859 s
 
-It's very productive to write house-keeping code in Python.  As we see, the
-price to pay is the runtime, and oftentimes memory as well.  But to spend 5x
-the runtime in house-keeping code is intolerable.  We need to write C++ to
-speed up.
 
-Now see the ``fit_polys()`` C++ helper.  It detects the point group right
-before fitting.
+Although the house-keeping code is much easier to write in Python than in C++,
+it runs more than 5 times slower (the fitting code takes only 17% of the
+runtime of the house-keeping code).
+
+Prepare Data in C++
++++++++++++++++++++
+
+Now run :ref:`the C++ multi-polynomial helper <nsd-arraydesign-fit-multi>`.  It
+detects the point group right before fitting:
 
 .. code-block:: pycon
 
   >>> with Timer():
   >>>     rbatch = data_prep.fit_polys(xdata, ydata, 2)
   Wall time: 0.21058 s
+
+The overhead of the Python house-keeping code is all gone.
 
 Struct of Array and Array of Struct
 ===================================
