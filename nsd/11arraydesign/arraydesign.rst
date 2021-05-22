@@ -2,27 +2,26 @@
 Array Code in C++
 =================
 
-xtensor (http://xtensor.readthedocs.io/) is an array library in C++.  It
-defines the multi-dimensional array data structure suitable for compile-time
-optimization.  The array library helps us organize code and achieve fast
-runtime.
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
 
-1. Python is slow but easy to write
-2. Speed up by using numpy (still in Python)
-3. Xtensor: write iterative code in C++ speed using arrays
-4. Effect of house-keeping code
-
-More on array-based system design:
-
-1. Design interface with arrays
-2. Conversion between dynamic and static semantics
-3. Insert profiling code
+As we have learned in :doc:`../04matrix/matrix`, :doc:`../05cache/cache`, and
+:doc:`../06simd/simd`, fast code calls for regular access to compact data.  Not
+all data structures offer fast runtime.  For writing fast code, arrays are the
+simplest and most commonly used data structure.  We will discuss how to use
+arrays to achieve high speed.
 
 Python Is Slow
 ==============
 
-Python is usually slow when it comes to number-crunching, but so convenient to
-code.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+When using Python for number-crunching, the fact of its slowness needs to be
+kept in mind always.  Handling the slowness is the key to make Python run as
+fast as C.
 
 Here we consider a boundary value problem of the Laplace equation for
 temperature distribution in a :math:`1\times1` square area.
@@ -36,10 +35,15 @@ temperature distribution in a :math:`1\times1` square area.
     u(x,0) = 0, & u(x,1) = 0 & \rule{4ex}{0pt} (0 \le x \le 1)
   \end{array}\right.
 
+.. _nsd-arraydesign-python:
+
+Laplace Equation in Python
+++++++++++++++++++++++++++
+
 To solve it numerically, we choose the finite-difference method.  The
 finite-difference method needs a grid to discretize the spatial domain.  The
 simplest spatial discretization is the homogeneous Cartesian grid.  Let's make
-a :math:`51\times51` Cartesian grid.
+a :math:`51\times51` Cartesian grid.  The Python code is:
 
 .. literalinclude:: code/01_grid.py
   :language: python
@@ -47,12 +51,17 @@ a :math:`51\times51` Cartesian grid.
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full code is in :ref:`01_grid.py <nsd-arraydesign-example-grid>`.  Plot the
+grid using matplotlib:
+
 .. figure:: image/01_grid.png
   :align: center
   :width: 100%
 
-After the grid is defined, we may derive the finite-differencing formula.  Use
-the Taylor series expansion to obtain the difference equation:
+  A Cartesian grid of :math:`51\times51` grid points.
+
+After the grid is defined, we derive the finite-differencing formula.  Use the
+Taylor series expansion to obtain the difference equation:
 
 .. math::
 
@@ -67,7 +76,7 @@ Note :math:`\Delta x = \Delta y`.  The difference equation is rewritten as
     + u(x_i, y_{j+1}) + u(x_i, y_{j-1})}{4}
 
 Apply the point-Jacobi method to write a formula to iteratively solve the
-difference equaion:
+difference equation:
 
 .. math::
 
@@ -76,7 +85,8 @@ difference equaion:
 
 where :math:`u^n` is the solution at the :math:`n`-th iteration.
 
-Now we can use Python to quickly implement the solver:
+Using the above formula, we are ready to implement the solver in Python.  The
+code is short and straight-forward:
 
 .. literalinclude:: code/01_solve_python_loop.py
   :language: python
@@ -84,24 +94,38 @@ Now we can use Python to quickly implement the solver:
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full code is in :ref:`01_solve_python_loop.py
+<nsd-arraydesign-example-solvepy>`.  The solution can be plotted using
+matplotlib:
+
+.. figure:: image/01_solve_python_loop.png
+  :name: nsd-arraydesign-laplace-python
+  :align: center
+  :width: 100%
+
+  Numerical solution of the Laplace equation in Python.
+
+The solution takes quite a while (4.797 seconds) to converge using 2097
+iterations:
+
 .. code-block:: pycon
 
   >>> with Timer():
   >>>    u, step, norm = solve_python_loop()
-  u, step, norm = solve_python_loop()
+  >>> print(step)
   Wall time: 4.79688 s
+  2097
 
-.. figure:: image/01_solve_python_loop.png
-  :align: center
-  :width: 100%
+.. _nsd-arraydesign-analytical:
 
-It takes quite a while (around 5 seconds) to converge with 2097 iterations.
+Analytical Solution
++++++++++++++++++++
 
-Is the calculation correct?  For any numerical application, correctness is the
-first condition.
+Is the calculation correct?  It is the first question to ask for any numerical
+application.
 
-We may compare the numerical solution with the analytical solution.  Recall
-the PDE and its boundary conditions:
+We may compare the numerical solution to the analytical solution.  Recall the
+PDE and its boundary conditions:
 
 .. math::
 
@@ -189,9 +213,19 @@ It is obtained that :math:`\alpha_1 = \sinh^{-1}(\pi)` and :math:`\alpha_k = 0
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full code is in :ref:`01_solve_analytical.py
+<nsd-arraydesign-example-solveana>`.  The solution is plotted:
+
 .. figure:: image/01_solve_analytical.png
+  :name: nsd-arraydesign-laplace-analytical
   :align: center
   :width: 100%
+
+  Analytical solution of the Laplace equation.
+
+Say :math:`u_a` is the analytical solution.  The numerical solution is compared
+against the analytical solution, and the result :math:`|u-u_a|_{\infty} <
+0.005` is good enough.
 
 .. code-block:: pycon
 
@@ -200,15 +234,14 @@ It is obtained that :math:`\alpha_1 = \sinh^{-1}(\pi)` and :math:`\alpha_k = 0
   >>> print("Linf of difference is %f" % np.abs(u - uanalytical).max())
   Linf of difference is 0.004962
 
-Say :math:`u_a` is the analytical solution.  :math:`|u-u_a|_{\infty}` from the
-above result is good enough.
+.. _nsd-arraydesign-numpy:
 
 Array-Based Code with Numpy
-===========================
++++++++++++++++++++++++++++
 
-We usually can use numpy to speed up the slow Python loops.  Numpy implements
-fast calculations in C.  By using numpy, we essentially delegate the
-calculation to C.
+To speed up the slow Python loops, numpy is usually a solution.  Numpy
+implements fast calculations in C.  By using numpy, the intensive calculation
+is delegated to C.
 
 .. literalinclude:: code/02_solve_array.py
   :language: python
@@ -216,9 +249,20 @@ calculation to C.
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full code is in :ref:`02_solve_array.py <nsd-arraydesign-example-solvenp>`.
+The solution is verified to be the same as that with naive Python loops and
+then plotted:
+
 .. figure:: image/02_solve_array.png
+  :name: nsd-arraydesign-laplace-numpy
   :align: center
   :width: 100%
+
+  Numerical solution of the Laplace equation using numpy.
+
+The speed is much better: less than 0.1 second.  Compared to that of the naive
+Python loops, the speed up is more than 50x (to be exact, :ref:`87x
+<runtime-comparison>`):
 
 .. code-block:: pycon
 
@@ -227,16 +271,23 @@ calculation to C.
   >>>     u, step, norm = solve_array()
   Wall time: 0.0552309 s
 
-The speed is much better: less than 0.1 second.  Compared to the naive Python
-loop, the speed up is more than 50x (to be exact, :ref:`87x
-<runtime-comparison>`).
+.. _nsd-arraydesign-cpp:
 
 Nested Loop in C++
-==================
+++++++++++++++++++
 
-Oftentimes numpy is still not fast enough.  Besides, it's not really easy to
-read.  Nested loop reads more straight-forward for our point-Jacobi method.
-Now xtensor comes to help.
+While numpy does speed up the naive Python loops, it has two drawbacks:
+
+1. It is still not optimal speed.
+2. The code is not easy to read, compared to the element-wise code in the loop
+   version.  Nested loop reads more straight-forward for our point-Jacobi
+   method.
+
+Here we will see how much faster it can get to move the code from numpy to C++.
+To simplify the algorithm implementation, I use a library named `xtensor
+<http://xtensor.readthedocs.io/>`_.  It defines the multi-dimensional array
+data structure suitable for compile-time optimization.  An array library like
+that makes it easy to organize the code and achieve faster runtime.
 
 Except the parentheses, the C++ version looks almost the same as the Python
 version.
@@ -244,15 +295,22 @@ version.
 .. literalinclude:: code/solve_cpp.cpp
   :language: cpp
   :linenos:
+  :start-after: // [begin example]
   :end-before: // [end example]
 
-.. code-block:: console
-
-  $ g++ solve_cpp.cpp -o solve_cpp.so -O3 -fPIC -shared -std=c++17 -lpython3.9
+The full C++ code is in :ref:`solve_cpp.cpp
+<nsd-arraydesign-example-solvecpp>`.  The Python driver code for the C++ kernel
+is in :ref:`03_solve_cpp.py <nsd-arraydesign-example-solvecpppy>`.  We verify
+the C++ code is to verify the solution is the same as before.  It is plotted:
 
 .. figure:: image/03_solve_cpp.png
+  :name: nsd-arraydesign-laplace-cpp
   :align: center
   :width: 100%
+
+  Numerical solution of the Laplace equation using C++.
+
+Then we time the C++ version:
 
 .. code-block:: pycon
 
@@ -260,7 +318,20 @@ version.
   >>>     u, step, norm = solve_cpp.solve_cpp(uoriginal)
   Wall time: 0.0251369 s
 
-.. list-table:: Runtime with Python loop, Numpy array, and C++ loop
+It is twice as fast as the numpy version (0.0552309 seconds).
+
+Overall Comparison
+++++++++++++++++++
+
+Now make a comparison for the three different implementations.
+
+Runtime Performance
+-------------------
+
+By putting all timing data in a table, it is clear how much the C++ version
+wins:
+
+.. list-table:: Runtime with Python loop, Numpy array, and C++ loop.
   :name: runtime-comparison
   :align: center
 
@@ -281,8 +352,50 @@ version.
     - 191.88
     - 2.2
 
+Readability and/or Maintainability
+----------------------------------
+
+To compare the easy-of-reading among the three versions, we list the three
+different computing kernels side by side:
+
+.. code-block:: python
+  :name: nsd-arraydesign-kernel-py
+  :caption:
+    Element-wise kernel using pure Python (full case in
+    :ref:`nsd-arraydesign-python`).
+
+  for it in range(1, nx-1):
+      for jt in range(1, nx-1):
+          un[it,jt] = (u[it+1,jt] + u[it-1,jt] + u[it,jt+1] + u[it,jt-1]) / 4
+
+.. code-block:: python
+  :name: nsd-arraydesign-kernel-np
+  :caption:
+    Element-wise kernel using numpy (full case in
+    :ref:`nsd-arraydesign-numpy`).
+
+  un[1:nx-1,1:nx-1] = (u[2:nx,1:nx-1] + u[0:nx-2,1:nx-1] +
+                       u[1:nx-1,2:nx] + u[1:nx-1,0:nx-2]) / 4
+
+.. code-block:: cpp
+  :name: nsd-arraydesign-kernel-cpp
+  :caption:
+    Element-wise kernel using C++ (full case in :ref:`nsd-arraydesign-cpp`).
+
+  for (size_t it=1; it<nx-1; ++it)
+  {
+      for (size_t jt=1; jt<nx-1; ++jt)
+      {
+          un(it,jt) = (u(it+1,jt) + u(it-1,jt) + u(it,jt+1) + u(it,jt-1)) / 4;
+      }
+  }
+
 Major Source of Overhead: Data Preparation
 ==========================================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Numerical calculation takes time.  Intuitively, developers spend time on
 optimizing the number-crunching code.  However, for a useful application, the
@@ -386,6 +499,10 @@ before fitting.
 Struct of Array and Array of Struct
 ===================================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 .. code-block:: cpp
   :linenos:
 
@@ -417,6 +534,10 @@ Struct of Array and Array of Struct
 
 Conversion between Dynamic and Static
 =====================================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 It's not a bad idea to do it manually.  Spelling out the static to dynamic
 conversion makes it clear what do we want to do.  When we work in the
@@ -522,6 +643,7 @@ https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L56
       }
 
   // ...
+  }
 
 ``pybind11::cppfunction::initialize``
 -------------------------------------
@@ -549,6 +671,10 @@ https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L423
 
 Insert Profiling Code
 =====================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 In addition to using OS-provided profiling tools, e.g., Linux's perf and
 Macos's Instruments, we should also add a custom profiling layer in the code.

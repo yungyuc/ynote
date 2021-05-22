@@ -11,6 +11,7 @@
 #include <xtensor/xadapt.hpp>
 #include <xtensor/xview.hpp>
 
+// [begin example]
 std::tuple<xt::xarray<double>, size_t, double>
 solve1(xt::xarray<double> u)
 {
@@ -41,7 +42,8 @@ PYBIND11_MODULE(solve_cpp, m)
     xt::import_numpy();
     m.def
     (
-        "solve_cpp", [](xt::pyarray<double> & uin) { return solve1(xt::xarray<double>(uin)); }
+        "solve_cpp"
+      , [](xt::pyarray<double> & uin) { return solve1(xt::xarray<double>(uin)); }
     );
 }
 // [end example]

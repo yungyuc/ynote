@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
 
-# [begin example]
-import numpy as np
 from matplotlib import pyplot as plt
 
+# [begin example]
+import numpy as np
+
 def make_grid():
+    # Number of the grid points.
     nx = 51
+    # Produce the x coordinates.
     x = np.linspace(0, 1, nx)
+    # Create the two arrays for x and y coordinates of the grid.
     gx, gy = np.meshgrid(x, x)
+    # Create the field and zero-initialize it.
     u = np.zeros_like(gx)
+    # Set the boundary condition.
     u[0,:] = 0
     u[-1,:] = 1 * np.sin(np.linspace(0,np.pi,nx))
     u[:,0] = 0
     u[:,-1] = 0
+    # Return all values.
     return nx, x, u
+
+nx, x, uoriginal = make_grid()
+# [end example]
 
 def show_grid(size):
     fig, ax = plt.subplots(figsize=(size,size))
@@ -23,11 +33,10 @@ def show_grid(size):
     ax.set_yticks(x, minor=True)
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
-    ax.grid(True, which='minor')
+    ax.grid(True, which='major', linewidth=2)
+    ax.grid(True, which='minor', linewidth=1)
 
-nx, x, uoriginal = make_grid()
 show_grid(10)
-# [end example]
 
 plt.rc('figure', figsize=(8, 8))
 
