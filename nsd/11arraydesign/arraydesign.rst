@@ -705,21 +705,52 @@ a handle or proxy class to access the point data.
       double & y()       { return soa.y[idx]; }
   };
 
-Conversion between Dynamic and Static
-=====================================
+Translation between Dynamic and Static
+======================================
 
 .. contents:: Contents in the section
   :local:
   :depth: 1
 
-It's not a bad idea to do it manually.  Spelling out the static to dynamic
-conversion makes it clear what do we want to do.  When we work in the
-inner-most loop, no :c:type:`python:PyObject` or virtual function table should
-be there.
+In C++ we can use template to do many things during compile time without
+needing to use a CPU instruction during runtime.  For example, we may use CRTP
+(see :ref:`nsd-cpp-crtp`) for the static polymorphism, instead of really
+checking for the type during runtime (dynamically).
+
+But when we are trying to present the nicely optimized code to Python users,
+there is a problem: a dynamic language like Python does not know anything about
+a compile time entity like template.  In Python, everything is dynamic (happens
+during runtime).  We need to translate between the dynamic behaviors in Python
+and the static behaviors in C++.
+
+This translation matters to our system design using arrays because the arrays
+carry type information that helps the C++ compiler generate efficient
+executables, and we do not want to lose the performance when doing the
+translation.  Thus, it is not a bad idea to do it manually.  Spelling out the
+static to dynamic conversion makes it clear what do we want to do.  When we
+work in the inner-most loop, no :c:type:`python:PyObject` or virtual function
+table should be there.  The explicitness will help us add ad hoc optimization
+or debug for difficult performance issues.
+
+We will use an example to show one way to explicitly separate the static and
+dynamic behaviors.  The model problem is to define the operations of the
+spatially discretized grid and the elements.
+
+Class Templates for General Behaviors
++++++++++++++++++++++++++++++++++++++
+
+There should be general code and information for all of the grids, and they are
+kept in some class templates.  The C++ compiler knows when to put the code and
+information in proper places.
 
 .. code-block:: cpp
+  :caption: The (static) class template for grids.
   :linenos:
 
+  /**
+   * Spatial table basic information.  Any table-based data store for spatial
+   * data should inherit this class template.
+   */
   template <size_t ND>
   class SpaceBase
   {
@@ -727,22 +758,52 @@ be there.
       static constexpr const size_t NDIM = ND;
       using serial_type = uint32_t;
       using real_type = double;
-  }; /* end class SpaceBase */
+  };
+
+  /**
+   * Base class template for structured grid.
+   */
+  template <dim_t ND>
+  class StaticGridBase
+    : public SpaceBase<ND>
+  {
+      // Code that is general to the grid of any dimension.
+  };
+
+Classes for Specific Behaviors
+++++++++++++++++++++++++++++++
+
+There may be different behaviors for each of the dimension, and we may use a
+class to house the code and data.
+
+.. code-block:: cpp
+  :caption: The classes instantiating the grid class templates.
+  :linenos:
 
   class StaticGrid1d
     : public StaticGridBase<1>
   {
-  }; /* end class StaticGrid1d */
+  };
 
   class StaticGrid2d
     : public StaticGridBase<2>
   {
-  }; /* end class StaticGrid2d */
+  };
 
   class StaticGrid3d
     : public StaticGridBase<3>
   {
-  }; /* end class StaticGrid3d */
+  };
+
+Dynamic Behaviors in Interpreter
+++++++++++++++++++++++++++++++++
+
+Everything in Python needs to be dynamic, and we can absorb it in the wrapping
+layer.
+
+.. code-block:: cpp
+  :caption: The ad hoc wrappers for each of the grid classes.
+  :linenos:
 
   /*
    * WrapStaticGridBase has the pybind11 wrapping code.
@@ -751,17 +812,17 @@ be there.
   class WrapStaticGrid1d
     : public WrapStaticGridBase< WrapStaticGrid1d, StaticGrid1d >
   {
-  }; /* end class WrapStaticGrid1d */
+  };
 
   class WrapStaticGrid2d
     : public WrapStaticGridBase< WrapStaticGrid2d, StaticGrid2d >
   {
-  }; /* end class WrapStaticGrid2d */
+  };
 
   class WrapStaticGrid3d
     : public WrapStaticGridBase< WrapStaticGrid3d, StaticGrid3d >
   {
-  }; /* end class WrapStaticGrid3d */
+  };
 
   PYBIND11_MODULE(_modmesh, mod)
   {
@@ -770,13 +831,18 @@ be there.
       WrapStaticGrid3d::commit(mod);
   }
 
-Example: ``pybind11::cppfunction``
-++++++++++++++++++++++++++++++++
+How pybind11 Translates
++++++++++++++++++++++++
 
-``pybind11::cppfunction``
--------------------------
+We rely on `pybind11 <https://pybind11.readthedocs.io/>`_ for doing the
+translate behind the wrappers.
 
-https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L56
+Here we take a look at `the code of a older version 2.4.3
+<https://github.com/pybind/pybind11/tree/v2.4.3>`__ to understand what is
+happening behind the scenes.  pybind11 uses the class
+:cpp:class:`!pybind11::cppfunction` to wrap everything that is callable in C++
+to be a callable in Python (`see line 56 in pybind11.h
+<https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L56>`__):
 
 .. code-block:: cpp
   :linenos:
@@ -818,28 +884,29 @@ https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L56
   // ...
   }
 
-``pybind11::cppfunction::initialize``
--------------------------------------
-
-https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L98
+The constructors call :cpp:func:`!pybind11::cppfunction::initialize` to
+populate necessary information for the callables: to be a callable in Python
+(`see line 98 in pybind11.h
+<https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L98>`__):
 
 .. code-block:: cpp
 
   /// Special internal constructor for functors, lambda functions, etc.
   template <typename Func, typename Return, typename... Args, typename... Extra>
   void initialize(Func &&f, Return (*)(Args...), const Extra&... extra) {
-    // ...
+    // Code populating necessary information for calling the callables.
   }
 
-``pybind11::cppfunction::dispatch``
------------------------------------
-
-https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L423
+When Python wants to call a callable controlled by
+:cpp:class:`!pybind11::cppfunction`, pybind11 uses
+:cpp:func:`!pybind11::cppfunction::dispatch` to find the corresponding object
+(`see line 423 in pybind11.h
+<https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L423>`__):
 
 .. code-block:: cpp
 
   static PyObject *dispatcher(PyObject *self, PyObject *args_in, PyObject *kwargs_in) {
-    // ...
+    // Read the Python information and find the right cppfunction for execution.
   }
 
 Profile at Wrapper
