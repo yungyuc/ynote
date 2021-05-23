@@ -2,8 +2,21 @@
 Advanced Python
 ===============
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
+Python is a simple language, but its base on dynamicity makes it to easily
+implement some magical behaviors.  Although the cost at runtime is high, the
+magics is very convenient.  Combined with the high-speed C++ and C code, the
+advanced Python features are powerful when used correctly.
+
 Iterator
 ========
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 While processing data in memory, they are iterated one by one.  Assume we have
 10 elements in a list.
@@ -253,6 +266,10 @@ brackets:
 Python Stack Frame
 ==================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 (C)Python uses a stack-based interpreter.  We are allowed to peek all the
 previous stack frames:
 
@@ -277,10 +294,10 @@ previous stack frames:
     File "<stdin>", line 2, in f2
     File "<stdin>", line 2, in f1
 
-``frame`` object
-++++++++++++++++
+Frame Object
+++++++++++++
 
-We can get the ``frame`` object of the current stack frame using
+We can get the :py:class:`!frame` object of the current stack frame using
 :py:func:`python:inspect.currentframe`:
 
 .. code-block:: pycon
@@ -377,8 +394,14 @@ An example script for showing stack frame:
   frame #1:
     FrameInfo(frame=<frame at 0x104762450, file './showframe.py', line 11, code <module>>, filename='./showframe.py', lineno=11, function='<module>', code_context=['    main()\n'], index=0)
 
-Customizing Module Import with :py:data:`python:sys.meta_path`
-==============================================================
+Module Magic with meta_path
+===========================
+
+:py:data:`python:sys.meta_path`
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Python :doc:`importlib <python:library/importlib>` allows high degree of
 freedom in customizing how modules are imported.  Here I will use an example to
@@ -498,6 +521,10 @@ The module objects have an important field :py:data:`!__spec__`, which is the
 Descriptor
 ==========
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 The :doc:`descriptor protocol <python:howto/descriptor>` allows us to route
 attribute access to anywhere outside the class.
 
@@ -606,6 +633,10 @@ In a new instance, the value uses the initial value:
 Metaclass
 =========
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Python class is also an object.
 
 .. code-block:: python
@@ -697,8 +728,14 @@ Instead, :py:class:`!AutoAccessorMeta` assigns the correct attribute name.
   >>> print(ao._acsx)
   10
 
-Type Introspection and :py:mod:`Abstract Base Class (abc) <python:abc>`
-=======================================================================
+Type Introspection and Abstract Base Class
+==========================================
+
+:py:mod:`Abstract Base Class (abc) <python:abc>`.
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 .. code-block:: pycon
 
@@ -719,7 +756,7 @@ Type Introspection and :py:mod:`Abstract Base Class (abc) <python:abc>`
   >>> print('derived {} MyDerivedClass'.format('is' if isinstance(derived, MyDerivedClass) else 'is not'))
   derived is MyDerivedClass
 
-Method Resolution Order (mro)
+Method Resolution Order (MRO)
 +++++++++++++++++++++++++++++
 
 Python uses the "C3" algorithm to determine the [method resolution order
@@ -809,8 +846,8 @@ Example: Multiple-Level Inheritance
   >>> print('a {} F'.format('is' if isinstance(a, F) else 'is not'))
   a is F
 
-:py:mod:`Abstract Base Class (abc) <python:abc>`
-++++++++++++++++++++++++++++++++++++++++++++++++
+Abstract Base Class (ABC)
++++++++++++++++++++++++++
 
 Python :py:doc:`abstract base class (abc) <python:library/abc>` provides the
 capabilities to overload :py:func:`python:isinstance` and
@@ -904,7 +941,7 @@ References
 ==========
 
 .. [1] K. Barrett, B. Cassels, P. Haahr, D. A. Moon, K. Playford, and P. T.
-   Withington, “A monotonic superclass linearization for Dylan,” SIGPLAN Not.,
+   Withington, "A monotonic superclass linearization for Dylan," SIGPLAN Not.,
    vol. 31, no. 10, pp. 69–82, Oct. 1996, doi: 10.1145/236338.236343.
    https://dl.acm.org/doi/10.1145/236338.236343.
 
