@@ -623,23 +623,79 @@ detects the point group right before fitting:
 
 The overhead of the Python house-keeping code is all gone.
 
-Struct of Array and Array of Struct
-===================================
+AOS and SOA
+===========
 
 .. contents:: Contents in the section
   :local:
   :depth: 1
 
+To write code for arrays, i.e., contiguous buffers of data, we go with either
+:ref:`AOS (array of structures) <nsd-arraydesign-aos>` or :ref:`SOA (structure
+of arrays) <nsd-arraydesign-soa>`.  As a rule of thumb, AOS is easier to code
+and SOA is more friendly to SIMD.  However, it is not true that SOA is always
+faster than AOS [5]_ [6]_.
+
+The demonstration of AOS and SOA here is elementary.  Benchmarking the two
+different layouts is usually unfeasible for a non-trivial system.
+
+.. _nsd-arraydesign-aos:
+
+Array of Structures
++++++++++++++++++++
+
+AOS is commonplace in object-oriented programming that encourages encapsulating
+logic with data.  Even though SOA is more friendly to memory access, the
+productivity of encapsulation makes it a better choice to start the system
+implementation.
+
 .. code-block:: cpp
+  :name: nsd-arraydesign-aoscode
+  :caption: Array of structures.
   :linenos:
 
+  struct Point
+  {
+      double x, y;
+  };
+
+  /**
+   * Use a contiguous buffer to store the struct data element.
+   */
+  using ArrayOfStruct = std::vector<Point>;
+
+.. _nsd-arraydesign-soa:
+
+Structure of Arrays
++++++++++++++++++++
+
+In the following :ref:`example code <nsd-arraydesign-soacode>`, each of the
+fields of a point is collected into the corresponding container in a structure
+:cpp:class:`!StructOfArray`.
+
+It is not a good idea to expose the layout of the data, which is considered
+implementation detail.  To implement the necessary encapsulation, we will need
+a handle or proxy class to access the point data.
+
+.. code-block:: cpp
+  :name: nsd-arraydesign-soacode
+  :caption: Structure of arrays.
+  :linenos:
+
+  /**
+   * In a real implementation, this data class needs encapsulation too.
+   */
   struct StructOfArray
   {
       std::vector<double> x;
       std::vector<double> y;
   };
 
-  struct PointProxy
+  /**
+   * Because the data is "pool" in StructOfArray, it takes a handle or proxy
+   * object to access the content point.
+   */
+  struct PointHandle
   {
       StructOfArray * soa;
       size_t idx;
@@ -648,16 +704,6 @@ Struct of Array and Array of Struct
       double   y() const { return soa.y[idx]; }
       double & y()       { return soa.y[idx]; }
   };
-
-  /*
-   * Array of struct:
-   */
-  struct Point
-  {
-      double x, y;
-  };
-
-  using ArrayOfStruct = std::vector<Point>;
 
 Conversion between Dynamic and Static
 =====================================
@@ -796,8 +842,8 @@ https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L423
     // ...
   }
 
-Insert Profiling Code
-=====================
+Profile at Wrapper
+==================
 
 .. contents:: Contents in the section
   :local:
@@ -887,10 +933,17 @@ References
 .. [2] xtensor-python; Python bindings for the xtensor C++ multi-dimensional
    array library: https://xtensor-python.readthedocs.io
 
-.. [3] pybind11 — Seamless operability between C++11 and Python:
+.. [3] pybind11 Seamless operability between C++11 and Python:
    https://pybind11.readthedocs.io/en/stable/
 
 .. [4] IPython / Jupyter integration for pybind11:
    https://github.com/aldanor/ipybind
+
+.. [5] Memory Layout Transformations:
+   https://software.intel.com/content/www/us/en/develop/articles/memory-layout-transformations.html
+
+.. [6] Chapter 31 - Abstraction for AoS and SoA Layout in C++, *GPU Computing
+   Gems Jade Edition*, pp. 429-441, Robert Strzodka, January 1, 2012.
+   http://www.sciencedirect.com/science/article/pii/B9780123859631000319
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
