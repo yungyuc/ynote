@@ -637,7 +637,7 @@ and SOA is more friendly to SIMD.  However, it is not true that SOA is always
 faster than AOS [5]_ [6]_.
 
 The demonstration of AOS and SOA here is elementary.  Benchmarking the two
-different layouts is usually unfeasible for a non-trivial system.
+different layouts is usually infeasible for a non-trivial system.
 
 .. _nsd-arraydesign-aos:
 
@@ -909,19 +909,40 @@ When Python wants to call a callable controlled by
     // Read the Python information and find the right cppfunction for execution.
   }
 
-Profile at Wrapper
+Scoped-Based Timer
 ==================
 
 .. contents:: Contents in the section
   :local:
   :depth: 1
 
+Profiling is the first thing to do when we need to optimize the code we write.
+While profiling itself has nothing specific to array code, it is common for us
+to consider profiling along with writing the high-performance array-style code,
+because both are meant for improving the system performance.
+
 In addition to using OS-provided profiling tools, e.g., Linux's perf and
 Macos's Instruments, we should also add a custom profiling layer in the code.
-You may need to port your code to a platform that doesn't have very good system
-profiler.  Your custom profiler will become the safety net.
+We usually use a simple scope-based profiler for ease of implementation, but
+sample-based works as well.
+
+The custom profiler is especially useful in two scenarios:
+
+1. The destination platform does not have a very good profiler.
+2. We may not access to a system profiler for some reasons (permission,
+   accessibility, etc.)
+
+Even though a custom profiler may not use the most delicate implementation, it
+is the last thing you may rely on.  Another benefit of using a custom profiler
+is that you may add code specific to your applications, which is usually
+infeasible for a general profiler.
+
+The following example implements a simple scoped-based timer that is controlled
+by a pre-processor macro:
 
 .. code-block:: cpp
+  :name: nsd-arraydesign-scoped-timer
+  :caption: A simple scoped-based timer in C++.
   :linenos:
 
   /*
@@ -961,12 +982,22 @@ profiler.  Your custom profiler will become the safety net.
 
   }; /* end struct ScopedTimer */
 
+This is the usage example:
+
+.. code-block:: cpp
+  :name: nsd-arraydesign-scoped-timer-use
+  :caption: Use the simple timer.
+  :linenos:
+
   // Manually
   void StaticGrid1d::fill(StaticGrid1d::real_type val)
   {
       MODMESH_TIME("StaticGrid1d::fill");
       std::fill(m_coord.get(), m_coord.get()+m_nx, val);
   }
+
+The system provides a way to keep and print the timing data (`see the code
+elsewhere <https://github.com/solvcon/modmesh>`__):
 
 .. code-block:: pycon
 
@@ -979,6 +1010,13 @@ profiler.  Your custom profiler will become the safety net.
   StaticGrid1d.__init__ : count = 1 , time = 6.36e-06 (second)
   StaticGrid1d.fill : count = 100 , time = 0.0346712 (second)
   StaticGrid1d::fill : count = 100 , time = 0.0344818 (second)
+
+.. note::
+
+  There are many ways to do a custom profiler.  Another good way to do it is to
+  add one at the pybind11 wrapping layer.  Python function calls are much more
+  expensive than C++ ones.  Adding timers when calling from Python to C++ never
+  makes a dent to the overall runtime.
 
 Exercises
 =========
