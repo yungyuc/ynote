@@ -624,7 +624,7 @@ It allows creating the :cpp:class:`!Grid` object from Python:
 
   >>> grid = libst.Grid(0, 8, 4*64)
 
-By wrapping for the special special function :py:func:`!__str__`:
+By wrapping for the special function :py:func:`!__str__`:
 
 .. code-block:: cpp
 
