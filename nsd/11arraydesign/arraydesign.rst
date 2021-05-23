@@ -2,27 +2,26 @@
 Array Code in C++
 =================
 
-xtensor (http://xtensor.readthedocs.io/) is an array library in C++.  It
-defines the multi-dimensional array data structure suitable for compile-time
-optimization.  The array library helps us organize code and achieve fast
-runtime.
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
 
-1. Python is slow but easy to write
-2. Speed up by using numpy (still in Python)
-3. Xtensor: write iterative code in C++ speed using arrays
-4. Effect of house-keeping code
-
-More on array-based system design:
-
-1. Design interface with arrays
-2. Conversion between dynamic and static semantics
-3. Insert profiling code
+As we have learned in :doc:`../04matrix/matrix`, :doc:`../05cache/cache`, and
+:doc:`../06simd/simd`, fast code calls for regular access to compact data.  Not
+all data structures offer fast runtime.  For writing fast code, arrays are the
+simplest and most commonly used data structure.  We will discuss how to use
+arrays to achieve high speed.
 
 Python Is Slow
 ==============
 
-Python is usually slow when it comes to number-crunching, but so convenient to
-code.
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+When using Python for number-crunching, the fact of its slowness needs to be
+kept in mind always.  Handling the slowness is the key to make Python run as
+fast as C.
 
 Here we consider a boundary value problem of the Laplace equation for
 temperature distribution in a :math:`1\times1` square area.
@@ -36,10 +35,15 @@ temperature distribution in a :math:`1\times1` square area.
     u(x,0) = 0, & u(x,1) = 0 & \rule{4ex}{0pt} (0 \le x \le 1)
   \end{array}\right.
 
+.. _nsd-arraydesign-python:
+
+Laplace Equation in Python
+++++++++++++++++++++++++++
+
 To solve it numerically, we choose the finite-difference method.  The
 finite-difference method needs a grid to discretize the spatial domain.  The
 simplest spatial discretization is the homogeneous Cartesian grid.  Let's make
-a :math:`51\times51` Cartesian grid.
+a :math:`51\times51` Cartesian grid.  The Python code is:
 
 .. literalinclude:: code/01_grid.py
   :language: python
@@ -47,12 +51,17 @@ a :math:`51\times51` Cartesian grid.
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full code is in :ref:`01_grid.py <nsd-arraydesign-example-grid>`.  Plot the
+grid using matplotlib:
+
 .. figure:: image/01_grid.png
   :align: center
   :width: 100%
 
-After the grid is defined, we may derive the finite-differencing formula.  Use
-the Taylor series expansion to obtain the difference equation:
+  A Cartesian grid of :math:`51\times51` grid points.
+
+After the grid is defined, we derive the finite-differencing formula.  Use the
+Taylor series expansion to obtain the difference equation:
 
 .. math::
 
@@ -67,7 +76,7 @@ Note :math:`\Delta x = \Delta y`.  The difference equation is rewritten as
     + u(x_i, y_{j+1}) + u(x_i, y_{j-1})}{4}
 
 Apply the point-Jacobi method to write a formula to iteratively solve the
-difference equaion:
+difference equation:
 
 .. math::
 
@@ -76,7 +85,8 @@ difference equaion:
 
 where :math:`u^n` is the solution at the :math:`n`-th iteration.
 
-Now we can use Python to quickly implement the solver:
+Using the above formula, we are ready to implement the solver in Python.  The
+code is short and straight-forward:
 
 .. literalinclude:: code/01_solve_python_loop.py
   :language: python
@@ -84,24 +94,38 @@ Now we can use Python to quickly implement the solver:
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full code is in :ref:`01_solve_python_loop.py
+<nsd-arraydesign-example-solvepy>`.  The solution can be plotted using
+matplotlib:
+
+.. figure:: image/01_solve_python_loop.png
+  :name: nsd-arraydesign-laplace-python
+  :align: center
+  :width: 100%
+
+  Numerical solution of the Laplace equation in Python.
+
+The solution takes quite a while (4.797 seconds) to converge using 2097
+iterations:
+
 .. code-block:: pycon
 
   >>> with Timer():
   >>>    u, step, norm = solve_python_loop()
-  u, step, norm = solve_python_loop()
+  >>> print(step)
   Wall time: 4.79688 s
+  2097
 
-.. figure:: image/01_solve_python_loop.png
-  :align: center
-  :width: 100%
+.. _nsd-arraydesign-analytical:
 
-It takes quite a while (around 5 seconds) to converge with 2097 iterations.
+Analytical Solution
++++++++++++++++++++
 
-Is the calculation correct?  For any numerical application, correctness is the
-first condition.
+Is the calculation correct?  It is the first question to ask for any numerical
+application.
 
-We may compare the numerical solution with the analytical solution.  Recall
-the PDE and its boundary conditions:
+We may compare the numerical solution to the analytical solution.  Recall the
+PDE and its boundary conditions:
 
 .. math::
 
@@ -189,9 +213,19 @@ It is obtained that :math:`\alpha_1 = \sinh^{-1}(\pi)` and :math:`\alpha_k = 0
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full code is in :ref:`01_solve_analytical.py
+<nsd-arraydesign-example-solveana>`.  The solution is plotted:
+
 .. figure:: image/01_solve_analytical.png
+  :name: nsd-arraydesign-laplace-analytical
   :align: center
   :width: 100%
+
+  Analytical solution of the Laplace equation.
+
+Say :math:`u_a` is the analytical solution.  The numerical solution is compared
+against the analytical solution, and the result :math:`|u-u_a|_{\infty} <
+0.005` is good enough.
 
 .. code-block:: pycon
 
@@ -200,15 +234,14 @@ It is obtained that :math:`\alpha_1 = \sinh^{-1}(\pi)` and :math:`\alpha_k = 0
   >>> print("Linf of difference is %f" % np.abs(u - uanalytical).max())
   Linf of difference is 0.004962
 
-Say :math:`u_a` is the analytical solution.  :math:`|u-u_a|_{\infty}` from the
-above result is good enough.
+.. _nsd-arraydesign-numpy:
 
 Array-Based Code with Numpy
-===========================
++++++++++++++++++++++++++++
 
-We usually can use numpy to speed up the slow Python loops.  Numpy implements
-fast calculations in C.  By using numpy, we essentially delegate the
-calculation to C.
+To speed up the slow Python loops, numpy is usually a solution.  Numpy
+implements fast calculations in C.  By using numpy, the intensive calculation
+is delegated to C.
 
 .. literalinclude:: code/02_solve_array.py
   :language: python
@@ -216,9 +249,20 @@ calculation to C.
   :start-after: # [begin example]
   :end-before: # [end example]
 
+The full code is in :ref:`02_solve_array.py <nsd-arraydesign-example-solvenp>`.
+The solution is verified to be the same as that with naive Python loops and
+then plotted:
+
 .. figure:: image/02_solve_array.png
+  :name: nsd-arraydesign-laplace-numpy
   :align: center
   :width: 100%
+
+  Numerical solution of the Laplace equation using numpy.
+
+The speed is much better: less than 0.1 second.  Compared to that of the naive
+Python loops, the speed up is more than 50x (to be exact, :ref:`87x
+<runtime-comparison>`):
 
 .. code-block:: pycon
 
@@ -227,16 +271,23 @@ calculation to C.
   >>>     u, step, norm = solve_array()
   Wall time: 0.0552309 s
 
-The speed is much better: less than 0.1 second.  Compared to the naive Python
-loop, the speed up is more than 50x (to be exact, :ref:`87x
-<runtime-comparison>`).
+.. _nsd-arraydesign-cpp:
 
 Nested Loop in C++
-==================
+++++++++++++++++++
 
-Oftentimes numpy is still not fast enough.  Besides, it's not really easy to
-read.  Nested loop reads more straight-forward for our point-Jacobi method.
-Now xtensor comes to help.
+While numpy does speed up the naive Python loops, it has two drawbacks:
+
+1. It is still not optimal speed.
+2. The code is not easy to read, compared to the element-wise code in the loop
+   version.  Nested loop reads more straight-forward for our point-Jacobi
+   method.
+
+Here we will see how much faster it can get to move the code from numpy to C++.
+To simplify the algorithm implementation, I use a library named `xtensor
+<http://xtensor.readthedocs.io/>`_.  It defines the multi-dimensional array
+data structure suitable for compile-time optimization.  An array library like
+that makes it easy to organize the code and achieve faster runtime.
 
 Except the parentheses, the C++ version looks almost the same as the Python
 version.
@@ -244,15 +295,22 @@ version.
 .. literalinclude:: code/solve_cpp.cpp
   :language: cpp
   :linenos:
+  :start-after: // [begin example]
   :end-before: // [end example]
 
-.. code-block:: console
-
-  $ g++ solve_cpp.cpp -o solve_cpp.so -O3 -fPIC -shared -std=c++17 -lpython3.9
+The full C++ code is in :ref:`solve_cpp.cpp
+<nsd-arraydesign-example-solvecpp>`.  The Python driver code for the C++ kernel
+is in :ref:`03_solve_cpp.py <nsd-arraydesign-example-solvecpppy>`.  We verify
+the C++ code is to verify the solution is the same as before.  It is plotted:
 
 .. figure:: image/03_solve_cpp.png
+  :name: nsd-arraydesign-laplace-cpp
   :align: center
   :width: 100%
+
+  Numerical solution of the Laplace equation using C++.
+
+Then we time the C++ version:
 
 .. code-block:: pycon
 
@@ -260,7 +318,20 @@ version.
   >>>     u, step, norm = solve_cpp.solve_cpp(uoriginal)
   Wall time: 0.0251369 s
 
-.. list-table:: Runtime with Python loop, Numpy array, and C++ loop
+It is twice as fast as the numpy version (0.0552309 seconds).
+
+Overall Comparison
+++++++++++++++++++
+
+Now make a comparison for the three different implementations.
+
+Runtime Performance
+-------------------
+
+By putting all timing data in a table, it is clear how much the C++ version
+wins:
+
+.. list-table:: Runtime with Python loop, Numpy array, and C++ loop.
   :name: runtime-comparison
   :align: center
 
@@ -281,8 +352,50 @@ version.
     - 191.88
     - 2.2
 
-Major Source of Overhead: Data Preparation
-==========================================
+Readability and/or Maintainability
+----------------------------------
+
+To compare the easy-of-reading among the three versions, we list the three
+different computing kernels side by side:
+
+.. code-block:: python
+  :name: nsd-arraydesign-kernel-py
+  :caption:
+    Element-wise kernel using pure Python (full case in
+    :ref:`nsd-arraydesign-python`).
+
+  for it in range(1, nx-1):
+      for jt in range(1, nx-1):
+          un[it,jt] = (u[it+1,jt] + u[it-1,jt] + u[it,jt+1] + u[it,jt-1]) / 4
+
+.. code-block:: python
+  :name: nsd-arraydesign-kernel-np
+  :caption:
+    Element-wise kernel using numpy (full case in
+    :ref:`nsd-arraydesign-numpy`).
+
+  un[1:nx-1,1:nx-1] = (u[2:nx,1:nx-1] + u[0:nx-2,1:nx-1] +
+                       u[1:nx-1,2:nx] + u[1:nx-1,0:nx-2]) / 4
+
+.. code-block:: cpp
+  :name: nsd-arraydesign-kernel-cpp
+  :caption:
+    Element-wise kernel using C++ (full case in :ref:`nsd-arraydesign-cpp`).
+
+  for (size_t it=1; it<nx-1; ++it)
+  {
+      for (size_t jt=1; jt<nx-1; ++jt)
+      {
+          un(it,jt) = (u(it+1,jt) + u(it-1,jt) + u(it,jt+1) + u(it,jt-1)) / 4;
+      }
+  }
+
+Overhead in Data Preparation
+============================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Numerical calculation takes time.  Intuitively, developers spend time on
 optimizing the number-crunching code.  However, for a useful application, the
@@ -292,15 +405,125 @@ results is equally important.
 In our previous example of solving the Laplace equation, all the conditions are
 hard-coded.  It's OK for the teaching purpose, but not useful to those who
 don't know so much about the math and numerical.  This time, I will use an
-example of curve fitting to show how the house-keeping code affects
-performance, and xtensor comes to help.
+example of polynomial curve fitting for variable-size data groups to show how
+the house-keeping code affects performance.
 
-We will do polynomial curve fitting for data in groups of variable length.
+Least-Square Regression
++++++++++++++++++++++++
+
+The problem is to find an :math:`n`\ -th order algebraic polynomial function
+
+.. math::
+
+  p_n(x) = \sum_{i=0}^n a_ix^i
+
+such that there is :math:`\min(f(\mathbf{a}))`, where the :math:`L_2` norm is
+
+.. math::
+
+  f(\mathbf{a}) = \sum_{k=1}^m\left(p_n(x_k) - y_k\right)^2
+
+for the point cloud :math:`(x_k, y_k), \; k = 1, 2, \ldots, m`.  For the
+function :math:`f` to have global minimal, there must exist a vector
+:math:`\mathbf{a}` such that :math:`\nabla f = 0`.  Take the partial derivative
+with respected to each of the polynomial coefficients :math:`a_0, a_1, \ldots,
+a_n`
+
+.. math::
+
+  \frac{\partial f}{\partial a_i}
+  & =
+    \frac{\partial}{\partial a_i}
+    \left[
+      \sum_{k=1}^m
+      \left(
+        \sum_{j=0}^n a_jx_k^j - y_k
+      \right)
+    \right]^2 \\
+  & = 
+    2 \sum_{k=1}^m x_k^i
+      \left(
+        \sum_{j=0}^n a_jx_k^j - y_k
+      \right) \\
+  & = 
+    2 \sum_{k=1}^m
+      \left(
+        \sum_{j=0}^n a_jx_k^{i+j} - x_k^iy_k
+      \right)
+  , \; i = 0, 1, \ldots, n
+
+Because :math:`\frac{\partial f}{\partial a_i} = 0`, we obtain
+
+.. math::
+
+    \sum_{j=0}^n a_j \sum_{k=1}^m x_k^{i+j} = \sum_{k=1}^m x_k^iy_k
+
+The equations may be written in the matrix-vector form
+
+.. math::
+
+  \mathrm{M}\mathbf{a} = \mathbf{b}
+
+The system
+
+.. math::
+
+  \mathrm{M} = \left(\begin{array}{ccccc}
+    m & \sum_{k=1}^m x_k^1 & \sum_{k=1}^m x_k^2 & \cdots & \sum_{k=1}^m x_k^n \\
+    \sum_{k=1}^m x_k^1 & \sum_{k=1}^m x_k^2 & \sum_{k=1}^m x_k^2 &
+      \cdots & \sum_{k=1}^m x_k^{1+n} \\
+    \sum_{k=1}^m x_k^2 & \sum_{k=1}^m x_k^3 & \sum_{k=1}^m x_k^4 &
+      \cdots & \sum_{k=1}^m x_k^{2+n} \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    \sum_{k=1}^m x_k^n & \sum_{k=1}^m x_k^{n+1} & \sum_{k=1}^m x_k^{n+2} &
+      \cdots & \sum_{k=1}^m x_k^{2n}
+  \end{array}\right)
+
+The vector for the polynomial coefficients and the right-hand side vector are
+
+.. math::
+
+  \mathbf{a} = \left(\begin{array}{c}
+    a_0 \\ a_1 \\ a_2 \\ \vdots \\ a_n
+  \end{array}\right), \;
+  \mathbf{b} = \left(\begin{array}{c}
+    \sum_{k=1}^m y_k \\
+    \sum_{k=1}^m x_ky_k \\
+    \sum_{k=1}^m x_k^2y_k \\
+    \vdots \\
+    \sum_{k=1}^m x_k^ny_k
+  \end{array}\right)
+
+The full example code is in :ref:`data_prep.cpp
+<nsd-arraydesign-example-dataprep>`.  The Python driver is in
+:ref:`04_fit_poly.py <nsd-arraydesign-example-fitpoly>`.
+
+This is the helper function calculating the coefficients of one fitted
+polynomial by using the least square regression:
 
 .. literalinclude:: code/data_prep.cpp
+  :name: nsd-arraydesign-fit-single
+  :caption: C++ function for fitting a single polynomial function.
   :language: cpp
   :linenos:
-  :end-before: // [end example]
+  :start-after: // [begin example: single fit]
+  :end-before: // [end example: single fit]
+
+This is another helper function calculating the coefficients of a sequence of
+fitted polynomials:
+
+.. literalinclude:: code/data_prep.cpp
+  :name: nsd-arraydesign-fit-multi
+  :caption: C++ function for fitting multiple polynomial functions.
+  :language: cpp
+  :linenos:
+  :start-after: // [begin example: multiple fit]
+  :end-before: // [end example: multiple fit]
+
+Prepare Data in Python
+++++++++++++++++++++++
+
+Now we create the data to test for how much time is spent in data preparation:
 
 .. code-block:: pycon
 
@@ -310,7 +533,17 @@ We will do polynomial curve fitting for data in groups of variable length.
   >>>     ydata = np.random.sample(len(xdata)) * 1000
   Wall time: 0.114635 s
 
+.. note::
+
+  The data is created in a certain way so that :ref:`the multi-polynomial
+  helper <nsd-arraydesign-fit-multi>` can automatically determine the grouping
+  of the variable-size groups of the input.
+
+Before testing the runtime, we take a look at a fitted polynomial:
+
 .. code-block:: python
+  :linenos:
+  :emphasize-lines: 9
 
   import data_prep
 
@@ -326,16 +559,14 @@ We will do polynomial curve fitting for data in groups of variable length.
       xp = np.linspace(sub_x.min(), sub_x.max(), 100)
       plt.plot(sub_x, sub_y, '.', xp, poly(xp), '-')
 
-.. code-block:: pycon
-
-  >>> plot_poly_fitted(10)
+  plot_poly_fitted(10)
 
 .. figure:: image/04_fit_poly.png
   :align: center
   :width: 100%
 
-Now, let's see the impact to runtime from the house-keeping code outside the
-calculating helper.
+Fitting a single polynomial is fairly fast.  In what follows, we test the
+runtime by fitting many polynomials:
 
 .. code-block:: pycon
 
@@ -350,6 +581,8 @@ calculating helper.
   >>>         polygroup[i,:] = data_prep.fit_poly(sub_x, sub_y, 2)
   Wall time: 1.49671 s
 
+To analyze, we separate the house-keeping code outside the calculating helper:
+
 .. code-block:: pycon
 
   >>> with Timer():
@@ -360,6 +593,8 @@ calculating helper.
   >>>         data_groups.append((xdata[slct], ydata[slct]))
   Wall time: 1.24653 s
 
+The real fitting code:
+
 .. code-block:: pycon
 
   >>> with Timer():
@@ -369,13 +604,16 @@ calculating helper.
   >>>         polygroup[it,:] = data_prep.fit_poly(sub_x, sub_y, 2)
   Wall time: 0.215859 s
 
-It's very productive to write house-keeping code in Python.  As we see, the
-price to pay is the runtime, and oftentimes memory as well.  But to spend 5x
-the runtime in house-keeping code is intolerable.  We need to write C++ to
-speed up.
 
-Now see the ``fit_polys()`` C++ helper.  It detects the point group right
-before fitting.
+Although the house-keeping code is much easier to write in Python than in C++,
+it runs more than 5 times slower (the fitting code takes only 17% of the
+runtime of the house-keeping code).
+
+Prepare Data in C++
++++++++++++++++++++
+
+Now run :ref:`the C++ multi-polynomial helper <nsd-arraydesign-fit-multi>`.  It
+detects the point group right before fitting:
 
 .. code-block:: pycon
 
@@ -383,19 +621,81 @@ before fitting.
   >>>     rbatch = data_prep.fit_polys(xdata, ydata, 2)
   Wall time: 0.21058 s
 
-Struct of Array and Array of Struct
-===================================
+The overhead of the Python house-keeping code is all gone.
+
+AOS and SOA
+===========
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+To write code for arrays, i.e., contiguous buffers of data, we go with either
+:ref:`AOS (array of structures) <nsd-arraydesign-aos>` or :ref:`SOA (structure
+of arrays) <nsd-arraydesign-soa>`.  As a rule of thumb, AOS is easier to code
+and SOA is more friendly to SIMD.  However, it is not true that SOA is always
+faster than AOS [5]_ [6]_.
+
+The demonstration of AOS and SOA here is elementary.  Benchmarking the two
+different layouts is usually infeasible for a non-trivial system.
+
+.. _nsd-arraydesign-aos:
+
+Array of Structures
++++++++++++++++++++
+
+AOS is commonplace in object-oriented programming that encourages encapsulating
+logic with data.  Even though SOA is more friendly to memory access, the
+productivity of encapsulation makes it a better choice to start the system
+implementation.
 
 .. code-block:: cpp
+  :name: nsd-arraydesign-aoscode
+  :caption: Array of structures.
   :linenos:
 
+  struct Point
+  {
+      double x, y;
+  };
+
+  /**
+   * Use a contiguous buffer to store the struct data element.
+   */
+  using ArrayOfStruct = std::vector<Point>;
+
+.. _nsd-arraydesign-soa:
+
+Structure of Arrays
++++++++++++++++++++
+
+In the following :ref:`example code <nsd-arraydesign-soacode>`, each of the
+fields of a point is collected into the corresponding container in a structure
+:cpp:class:`!StructOfArray`.
+
+It is not a good idea to expose the layout of the data, which is considered
+implementation detail.  To implement the necessary encapsulation, we will need
+a handle or proxy class to access the point data.
+
+.. code-block:: cpp
+  :name: nsd-arraydesign-soacode
+  :caption: Structure of arrays.
+  :linenos:
+
+  /**
+   * In a real implementation, this data class needs encapsulation too.
+   */
   struct StructOfArray
   {
       std::vector<double> x;
       std::vector<double> y;
   };
 
-  struct PointProxy
+  /**
+   * Because the data is "pool" in StructOfArray, it takes a handle or proxy
+   * object to access the content point.
+   */
+  struct PointHandle
   {
       StructOfArray * soa;
       size_t idx;
@@ -405,27 +705,52 @@ Struct of Array and Array of Struct
       double & y()       { return soa.y[idx]; }
   };
 
-  /*
-   * Array of struct:
-   */
-  struct Point
-  {
-      double x, y;
-  };
+Translation between Dynamic and Static
+======================================
 
-  using ArrayOfStruct = std::vector<Point>;
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
-Conversion between Dynamic and Static
-=====================================
+In C++ we can use template to do many things during compile time without
+needing to use a CPU instruction during runtime.  For example, we may use CRTP
+(see :ref:`nsd-cpp-crtp`) for the static polymorphism, instead of really
+checking for the type during runtime (dynamically).
 
-It's not a bad idea to do it manually.  Spelling out the static to dynamic
-conversion makes it clear what do we want to do.  When we work in the
-inner-most loop, no :c:type:`python:PyObject` or virtual function table should
-be there.
+But when we are trying to present the nicely optimized code to Python users,
+there is a problem: a dynamic language like Python does not know anything about
+a compile time entity like template.  In Python, everything is dynamic (happens
+during runtime).  We need to translate between the dynamic behaviors in Python
+and the static behaviors in C++.
+
+This translation matters to our system design using arrays because the arrays
+carry type information that helps the C++ compiler generate efficient
+executables, and we do not want to lose the performance when doing the
+translation.  Thus, it is not a bad idea to do it manually.  Spelling out the
+static to dynamic conversion makes it clear what do we want to do.  When we
+work in the inner-most loop, no :c:type:`python:PyObject` or virtual function
+table should be there.  The explicitness will help us add ad hoc optimization
+or debug for difficult performance issues.
+
+We will use an example to show one way to explicitly separate the static and
+dynamic behaviors.  The model problem is to define the operations of the
+spatially discretized grid and the elements.
+
+Class Templates for General Behaviors
++++++++++++++++++++++++++++++++++++++
+
+There should be general code and information for all of the grids, and they are
+kept in some class templates.  The C++ compiler knows when to put the code and
+information in proper places.
 
 .. code-block:: cpp
+  :caption: The (static) class template for grids.
   :linenos:
 
+  /**
+   * Spatial table basic information.  Any table-based data store for spatial
+   * data should inherit this class template.
+   */
   template <size_t ND>
   class SpaceBase
   {
@@ -433,22 +758,52 @@ be there.
       static constexpr const size_t NDIM = ND;
       using serial_type = uint32_t;
       using real_type = double;
-  }; /* end class SpaceBase */
+  };
+
+  /**
+   * Base class template for structured grid.
+   */
+  template <dim_t ND>
+  class StaticGridBase
+    : public SpaceBase<ND>
+  {
+      // Code that is general to the grid of any dimension.
+  };
+
+Classes for Specific Behaviors
+++++++++++++++++++++++++++++++
+
+There may be different behaviors for each of the dimension, and we may use a
+class to house the code and data.
+
+.. code-block:: cpp
+  :caption: The classes instantiating the grid class templates.
+  :linenos:
 
   class StaticGrid1d
     : public StaticGridBase<1>
   {
-  }; /* end class StaticGrid1d */
+  };
 
   class StaticGrid2d
     : public StaticGridBase<2>
   {
-  }; /* end class StaticGrid2d */
+  };
 
   class StaticGrid3d
     : public StaticGridBase<3>
   {
-  }; /* end class StaticGrid3d */
+  };
+
+Dynamic Behaviors in Interpreter
+++++++++++++++++++++++++++++++++
+
+Everything in Python needs to be dynamic, and we can absorb it in the wrapping
+layer.
+
+.. code-block:: cpp
+  :caption: The ad hoc wrappers for each of the grid classes.
+  :linenos:
 
   /*
    * WrapStaticGridBase has the pybind11 wrapping code.
@@ -457,17 +812,17 @@ be there.
   class WrapStaticGrid1d
     : public WrapStaticGridBase< WrapStaticGrid1d, StaticGrid1d >
   {
-  }; /* end class WrapStaticGrid1d */
+  };
 
   class WrapStaticGrid2d
     : public WrapStaticGridBase< WrapStaticGrid2d, StaticGrid2d >
   {
-  }; /* end class WrapStaticGrid2d */
+  };
 
   class WrapStaticGrid3d
     : public WrapStaticGridBase< WrapStaticGrid3d, StaticGrid3d >
   {
-  }; /* end class WrapStaticGrid3d */
+  };
 
   PYBIND11_MODULE(_modmesh, mod)
   {
@@ -476,13 +831,18 @@ be there.
       WrapStaticGrid3d::commit(mod);
   }
 
-Example: ``pybind11::cppfunction``
-++++++++++++++++++++++++++++++++
+How pybind11 Translates
++++++++++++++++++++++++
 
-``pybind11::cppfunction``
--------------------------
+We rely on `pybind11 <https://pybind11.readthedocs.io/>`_ for doing the
+translate behind the wrappers.
 
-https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L56
+Here we take a look at `the code of a older version 2.4.3
+<https://github.com/pybind/pybind11/tree/v2.4.3>`__ to understand what is
+happening behind the scenes.  pybind11 uses the class
+:cpp:class:`!pybind11::cppfunction` to wrap everything that is callable in C++
+to be a callable in Python (`see line 56 in pybind11.h
+<https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L56>`__):
 
 .. code-block:: cpp
   :linenos:
@@ -522,40 +882,67 @@ https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L56
       }
 
   // ...
+  }
 
-``pybind11::cppfunction::initialize``
--------------------------------------
-
-https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L98
+The constructors call :cpp:func:`!pybind11::cppfunction::initialize` to
+populate necessary information for the callables: to be a callable in Python
+(`see line 98 in pybind11.h
+<https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L98>`__):
 
 .. code-block:: cpp
 
   /// Special internal constructor for functors, lambda functions, etc.
   template <typename Func, typename Return, typename... Args, typename... Extra>
   void initialize(Func &&f, Return (*)(Args...), const Extra&... extra) {
-    // ...
+    // Code populating necessary information for calling the callables.
   }
 
-``pybind11::cppfunction::dispatch``
------------------------------------
-
-https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L423
+When Python wants to call a callable controlled by
+:cpp:class:`!pybind11::cppfunction`, pybind11 uses
+:cpp:func:`!pybind11::cppfunction::dispatch` to find the corresponding object
+(`see line 423 in pybind11.h
+<https://github.com/pybind/pybind11/blob/v2.4.3/include/pybind11/pybind11.h#L423>`__):
 
 .. code-block:: cpp
 
   static PyObject *dispatcher(PyObject *self, PyObject *args_in, PyObject *kwargs_in) {
-    // ...
+    // Read the Python information and find the right cppfunction for execution.
   }
 
-Insert Profiling Code
-=====================
+Scoped-Based Timer
+==================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
+Profiling is the first thing to do when we need to optimize the code we write.
+While profiling itself has nothing specific to array code, it is common for us
+to consider profiling along with writing the high-performance array-style code,
+because both are meant for improving the system performance.
 
 In addition to using OS-provided profiling tools, e.g., Linux's perf and
 Macos's Instruments, we should also add a custom profiling layer in the code.
-You may need to port your code to a platform that doesn't have very good system
-profiler.  Your custom profiler will become the safety net.
+We usually use a simple scope-based profiler for ease of implementation, but
+sample-based works as well.
+
+The custom profiler is especially useful in two scenarios:
+
+1. The destination platform does not have a very good profiler.
+2. We may not access to a system profiler for some reasons (permission,
+   accessibility, etc.)
+
+Even though a custom profiler may not use the most delicate implementation, it
+is the last thing you may rely on.  Another benefit of using a custom profiler
+is that you may add code specific to your applications, which is usually
+infeasible for a general profiler.
+
+The following example implements a simple scoped-based timer that is controlled
+by a pre-processor macro:
 
 .. code-block:: cpp
+  :name: nsd-arraydesign-scoped-timer
+  :caption: A simple scoped-based timer in C++.
   :linenos:
 
   /*
@@ -595,12 +982,22 @@ profiler.  Your custom profiler will become the safety net.
 
   }; /* end struct ScopedTimer */
 
+This is the usage example:
+
+.. code-block:: cpp
+  :name: nsd-arraydesign-scoped-timer-use
+  :caption: Use the simple timer.
+  :linenos:
+
   // Manually
   void StaticGrid1d::fill(StaticGrid1d::real_type val)
   {
       MODMESH_TIME("StaticGrid1d::fill");
       std::fill(m_coord.get(), m_coord.get()+m_nx, val);
   }
+
+The system provides a way to keep and print the timing data (`see the code
+elsewhere <https://github.com/solvcon/modmesh>`__):
 
 .. code-block:: pycon
 
@@ -613,6 +1010,13 @@ profiler.  Your custom profiler will become the safety net.
   StaticGrid1d.__init__ : count = 1 , time = 6.36e-06 (second)
   StaticGrid1d.fill : count = 100 , time = 0.0346712 (second)
   StaticGrid1d::fill : count = 100 , time = 0.0344818 (second)
+
+.. note::
+
+  There are many ways to do a custom profiler.  Another good way to do it is to
+  add one at the pybind11 wrapping layer.  Python function calls are much more
+  expensive than C++ ones.  Adding timers when calling from Python to C++ never
+  makes a dent to the overall runtime.
 
 Exercises
 =========
@@ -634,10 +1038,17 @@ References
 .. [2] xtensor-python; Python bindings for the xtensor C++ multi-dimensional
    array library: https://xtensor-python.readthedocs.io
 
-.. [3] pybind11 — Seamless operability between C++11 and Python:
+.. [3] pybind11 Seamless operability between C++11 and Python:
    https://pybind11.readthedocs.io/en/stable/
 
 .. [4] IPython / Jupyter integration for pybind11:
    https://github.com/aldanor/ipybind
+
+.. [5] Memory Layout Transformations:
+   https://software.intel.com/content/www/us/en/develop/articles/memory-layout-transformations.html
+
+.. [6] Chapter 31 - Abstraction for AoS and SoA Layout in C++, *GPU Computing
+   Gems Jade Edition*, pp. 429-441, Robert Strzodka, January 1, 2012.
+   http://www.sciencedirect.com/science/article/pii/B9780123859631000319
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

@@ -1405,14 +1405,16 @@ As we see, to make polymorphism work, there is a lot of code to write.
 Therefore in high-performance numerical code we use polymorphism with great
 caution.
 
+.. _nsd-cpp-crtp:
+
 Curiously Recursive Template Pattern (CRTP)
 +++++++++++++++++++++++++++++++++++++++++++
 
 If we want to make a class hierarchy polymorphic without the runtime overhead,
-CRTP helps.  Usually the word polymorphism means _dynamic_ polymorphism, as we
+CRTP helps.  Usually the word polymorphism means *dynamic* polymorphism, as we
 described in the previous section.  If the classes behave as polymorphic but
-all the type information is determined during _compile_ time, it is called
-_static_ polymorphism.
+all the type information is determined during *compile* time, it is called
+*static* polymorphism.
 
 Static polymorphism has two major benefits (at the cost of being limited in
 compile time).  First is to not have runtime overhead.  The second is to avoid

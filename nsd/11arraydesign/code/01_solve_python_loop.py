@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 def make_grid():
     nx = 51
@@ -18,7 +19,6 @@ nx, x, uoriginal = make_grid()
 # [begin example]
 import time
 import numpy as np
-from matplotlib import pyplot as plt
 
 class Timer:
     def __enter__(self):
@@ -44,6 +44,13 @@ def solve_python_loop():
         converged = True if norm < 1.e-5 else False
     return u, step, norm
 
+with Timer():
+    u, step, norm = solve_python_loop()
+
+print(step)
+# [end example]
+
+# Run the Python solver
 def show_result(u, step, norm, size=7):
     print("step", step, "norm", norm)
     fig, ax = plt.subplots(figsize=(size,size))
@@ -56,11 +63,6 @@ def show_result(u, step, norm, size=7):
     ax.set_ylabel('$y$')
 
     ax.grid(True, which='minor')
-# [end example]
-
-# Run the Python solver
-with Timer():
-    u, step, norm = solve_python_loop()
 
 show_result(u, step, norm)
 
