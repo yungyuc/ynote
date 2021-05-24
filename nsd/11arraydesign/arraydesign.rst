@@ -172,7 +172,7 @@ Substitute the boundary conditions to the general solution
     \; \mbox{where} \; \psi_n(y) = d_n\sin(n\pi y) \\
   & \Rightarrow \psi(y) = \sum_{n=1}^{\infty} d_n \sin(n\pi y)
 
-Substitute the eigenvalue $\lambda$ into the ODE of :math:`\phi`
+Substitute the eigenvalue :math:`\lambda` into the ODE of :math:`\phi`
 
 .. math::
 
@@ -194,7 +194,7 @@ The solution :math:`u(x, y)` can now be written as
   u(x,y) = \sum_{n=1}^{\infty}\phi_n(x)\psi_n(y)
     = \sum_{n=1}^{\infty} \alpha_n \sinh(n\pi x)\sin(n\pi y)
 
-where $\alpha_n = b_nd_n$.  Apply the last boundary condition
+where :math:`\alpha_n = b_nd_n`.  Apply the last boundary condition
 
 .. math::
 
