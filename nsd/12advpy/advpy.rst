@@ -681,7 +681,7 @@ Descriptor
 Python is very flexible in accessing attributes in an object.  There are
 multiple ways to customize the access, and the :ref:`descriptor protocol
 <python:descriptors>` provides the most versatile API and allows us to route
-attribute access anywhere [2]_.
+attribute access anywhere [1]_.
 
 Naive Accessor
 ++++++++++++++
@@ -959,16 +959,18 @@ the attribute name:
   >>> print(ao._acsx)
   10
 
-Type Introspection and Abstract Base Class
-==========================================
-
-:py:mod:`Abstract Base Class (abc) <python:abc>`.
+Abstract Base Class (ABC)
+=========================
 
 .. contents:: Contents in the section
   :local:
   :depth: 1
 
+Python is object-oriented and supports inheritance.  Most of the time we use a
+simple inheritance relation, and it works as expected.
+
 .. code-block:: pycon
+  :caption: Create two classes with a simple inheritance
 
   >>> class MyBaseClass:
   ...     pass
@@ -978,22 +980,53 @@ Type Introspection and Abstract Base Class
   ...
   >>> base = MyBaseClass()
   >>> derived = MyDerivedClass()
-  >>> print('base {} MyBaseClass'.format('is' if isinstance(base, MyBaseClass) else 'is not'))
+
+The instance "``base``" instantiated from :py:class:`!MyBaseClass` is an
+instance of :py:class:`!MyBaseClass` but not :py:class:`!MyDerivedClass`:
+
+.. code-block:: pycon
+
+  >>> print('base {} MyBaseClass'.format(
+  ...     'is' if isinstance(base, MyBaseClass) else 'is not'))
   base is MyBaseClass
-  >>> print('base {} MyDerivedClass'.format('is' if isinstance(base, MyDerivedClass) else 'is not'))
+  >>> print('base {} MyDerivedClass'.format(
+  ...     'is' if isinstance(base, MyDerivedClass) else 'is not'))
   base is not MyDerivedClass
-  >>> print('derived {} MyBaseClass'.format('is' if isinstance(derived, MyBaseClass) else 'is not'))
+
+The instance "``derived``" instantiated from :py:class:`!MyDerivedClass` is an
+instance of both :py:class:`!MyBaseClass` and :py:class:`!MyDerivedClass`:
+
+.. code-block:: pycon
+
+  >>> print('derived {} MyBaseClass'.format(
+  ...     'is' if isinstance(derived, MyBaseClass) else 'is not'))
   derived is MyBaseClass
-  >>> print('derived {} MyDerivedClass'.format('is' if isinstance(derived, MyDerivedClass) else 'is not'))
+  >>> print('derived {} MyDerivedClass'.format(
+  ...     'is' if isinstance(derived, MyDerivedClass) else 'is not'))
   derived is MyDerivedClass
+
+Nothing surprises.  But Python also supports :py:mod:`Abstract Base Class (abc)
+<python:abc>` and to turn it up side down.
+
+.. _nsd-mro:
 
 Method Resolution Order (MRO)
 +++++++++++++++++++++++++++++
 
-Python uses the "C3" algorithm to determine the [method resolution order
-(MRO)](https://www.python.org/download/releases/2.3/mro/) [1]_.
+When we need to use ABC, the inheritance is usually much more complex than what
+we just described and involves multiple inheritance.  There needs to be a
+definite way to resolve the multiple inheritance and Python uses the "C3"
+algorithm [2]_.  The description can also be found in the Python `method
+resolution order (MRO) <https://www.python.org/download/releases/2.3/mro/>`__
+[3]_.
+
+Let us see how MRO works with a single-level inheritance:
 
 .. code-block:: python
+  :name: nsd-advpy-single
+  :caption: Example of single diamond inheritance.
+  :linenos:
+  :emphasize-lines: 15
 
   class A:
       def process(self):
@@ -1012,31 +1045,47 @@ Python uses the "C3" algorithm to determine the [method resolution order
   class D(B, C):
       pass
 
+In the above code, the inheritance relationship among the four classes form a
+"diamond".  The MRO is:
+
 .. code-block:: pycon
+  :emphasize-lines: 3
 
   >>> print(D.__mro__)
-  (<class '__main__.D'>, <class '__main__.B'>, <class '__main__.C'>, <class '__main__.A'>, <class 'object'>)
+  (<class '__main__.D'>,
+  <class '__main__.B'>, <class '__main__.C'>,
+  <class '__main__.A'>, <class 'object'>)
   >>> obj = D()
   >>> obj.process()
   B process()
   C process()
   A process()
 
-Change the order in the inheritance declaration and the MRO changes
-accordingly.
-
-.. code-block:: pycon
-
-  >>> class D(C, B):
-  ...     pass
-  ...
-  >>> print(D.__mro__)
-  (<class '__main__.D'>, <class '__main__.C'>, <class '__main__.B'>, <class '__main__.A'>, <class 'object'>)
-
-Example: Multiple-Level Inheritance
------------------------------------
+If we change the order in the inheritance declaration:
 
 .. code-block:: python
+  :emphasize-lines: 1
+
+  class D(C, B):
+      pass
+
+the MRO changes accordingly:
+
+.. code-block:: pycon
+  :emphasize-lines: 3
+
+  >>> print(D.__mro__)
+  (<class '__main__.D'>,
+  <class '__main__.C'>, <class '__main__.B'>,
+  <class '__main__.A'>, <class 'object'>)
+
+In a more complex inheritance relationship, there may not be a single diamond.
+The following example have 3 diamonds crossing multiple levels:
+
+.. code-block:: python
+  :name: nsd-advpy-multiple
+  :caption: Example of multiple diamond inheritance.
+  :linenos:
 
   O = object
   class F(O): pass
@@ -1046,10 +1095,13 @@ Example: Multiple-Level Inheritance
   class B(D, E): pass
   class A(B, C): pass
 
+The MRO of the complex inheritance is:
+
 .. code-block:: pycon
 
   >>> print(A.__mro__)
-  (<class '__main__.A'>, <class '__main__.B'>, <class '__main__.C'>, <class '__main__.D'>, <class '__main__.E'>, <class '__main__.F'>, <class 'object'>)
+  (<class '__main__.A'>, <class '__main__.B'>, <class '__main__.C'>, <class '__main__.D'>,
+  <class '__main__.E'>, <class '__main__.F'>, <class 'object'>)
   >>> print(B.__mro__)
   (<class '__main__.B'>, <class '__main__.D'>, <class '__main__.E'>, <class 'object'>)
   >>> print(C.__mro__)
@@ -1060,6 +1112,9 @@ Example: Multiple-Level Inheritance
   (<class '__main__.E'>, <class 'object'>)
   >>> print(F.__mro__)
   (<class '__main__.F'>, <class 'object'>)
+
+And an instance of :py:class:`!A` is an instance of all the classes based on
+the inheritance rule:
 
 .. code-block:: pycon
 
@@ -1077,8 +1132,13 @@ Example: Multiple-Level Inheritance
   >>> print('a {} F'.format('is' if isinstance(a, F) else 'is not'))
   a is F
 
-Abstract Base Class (ABC)
-+++++++++++++++++++++++++
+.. note::
+
+  In production code, we usually do not want to deal with inheritance that is
+  so complex.  If possible, try to avoid it through the system design.
+
+Virtual Base Class
+++++++++++++++++++
 
 Python :py:doc:`abstract base class (abc) <python:library/abc>` provides the
 capabilities to overload :py:func:`python:isinstance` and
@@ -1095,6 +1155,11 @@ We can use :py:meth:`python:abc.ABCMeta.register` method to ask a class
   class MyABC(metaclass=abc.ABCMeta):
       pass
 
+.. warning::
+
+  Python "virtual" base classes have nothing to do with the C++ virtual
+  classes.
+
 As we know, :py:class:`!A` is not a subclass of :py:class:`!MyABC`:
 
 .. code-block:: pycon
@@ -1110,12 +1175,11 @@ subclass of :py:class:`!MyABC`:
 
   >>> MyABC.register(A)
   <class '__main__.A'>
-  >>>
   >>> print('A {} a subclass of MyABC'.format('is' if issubclass(A, MyABC) else 'is not'))
   A is a subclass of MyABC
 
-Abstract Method
-+++++++++++++++
+Abstract Methods
+++++++++++++++++
 
 Using :py:mod:`python:abc`, we can add abstract methods to an class (making it
 abstract).
@@ -1171,11 +1235,14 @@ the derived class cannot run.
 References
 ==========
 
-.. [1] K. Barrett, B. Cassels, P. Haahr, D. A. Moon, K. Playford, and P. T.
+.. [1] :doc:`python:howto/descriptor`
+
+.. [2] K. Barrett, B. Cassels, P. Haahr, D. A. Moon, K. Playford, and P. T.
    Withington, "A monotonic superclass linearization for Dylan," SIGPLAN Not.,
    vol. 31, no. 10, pp. 69–82, Oct. 1996, doi: 10.1145/236338.236343.
    https://dl.acm.org/doi/10.1145/236338.236343.
 
-.. [2] :doc:`python:howto/descriptor`
+.. [3] The Python 2.3 Method Resolution Order,
+   https://www.python.org/download/releases/2.3/mro/.
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
