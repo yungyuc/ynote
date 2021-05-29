@@ -378,17 +378,22 @@ generator expression):
     8
     9
 
-Python Stack Frame
-==================
+Stack Frame
+===========
 
 .. contents:: Contents in the section
   :local:
   :depth: 1
 
-(C)Python uses a stack-based interpreter.  We are allowed to peek all the
-previous stack frames:
+Print Stack Frames
+++++++++++++++++++
+
+(C)Python uses a stack-based interpreter.  Although there is not documented
+API, it is possible to look into the stack frames of Python.  For example, the
+following code prints all the previous stack frames:
 
 .. code-block:: python
+  :linenos:
 
   import traceback
 
@@ -400,6 +405,8 @@ previous stack frames:
 
   def f3():
       f2()
+
+The printed stack frames:
 
 .. code-block:: pycon
 
@@ -420,17 +427,21 @@ We can get the :py:class:`!frame` object of the current stack frame using
   >>> import inspect
   >>> f = inspect.currentframe()
 
-A ``frame`` object has the following attributes:
+A :py:class:`!frame` object has the following attributes:
 
 * Namespace:
+
   * ``f_builtins``: builtin namespace seen by this frame
   * ``f_globals``: global namespace seen by this frame
   * ``f_locals``: local namespace seen by this frame
 * Other:
+
   * ``f_back``: next outer frame object (this frame's caller)
   * ``f_code``: code object being executed in this frame
   * ``f_lasti``: index of last attempted instruction in bytecode
   * ``f_lineno``: current line number in Python source code
+
+Let us see it ourselves:
 
 .. code-block:: pycon
 
@@ -438,8 +449,8 @@ A ``frame`` object has the following attributes:
   ['clear', 'f_back', 'f_builtins', 'f_code', 'f_globals', 'f_lasti',
   'f_lineno', 'f_locals', 'f_trace', 'f_trace_lines', 'f_trace_opcodes']
 
-We can learn many things about the frame in the object.  For example, we can
-take a look in the builtin namespace:
+We can learn many things about the frame in the object.  For example, take a
+look in the builtin namespace (``f_builtins``):
 
 .. code-block:: pycon
 
@@ -475,7 +486,7 @@ take a look in the builtin namespace:
   'open', 'copyright', 'credits', 'license', 'help', '__IPYTHON__', 'display',
   'get_ipython'])
 
-A mysterious ``code`` object:
+The field ``f_code`` is a mysterious ``code`` object:
 
 .. code-block::
 
@@ -483,19 +494,28 @@ A mysterious ``code`` object:
   <code object <module> at 0x10d0d1810, file "<ipython-input-26-dac680851f0c>",
   line 3>
 
-Because a ``frame`` object holds everything a construct uses, after finishing
-using the `frame` object, make sure to break the reference to it.  If we don't
-do it, it may take long time for the interpreter to break the reference for
-you.
+.. danger::
 
-An example script for showing stack frame:
+  Because a :class:`!frame` object holds everything a construct uses, after
+  finishing using the :class:`!frame` object, make sure to break the reference
+  to it:
 
-.. code-block::
+  .. code-block::
 
-  >>> f.clear()
-  >>> del f
+    >>> f.clear()
+    >>> del f
+
+  If we don't do it, it may take long time for the interpreter to break the
+  reference for you.
+
+An example of using the :py:class:`!frame` object is to print the stack frame
+in a custom way:
 
 .. literalinclude:: code/showframe.py
+  :name: nsd-advpy-example-showframe
+  :caption:
+    Custom code for showing stack frame (:download:`showframe.py
+    <code/showframe.py>`).
   :language: python
   :linenos:
   :end-before: # [end example]
@@ -504,10 +524,14 @@ An example script for showing stack frame:
 
   $ ./showframe.py
   frame #0:
-    FrameInfo(frame=<frame at 0x7f8d4c31fdc0, file './showframe.py', line 8, code main>, filename='./showframe.py', lineno=7, function='main', code_context=['    for it, fi in enumerate(inspect.stack()):\n'], index=0)
+    FrameInfo(frame=<frame at 0x7f8d4c31fdc0, file './showframe.py', line 8, code main>,
+    filename='./showframe.py', lineno=7, function='main',
+    code_context=['    for it, fi in enumerate(inspect.stack()):\n'], index=0)
 
   frame #1:
-    FrameInfo(frame=<frame at 0x104762450, file './showframe.py', line 11, code <module>>, filename='./showframe.py', lineno=11, function='<module>', code_context=['    main()\n'], index=0)
+    FrameInfo(frame=<frame at 0x104762450, file './showframe.py', line 11, code <module>>,
+    filename='./showframe.py', lineno=11, function='<module>',
+    code_context=['    main()\n'], index=0)
 
 Module Magic with meta_path
 ===========================
