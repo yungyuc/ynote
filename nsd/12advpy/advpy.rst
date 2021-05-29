@@ -669,6 +669,8 @@ The module objects have an important field :py:data:`!__spec__`, which is the
   loader=<_frozen_importlib_external.SourceFileLoader object at 0x1010b4fa0>,
   origin='/Users/yungyuc/hack/usr/opt39_210210/lib/python3.9/re.py')
 
+.. _nsd-descriptor:
+
 Descriptor
 ==========
 
@@ -812,22 +814,44 @@ Metaclass
   :local:
   :depth: 1
 
-Python class is also an object.
+:ref:`Metaclasses <python:metaclasses>` is a mechanism to perform
+meta-programming in Python.  That is, metaclasses change how the Python code
+works by writing Python code, but do not use a code generator.
+
+Class is an Object
+++++++++++++++++++
+
+In Python, a class is also an object, which is of the type
+":py:class:`python:type`".  Let us observe this interesting fact.  Make a
+class:
 
 .. code-block:: python
 
   class ClassIsObject:
       pass
 
+The class can be manipulated like a normal object:
+
 .. code-block:: pycon
 
-  >>> print(ClassIsObject)
+  >>> print(ClassIsObject) # Operate the class itself, not the instance of the class
   <class '__main__.ClassIsObject'>
-  >>> print(ClassIsObject.__dict__)
+
+The class has its own namespace (:py:attr:`!__dict__`):
+
+.. code-block:: pycon
+
+  >>> print(ClassIsObject.__dict__) # The namespace of the class, not of the instance
   {'__module__': '__main__',
    '__dict__': <attribute '__dict__' of 'ClassIsObject' objects>,
    '__weakref__': <attribute '__weakref__' of 'ClassIsObject' objects>,
    '__doc__': None}
+
+The class is an :py:class:`python:object` as well as a :py:class:`python:type`.
+A :py:class:`python:type` is also an :py:class:`python:object`:
+
+.. code-block:: pycon
+
   >>> isinstance(ClassIsObject, object)
   True
   >>> isinstance(ClassIsObject, type)
@@ -835,9 +859,22 @@ Python class is also an object.
   >>> isinstance(type, object)
   True
 
-:ref:`Metaclasses <python:metaclasses>` allow programmers to customize class creation.
+Customize Class Creation
+++++++++++++++++++++++++
+
+Now we can discuss how to customize class creation using :ref:`metaclasses
+<python:metaclasses>`, after knowing that the classes are just Python objects.
+We will continue to use the accessor example in :ref:`nsd-descriptor`.  In the
+previous example, the descriptor object needs to take an argument for its name:
 
 .. code-block:: python
+
+  x = InsAccessor('x')
+
+I would like to lift that inconvenience.  First, I create a new descriptor:
+
+.. code-block:: python
+  :linenos:
 
   class AutoAccessor:
       """Routing access to all instance attributes to alternate names on the instance."""
@@ -854,7 +891,14 @@ Python class is also an object.
           varname = '_acs' + self.name
           return setattr(obj, varname, val)
 
+The new descriptor class :py:class:`!AutoAccessor` does not take the attribute
+name in the constructor.  Then I create a corresponding metaclass:
+
+.. code-block:: python
+  :linenos:
+
   class AutoAccessorMeta(type):
+      """Metaclass to use the new automatic descriptor."""
       def __new__(cls, name, bases, namespace):
           print('DEBUG before names:', name)
           print('DEBUG before bases:', bases)
@@ -869,15 +913,21 @@ Python class is also an object.
           print('DEBUG after namespace:', namespace)
           return newcls
 
-We will use the descriptor to test the metaclass.  The new descriptor class
-:py:class:`!AutoAccessor` doesn't take the attribute name in the constructor.
-Instead, :py:class:`!AutoAccessorMeta` assigns the correct attribute name.
+The metaclass :py:class:`!AutoAccessorMeta` assigns the correct attribute name.
+We will compare the effects of the metaclass by creating two classes.  The
+first is to use the :py:class:`!AutoAccessor` without the metaclass:
 
 .. code-block:: pycon
 
   >>> class MyAutoClassDefault(metaclass=type):
   ...     x = AutoAccessor()
   ...
+
+The second is to use the metaclass.  The metaclass scans the class namespace
+and assigns the attribute name to the corresponding descriptor:
+
+.. code-block:: pycon
+
   >>> class MyAutoClass(metaclass=AutoAccessorMeta):
   ...     x = AutoAccessor()  # Note: no name is given.
   ...
@@ -891,8 +941,14 @@ Instead, :py:class:`!AutoAccessorMeta` assigns the correct attribute name.
   DEBUG after namespace: {'__module__': '__main__',
   '__qualname__': 'MyAutoClass',
   'x': <__main__.AutoAccessor object at 0x10117bcd0>}
+
+Now we successfully upgrade the descriptor to avoid the explicit argument for
+the attribute name:
+
+.. code-block:: pycon
+
   >>> ao = MyAutoClass()
-  >>> print(ao.x)
+  >>> print(ao.x) # The value is uninitialized
   On object <__main__.MyAutoClass object at 0x101190460> , auto retrieve: x
   None
   >>> ao.x = 10
