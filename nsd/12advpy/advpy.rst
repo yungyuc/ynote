@@ -676,11 +676,20 @@ Descriptor
   :local:
   :depth: 1
 
-The :doc:`descriptor protocol <python:howto/descriptor>` allows us to route
-attribute access to anywhere outside the class.
+Python is very flexible in accessing attributes in an object.  There are
+multiple ways to customize the access, and the :ref:`descriptor protocol
+<python:descriptors>` provides the most versatile API and allows us to route
+attribute access anywhere [2]_.
+
+Naive Accessor
+++++++++++++++
+
+To show how :ref:`descriptors <python:descriptors>` work, make a naive accessor
+class (by following the descriptor protocol):
 
 .. code-block:: python
   :linenos:
+  :emphasize-lines: 7, 10
 
   class ClsAccessor:
       """Routing access to all instance attributes to the descriptor object."""
@@ -693,6 +702,10 @@ attribute access to anywhere outside the class.
       def __set__(self, obj, val):
           print('On object {} , update: {}'.format(obj, self._name))
           self._val = val
+
+Use the descriptor in a class:
+
+.. code-block:: python
 
   class MyClass:
       x = ClsAccessor('x')
@@ -716,29 +729,33 @@ Setting the attribute also shows a message:
   On object <__main__.MyClass object at 0x1011c02b0> , retrieve: x
   10
 
-Because the attribute value is kept in the descriptor, and the descriptor is
-kept in the :py:class:`!class` object, attributes of all instances of
-:py:class:`!MyClass` share the same value.
+This naive descriptor has a problem.  Because the attribute value is kept in
+the descriptor object, and the descriptor is kept in the :py:class:`class
+<python:type>` object, attributes of all instances of :py:class:`!MyClass`
+share the same value:
 
 .. code-block:: pycon
 
   >>> o2 = MyClass()
-  >>> print(o2.x) # Not None!
+  >>> print(o2.x) # Already set, not None!
   On object <__main__.MyClass object at 0x1011c02e0> , retrieve: x
   10
-  >>> o2.x = 100
+  >>> o2.x = 100 # Set the value on o2.
   On object <__main__.MyClass object at 0x1011c02e0> , update: x
-  >>> print(o.x)
+  >>> print(o.x) # The value of o changes too.
   On object <__main__.MyClass object at 0x1011c02b0> , retrieve: x
   100
 
 Keep Data on the Instance
 +++++++++++++++++++++++++
 
-Having all instances sharing the attribute value isn't always desirable.
-Descriptor protocol allows to bind the values to the instance too.
+Having all instances sharing the attribute value usually undesirable, but of
+course the :ref:`descriptor protocol <python:descriptors>` allows to bind the
+values to the instance.  Let us change the accessor class a little bit:
 
 .. code-block:: python
+  :linenos:
+  :emphasize-lines: 7,13
 
   class InsAccessor:
       """Routing access to all instance attributes to alternate names on the instance."""
@@ -755,15 +772,21 @@ Descriptor protocol allows to bind the values to the instance too.
           varname = '_acs' + self._name
           return setattr(obj, varname, val)
 
+The key of preserving the value in the instance is in lines 7 and 13.  We
+mangle the variable name and use it to add a reference on the instance.  Now
+add the descriptor to a class:
+
+.. code-block:: python
+
   class MyClass2:
       x = InsAccessor('x')
 
-Create an instance to test the descriptor.
+Create the first instance.  The descriptor can correctly set and retrieved:
 
 .. code-block:: pycon
 
   >>> mo = MyClass2()
-  >>> print(mo.x)
+  >>> print(mo.x) # The value is uninitialized
   On object <__main__.MyClass2 object at 0x101190250> , instance retrieve: x
   None
   >>> mo.x = 10
@@ -772,12 +795,13 @@ Create an instance to test the descriptor.
   On object <__main__.MyClass2 object at 0x101190250> , instance retrieve: x
   10
 
-In a new instance, the value uses the initial value:
+Create another instance.  According to our implementation, what we did in the
+first instance is not seen in the second one:
 
 .. code-block:: pycon
 
   >>> mo2 = MyClass2()
-  >>> print(mo2.x)
+  >>> print(mo2.x) # The value remains uninitialized
   On object <__main__.MyClass2 object at 0x101190a90> , instance retrieve: x
   None
 
@@ -1095,5 +1119,7 @@ References
    Withington, "A monotonic superclass linearization for Dylan," SIGPLAN Not.,
    vol. 31, no. 10, pp. 69–82, Oct. 1996, doi: 10.1145/236338.236343.
    https://dl.acm.org/doi/10.1145/236338.236343.
+
+.. [2] :doc:`python:howto/descriptor`
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
