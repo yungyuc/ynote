@@ -5,6 +5,9 @@ Schedule
 Current
 =======
 
+.. include:: nsd_21sp_nycu.rst
+  :start-line: 4
+
 .. toctree::
   :maxdepth: 1
 

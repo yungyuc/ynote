@@ -2,11 +2,6 @@
 Numerical Software Development
 ==============================
 
-.. admonition:: Work in Progress
-
-  This note is being adapted from `the lecture note of numerical software
-  development <https://yungyuc.github.io/nsd>`__.
-
 This is a note introducing the popular hybrid architecture that uses Python and
 C++ to develop numerical software systems.  It has two parts.  The :ref:`first
 <nsd-first-part>` is the recapitulation of how computers work.  The
@@ -44,5 +39,10 @@ C++ to develop numerical software systems.  It has two parts.  The :ref:`first
   10cpppy/cpppy
   11arraydesign/arraydesign
   12advpy/advpy
+
+.. admonition:: Information
+
+  This note is adapted from `the lecture note of numerical software development
+  <https://yungyuc.github.io/nsd>`__.
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
