@@ -2,6 +2,10 @@
 Introduction
 ============
 
+.. begin introduction contents
+
+.. _nsd-definition:
+
 What Is Numerical Software
 ==========================
 
@@ -12,7 +16,7 @@ artillery range tables.  Running at the electronic speed, the computer
 performed a tremendous amount of calculation.
 
 We use digital computers to crunch more and more numbers.  Computer code
-follows the numerical methods, which are developed based on the mathematic
+follows the numerical methods, which are developed based on the mathematical
 formulations.  Sometimes the mathematics has an associated physical problem.
 But sometimes, it's just mathematics.  The applications are endless, but here
 list some famous packages to give you an idea:
@@ -41,21 +45,26 @@ computer science.  Of course, since it is computer software, it cannot exist
 without computer science.  Naturally it is cross-discipline and demands
 knowledge and skills in two or more fields from the practitioners.
 
+.. _nsd-reason:
+
 Why Develop Numerical Software
 ==============================
 
 Numerical software is developed to solve problems that are either impracticable
-or unmarketable without it.
+without it.
 
-For the impracticable problems, numerical software simply enables the solution
-so that we can study them.  Problems in the fields of fluid dynamics and
-astrophysics are usually of this kind.  For the unmarketable problems, the
-software will significantly reduce the cost to solution.  Machine learning,
-visualization, communication, etc., are problems of this kind.
+Numerical software simply enables the solution so that we can study the
+impracticable problems, e.g., those in the fields of fluid dynamics and
+astrophysics.  The software may also significantly reduce the cost to solution,
+so that industrial products can be derived from the solution, e.g., machine
+learning, visualization, communication, etc.
 
-Like developing any software, the true driver must be identified so that the
-system can be properly specified.  After that, there is a pattern in developing
-numerical software:
+.. note::
+
+  Like developing any software, the true driver must be identified so that the
+  system can be properly specified.
+
+A pattern is usually found in the development of numerical software:
 
 1. Observation
 2. Generalize to a theory in math
@@ -68,17 +77,26 @@ numerical software:
 Hybrid Architecture
 ===================
 
-Computing is about commanding the computers to perform calculations to yield
-the results that we want to see.  We delegate work to computers as much as
-possible, but keep the highest possible system performance.
+A hybrid architecture is employed to achieve the highest-possible performance
+and the most flexible computation that are simultaneously required by numerical
+software.  The system is composed of a fast, low-level computing engine and an
+easier-to-use, high-level scripting layer.  It is usually developed as a
+platform, working like a library that provides data structures and helpers for
+problem solving.  The users will use a scripting engine it provides to build
+applications.  Assembly is allowed in the low-level computing engine to utilize
+every drop of hardware: multi-core, multi-threading, cache, vector processing,
+etc.
 
-Numerical software usually uses a hybrid architecture to achieve this.  The
-system is composed of a fast, low-level computing engine and an easy-to-use,
-high-level scripting layer.  It is usually developed as a platform, working
-like a library that provides data structures and helpers for problem solving.
-The users will use a scripting engine it provides to build applications.
-Assembly is allowed in the low-level computing engine to utilize every drop of
-hardware: multi-core, multi-threading, cache, vector processing, etc.
+.. note::
+
+  Performance and flexibility are usually mutually exclusive.  The hybrid
+  architecture achieves both in the same time by sacrificing ease of use.
+
+As such, numerical software rarely provides decent graphical user interface
+(GUI).  Using numerical software is like using a library, rather than a
+off-the-shelf software product.  Even if you do purchase a commercial software
+package for numerical calculation, the full capabilities need to be accessed by
+scripting.
 
 A general description of the architecture is like the following layers, from
 high-level to low-level:
@@ -167,6 +185,8 @@ language will also need to provide two distinct styles for both use cases.  It
 will be quite challenging, and before anyone succeeds with the one-language
 approach, we still need to live with a world of hybrid systems.
 
+.. _nsd-cpp-and-python:
+
 Numerical Software = C++ + Python
 =================================
 
@@ -177,29 +197,30 @@ everything.  It should be noted that, although the users program in the system,
 they by no means know about computer science.
 
 Not all programming languages can meet the expectation.  To this point, the
-most suitable scripting language is Python, and the most suitable low-level
-language may be C++.  C++ can be controversial, but considering the support it
-received from the industry, it's probably difficult to find another language of
-higher acceptance.  Our purpose here is to introduce the skills for developing
-numerical software, not to analyze programming languages.  We will focus on C++
-and Python.
+most suitable scripting language is `Python <https://www.python.org/>`_, and
+the most suitable low-level language may be C++.  The choice of C++ can be
+controversial, but considering the support it received from the industry, it's
+probably difficult to find another language of higher acceptance.  Our purpose
+here is to introduce the skills for developing numerical software, not to
+analyze programming languages.  We will focus on C++ and Python.
 
-More Reasons to Use Python
-++++++++++++++++++++++++++
+.. admonition:: More Reasons to Use Python
 
-* Python provides a better way to describe the physical or mathematical
-  problem.
+  * Python provides a better way to describe the physical or mathematical
+    problem.
 
-* Python can easily build an even higher-level application, using GUI,
-  scripting, or both.
+  * Python can easily build an even higher-level application, using GUI,
+    scripting, or both.
 
-* Is there alternative for C++?  No.  For Python?  Yes.  But Python is the
-  easiest choice for its versatility and simplicity.
+  * Is there alternative for C++?  No.  For Python?  Yes.  But Python is the
+    easiest choice for its versatility and simplicity.
 
-* A numerical software developer sees through the abstraction stack:
+  * A numerical software developer sees through the abstraction stack:
 
-  * The highest-level application is presented as a Python script.
-  * The Python script drives the number-crunching C++ library.
-  * C++ is the syntactic sugar for the machine code.
+    * The highest-level application is presented as a Python script.
+    * The Python script drives the number-crunching C++ library.
+    * C++ is the syntactic sugar for the machine code.
+
+.. end introduction contents
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:

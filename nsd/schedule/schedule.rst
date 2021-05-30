@@ -2,39 +2,26 @@
 Schedule
 ========
 
-Current
-=======
-
-.. include:: nsd_21sp_nycu.rst
-  :start-line: 4
-
 .. toctree::
   :maxdepth: 1
 
   nsd_21sp_nycu
-
-Planned
-=======
-
-.. toctree::
-  :maxdepth: 1
-
   nsd_21au_nycu
 
 Past
 ====
 
-* `2020 autumn schedule at NCTU.
+* `2020 autumn schedule at NCTU
   <https://github.com/yungyuc/nsd/blob/master/notebook/20au_nctu/index.ipynb>`__
 
-  * `Link to NCTU course system for 2020 autumn.
+  * `Link to NCTU course system for 2020 autumn
     <https://timetable.nctu.edu.tw/?r=main/crsoutline&Acy=109&Sem=1&CrsNo=5285>`__
-* `2020 spring schedule at NCTU.
+* `2020 spring schedule at NCTU
   <https://github.com/yungyuc/nsd/blob/master/notebook/20sp_nctu/index.ipynb>`__
 
-  * `Link to NCTU course system for 2020 spring.
+  * `Link to NCTU course system for 2020 spring
     <https://timetable.nctu.edu.tw/?r=main/crsoutline&Acy=108&Sem=2&CrsNo=5911>`__
-* `2019 autumn schedule at NCTU.
+* `2019 autumn schedule at NCTU
   <https://github.com/yungyuc/nsd/blob/master/notebook/19au_nctu/index.ipynb>`__
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:

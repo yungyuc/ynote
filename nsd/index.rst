@@ -2,14 +2,14 @@
 Numerical Software Development
 ==============================
 
-This is a note introducing the popular hybrid architecture that uses Python and
-C++ to develop numerical software systems.  It has two parts.  The :ref:`first
+This is a note for using Python and C++ to develop high-performance and highly
+flexible numerical software systems.  It has two parts.  The :ref:`first
 <nsd-first-part>` is the recapitulation of how computers work.  The
 :ref:`second <nsd-second-part>` is the practical implementation skill.
 
 .. toctree::
   :caption: Overview
-  :maxdepth: 1
+  :maxdepth: 2
 
   00intro
   schedule/schedule
