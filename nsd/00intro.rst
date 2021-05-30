@@ -2,6 +2,8 @@
 Introduction
 ============
 
+.. begin introduction contents
+
 .. _nsd-definition:
 
 What Is Numerical Software
@@ -218,5 +220,7 @@ analyze programming languages.  We will focus on C++ and Python.
     * The highest-level application is presented as a Python script.
     * The Python script drives the number-crunching C++ library.
     * C++ is the syntactic sugar for the machine code.
+
+.. end introduction contents
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:

@@ -2,6 +2,8 @@
 NSD Schedule 2021 Autumn NYCU
 =============================
 
+.. begin schedule contents
+
 `Link to NYCU course system.
 <https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=110&Sem=1&CrsNo=5296>`__
 
