@@ -12,6 +12,10 @@ flexible numerical software systems.  It has two parts.  The :ref:`first
   :maxdepth: 2
 
   00intro
+
+.. toctree::
+  :maxdepth: 1
+
   schedule/schedule
 
 .. _nsd-first-part:
