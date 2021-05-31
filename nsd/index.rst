@@ -2,51 +2,62 @@
 Numerical Software Development
 ==============================
 
-This is a note for using Python and C++ to develop high-performance and highly
-flexible numerical software systems.  It has two parts.  The :ref:`first
-<nsd-first-part>` is the recapitulation of how computers work.  The
-:ref:`second <nsd-second-part>` is the practical implementation skill.
+This page organizes the technical information for using Python and C++ to
+develop high-performance and highly flexible numerical software systems.  It is
+also offered as a senior- to graduate-level course.
 
 .. toctree::
-  :caption: Overview
-  :maxdepth: 2
-
-  00intro
-
-.. toctree::
+  :caption: Course Information
+  :name: nsd-course
   :maxdepth: 1
 
+  00intro
+  project/project
   schedule/schedule
 
-.. _nsd-first-part:
+There are four parts of technical materials: :ref:`nsd-part-fundamental`,
+:ref:`nsd-part-performance`, :ref:`nsd-part-system`, and
+:ref:`nsd-part-design`.
 
 .. toctree::
-  :caption: Computer Architecture
+  :caption: Computer Fundamental
+  :name: nsd-part-fundamental
   :maxdepth: 1
 
   01engineering/engineering
   02numpy/numpy
   03cpp/cpp
+
+.. toctree::
+  :caption: Programming for Performance
+  :name: nsd-part-performance
+  :maxdepth: 1
+
   04matrix/matrix
   05cache/cache
   06simd/simd
 
-.. _nsd-second-part:
-
 .. toctree::
-  :caption: Implementation Skill
+  :caption: System Management
+  :name: nsd-part-system
   :maxdepth: 1
 
   07mem/mem
   08smart/smart
   09moderncpp/moderncpp
+
+.. toctree::
+  :caption: Design Techniques
+  :name: nsd-part-design
+  :maxdepth: 1
+
   10cpppy/cpppy
   11arraydesign/arraydesign
   12advpy/advpy
 
-.. admonition:: Information
+.. seealso::
 
-  This note is adapted from `the lecture note of numerical software development
-  <https://yungyuc.github.io/nsd>`__.
+  The former versions can be found in `the lecture note of numerical software
+  development <https://yungyuc.github.io/nsd>`__.
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
