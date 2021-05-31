@@ -488,7 +488,7 @@ look in the builtin namespace (``f_builtins``):
 
 The field ``f_code`` is a mysterious ``code`` object:
 
-.. code-block::
+.. code-block:: pycon
 
   >>> print(f.f_code)
   <code object <module> at 0x10d0d1810, file "<ipython-input-26-dac680851f0c>",
@@ -500,7 +500,7 @@ The field ``f_code`` is a mysterious ``code`` object:
   finishing using the :class:`!frame` object, make sure to break the reference
   to it:
 
-  .. code-block::
+  .. code-block:: pycon
 
     >>> f.clear()
     >>> del f
