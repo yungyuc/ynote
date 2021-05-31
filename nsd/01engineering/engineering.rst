@@ -2,12 +2,20 @@
 Fundamental Engineering
 =======================
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 Writing computer code is only a fraction of software engineering.  A large
 chunk of efforts is spent in the coding infrastructure.  The keyword is
 automation.
 
 Bash Scripting
 ==============
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Shell script is the most common way for automation.  A shell is responsible for
 taking commands from users.  Every operating system provides shells.  Because
@@ -222,6 +230,10 @@ over in a script.
 
 Makefile
 ========
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 ``Makefile`` is the input file of a tool called ``make``.  ``make`` has many
 derived implementations since its creation in 1976 at Bell Labs.  The most
@@ -467,6 +479,10 @@ Another common use of phony targets is to redirect the default rule:
 Cmake
 =====
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Automation is needed to simplify entangled operations which induce human
 errors.  Cross-platform building is a common example of such operations.  We've
 seen in a previous example (a bash shell script) how it comes to us:
@@ -565,6 +581,10 @@ The option is supplied to cmake as such:
 
 Git Version Control System
 ==========================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Version control system (VCS), which is also called source control management
 (SCM), is essential for programmers to engineer software.  There are only two
@@ -816,6 +836,10 @@ bisection.
 
 Automatic testing
 =================
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Automatic testing is part of software development flow.  When working on a
 project, we may first build the code:
@@ -1100,6 +1124,10 @@ test it easily.
 Continuous Integration
 ======================
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Continuous integration (CI) is a practice that each developer in a team
 integrates the individual work into the shared mainstream regularly and
 frequently.  Thus, the chance for the developers to step on each other's toes
@@ -1169,6 +1197,10 @@ very specific to the products it serves.
 Code Review
 ===========
 
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 Software development takes a lot of communication.  This may be
 counter-intuitive to non-developers.  In an ideal, entropy free world, there is
 no cost to transfer information between minds, and collaboration is conducted
@@ -1206,6 +1238,10 @@ Here is a real-world example for how code review works: https://github.com/Quant
 
 Timing
 ======
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 Measurement is the first and most important thing to do for developing
 high-performance code.
