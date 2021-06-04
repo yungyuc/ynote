@@ -24,4 +24,12 @@ Past
 * `2019 autumn schedule at NCTU
   <https://github.com/yungyuc/nsd/blob/master/notebook/19au_nctu/index.ipynb>`__
 
+Other
+=====
+
+.. toctree::
+  :maxdepth: 1
+
+  condensed3days
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
