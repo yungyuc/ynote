@@ -29,7 +29,7 @@ There are four parts of technical materials: :ref:`nsd-part-fundamental`,
   03cpp/cpp
 
 .. toctree::
-  :caption: Programming for Performance
+  :caption: Performance Considerations
   :name: nsd-part-performance
   :maxdepth: 1
 
