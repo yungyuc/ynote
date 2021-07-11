@@ -5,11 +5,15 @@ Schedule
 .. toctree::
   :maxdepth: 1
 
-  nsd_21sp_nycu
   nsd_21au_nycu
 
 Past
 ====
+
+.. toctree::
+  :maxdepth: 1
+
+  nsd_21sp_nycu
 
 * `2020 autumn schedule at NCTU
   <https://github.com/yungyuc/nsd/blob/master/notebook/20au_nctu/index.ipynb>`__
