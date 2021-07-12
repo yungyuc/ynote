@@ -28,7 +28,7 @@ Obviously, like all software, fundamental engineering is required for robust
 development.  But the numerical software also requires unique structures and
 patterns.  Failure to comply with them leads to a mediocre system which fails
 when the problems become critical.  More discussions about the software
-development will help the sad stories from happening so often.
+development will prevent the sad stories from happening so often.
 
 Teaching is an amazing experience.  I enjoy the time organizing the notes,
 trying to explain and give examples for what I learned in the field, and
