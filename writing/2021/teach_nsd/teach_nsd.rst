@@ -40,8 +40,8 @@ not only deliver the organized contents to the audience, but also deepens my
 own understandings to the matter of writing code to run fast and solve
 problems.
 
-I will continue the course in the coming semester [1]_.  As long as the
-students like it, I will be happy to teach it.  If you are interested in
+I will continue the course in the next semester (2021 autumn) [1]_.  As long as
+the students like it, I will be happy to teach it.  If you are interested in
 writing numerical codes and/or writing code for solving interesting but
 not-so-computer-science problems, come take a look.  It's gonna be fun.
 
