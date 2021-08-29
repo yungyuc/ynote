@@ -97,12 +97,48 @@ Term Project
 
 The course requires students to develop a software projects of a hybrid system
 of C++11 (modern C++) and Python for a numerical, scientific, or engineering
-problem.  Students need to submit a proposal for the project.  A template for
-the proposal can be found at :doc:`nsd_21au_nycu_project_template`.
+problem.  Everyone needs to *individually* write a proposal, develop the code,
+and present the project to the class at the end of the course.  The grading
+guidelines are described in :doc:`../project/project`.
 
-There are some possible directions listed below.  All of them are useful in a
-teaching code `modmesh <https://github.com/solvcon/modmesh>`__.  Students are
-free to derive a topic from them, or come up with one by themselves.
+The software needs to be open-source, hosted on `github.com
+<https://github.com/>`__, and executable on `Ubuntu 20.04 LTS
+<http://releases.ubuntu.com/20.04/>`__ on 64-bit x86 through command line.
+Building the software should use a single command.
+
+The project proposal should be submit through `the homework repository
+<https://github.com/yungyuc/nsdhw_21au>`__ on time.  A template can be found at
+:doc:`nsd_21au_nycu_project_template`.  The following contents should be
+included:
+
+1. Basic information (including the GitHub repository)
+2. Problem to solve
+3. Perspective users
+4. System architecture
+5. API description
+6. Engineering infrastructure
+7. Schedule
+
+The proposal works like a specification, of which the purpose is to enable
+discussions that cannot be done with programming language.  For example, source
+code is not suitable for describing software architecture.  In `The
+Architecture of Open Source Applications
+<https://aosabook.org/en/index.html>`__, you can see the many different ways
+that the developers use to present architecture.  It is usually effective to
+use diagrams and natural language to do it.
+
+With your proposal, I can help you manage the development through discussions
+(at which you should be pro-active).  A plan will not be be 100% accurate and
+you should modify it as you go.  Use pull requests to keep the proposal
+up-to-date.
+
+You should write prototype code for your project while writing the proposal.
+The initial work will help you understand more about what to do.  It is
+difficult, if not impossible, to write a proposal without prototyping.
+
+There are some possible directions listed in this page.  All of them are useful
+in a code name `modmesh <https://github.com/solvcon/modmesh>`__.  Students are
+free to derive a subject from them, or come up with one by themselves.
 
 .. _nsd-21au-project-conarr:
 

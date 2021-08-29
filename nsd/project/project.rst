@@ -2,26 +2,13 @@
 Practical Project
 =================
 
-Readers are expected to build an open-software package of a scientific,
-mathematic, or numerical application to practice the techniques in the
-:doc:`technical materials <../index>`.  The practical project is a critical
-companion of the :doc:`technical materials <../index>`, and should include also
-a proposal of the code development and a presentation.
-
-The software package, of which the source code is publicly available, needs to
-be hosted on `github.com <https://github.com/>`__. The software needs to be
-executable on the `Ubuntu 20.04 LTS <http://releases.ubuntu.com/20.04/>`__ on
-64-bit x86 through command line. Building the software package should use a
-single command.
-
-Assessment
-==========
-
-The project may be assessed based on the following sets of guideline:
-:ref:`good engineering infrastructure <nsd-grading-soft>`, :ref:`correct
-implementation and solution to the problem <nsd-grading-correct>`,
-:ref:`adequate architecture <nsd-grading-arch>`, and :ref:`clear presentation
-<nsd-grading-present>`.
+To get the most from the :doc:`technical materials <../index>`, it is important
+for readers to practice the techniques in building real software of a
+scientific, mathematic, or numerical application.  The project may be assessed
+based on the following guidelines: :ref:`good engineering infrastructure
+<nsd-grading-soft>`, :ref:`correct implementation and solution to the problem
+<nsd-grading-correct>`, :ref:`adequate architecture <nsd-grading-arch>`, and
+:ref:`clear presentation <nsd-grading-present>`.
 
 .. _nsd-grading-soft:
 
