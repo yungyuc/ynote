@@ -2,13 +2,23 @@
 Fundamental Engineering
 =======================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
+While there are so many things to do with engineering, the central idea is
+automation.  Automation is to accomplish work not by human beings, but by
+machines.  The concept becomes recursive when we make software.  The software
+is what engineers make to automate some work.  But the making itself still can
+be automated.  It is the fundamental of software engineering.
 
-Writing computer code is only a fraction of software engineering.  A large
-chunk of efforts is spent in the coding infrastructure.  The keyword is
-automation.
+In this chapter, we will cover the basic practices in software engineering,
+starting with the fundamental automation tools: :ref:`nsd-engineering-bash`,
+:ref:`nsd-engineering-make`, and :ref:`nsd-engineering-cmake`.  On top of the
+automation, we should use version control to regulate our editing of the source
+code.  It will be covered in :ref:`nsd-engineering-git`.  Version control is a
+prerequisite for more advanced automation for testing the software, which is
+covered in :ref:`nsd-engineering-testing` and :ref:`nsd-engineering-ci`.  The
+last part in this chapter is what we cannot automate: :ref:`nsd-engineering-cv`
+and :ref:`nsd-engineering-timing`.
+
+.. _nsd-engineering-bash:
 
 Bash Scripting
 ==============
@@ -227,6 +237,8 @@ over in a script.
   real	0m0.000s
   user	0m0.000s
   sys	0m0.000s
+
+.. _nsd-engineering-make:
 
 Makefile
 ========
@@ -476,7 +488,9 @@ Another common use of phony targets is to redirect the default rule:
   g++ -c hellomain.cpp -o hellomain.o
   g++ hello.o hellomain.o -o hello
 
-Cmake
+.. _nsd-engineering-cmake:
+
+CMake
 =====
 
 .. contents:: Contents in the section
@@ -501,12 +515,12 @@ seen in a previous example (a bash shell script) how it comes to us:
 
 As the software grows, such simple conditional statements fail to handle the
 complexity.  It applies to both shell scripts and make files.  We need a
-dedicated tool for orchestrating the build process.  Cmake is such a tool.
+dedicated tool for orchestrating the build process.  CMake is such a tool.
 
 Although it has "make" in the name, cmake is _not_ a variant of make.  It
 requires its own configuration file, called ``CMakeLists.txt``.  On Linux, we
 usually let cmake to generate GNU make files, and then run make to build the
-software.  This is a so-called two-stage building process.  Cmake provides many
+software.  This is a so-called two-stage building process.  CMake provides many
 helpers so that we may relatively easily configure the real build commands to
 deal with compiler flags, library and executable file names, and third-party
 libraries (dependencies).
@@ -520,7 +534,7 @@ Since cmake is only used to deal with complex configuration, we may not use a
 simple example to show how it is used.  Instead, high-level information about
 what it does will be provided.
 
-How to Run Cmake
+How to Run CMake
 ++++++++++++++++
 
 By default cmake expects to be run in a separate build directory.  Assume the
@@ -561,7 +575,7 @@ in a recipe like:
 Add a Custom Option
 +++++++++++++++++++
 
-Cmake allows to add any custom option that is consumed from the command line.
+CMake allows to add any custom option that is consumed from the command line.
 For example, a new ``DEBUG_SYMBOL`` option can be added by the following cmake
 list code:
 
@@ -578,6 +592,8 @@ The option is supplied to cmake as such:
 .. code-block:: console
 
   cmake root -DDEBUG_SYMBOL=ON
+
+.. _nsd-engineering-git:
 
 Git Version Control System
 ==========================
@@ -834,7 +850,9 @@ bisection.
   :align: center
   :width: 90%
 
-Automatic testing
+.. _nsd-engineering-testing:
+
+Automatic Testing
 =================
 
 .. contents:: Contents in the section
@@ -1121,6 +1139,8 @@ The formula can be easily turned into any language.  Since we are showing
 pybind11, it may be implemented in C++ and wrapped to Python, and then we can
 test it easily.
 
+.. _nsd-engineering-ci:
+
 Continuous Integration
 ======================
 
@@ -1194,6 +1214,8 @@ system like `Jenkins <https://jenkins.io/>`__.  The in-house system usually
 will be highly integrated to the internal infrastructure and offer features
 very specific to the products it serves.
 
+.. _nsd-engineering-cv:
+
 Code Review
 ===========
 
@@ -1234,7 +1256,10 @@ change.  It actually works in two way:
    Abby can comment that his version isn't compatible to the existing
    implementation, and asks Bob to modify.
 
-Here is a real-world example for how code review works: https://github.com/QuantStack/xtensor-python/pull/175.
+Here is a real-world example for how code review works:
+https://github.com/QuantStack/xtensor-python/pull/175.
+
+.. _nsd-engineering-timing:
 
 Timing
 ======
