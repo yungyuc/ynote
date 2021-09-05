@@ -30,41 +30,62 @@ Bash Scripting
 Shell script is the most common way for automation.  A shell is responsible for
 taking commands from users.  Every operating system provides shells.  Because
 of the ubiquitous Linux, ``bash`` becomes the most popular shell.  A bash shell
-script should work on almost all computer systems.
-
-Structure of a simplest script:
-
-1. Shebang.
-2. Comment/document.
-3. Setup.
-4. Action.
-
-.. code-block:: bash
-  :caption: Bash script example: ``clone-python.sh``
-
-  #!/bin/bash
-  #
-  # This script clones the cpython repository.
-
-  # setup environment variables.
-  root=${ROOT:-~/tmp}
-  pkgname=python
-  pkgbranch=${VERSION:-3.7}
-  pkgfull=$pkgname-$pkgbranch
-  pkgrepo=https://github.com/python/cpython.git
-
-  # clone.
-  mkdir -p $root
-  cd $root
-  echo `pwd`
-  if [ ! -d $pkgfull ] ; then
-    git clone -q -b $pkgbranch $pkgrepo $pkgfull
-  fi
+script should work on almost all modern computer systems.
 
 A shell script file contains commands to ``bash``.  Executing the bash script
 file is almost the same as typing those commands directly in an interactive
-shell.  Bash shell scripts are the most common way to record the commands and
-automate the work.
+shell.  Running a bash shell script is like to record the commands in a file
+and execute them one by one.
+
+Structure
++++++++++
+
+A bash script is simple, but still a computer program.  It will be good to
+organize the code in a maintainable form.  So we need some structure.  Let us
+use a simple bash script to show what is the most basic structure.  It clones
+the CPython repository and has 4 parts:
+
+1. Shebang
+
+  .. code-block:: bash
+
+    #!/bin/bash
+
+2. Comment/document
+
+  .. code-block:: bash
+
+    #
+    # This script clones the cpython repository.
+    #
+
+3. Setup
+
+  .. code-block:: bash
+
+    # setup environment variables.
+    root=${ROOT:-~/tmp}
+    pkgname=python
+    pkgbranch=${VERSION:-3.7}
+    pkgfull=$pkgname-$pkgbranch
+    pkgrepo=https://github.com/python/cpython.git
+
+4. Action
+
+  .. code-block:: bash
+
+    # clone.
+    mkdir -p $root
+    cd $root
+    echo `pwd`
+    if [ ! -d $pkgfull ] ; then
+      git clone -q -b $pkgbranch $pkgrepo $pkgfull
+    fi
+
+.. note::
+
+  Do not over-engineer a shell script when you do not need to maintain it.  It
+  is not uncommon for us to write a run-once script.
 
 Variables
 +++++++++
@@ -82,15 +103,19 @@ the *environment variable*, which is also visible in child processes.
   export env_var
   export env_var2="other_env_value"
 
-Default value when variable isn't set:
+Bash provides many tricks to help us write scripts.  For example, we can use
+the syntax of ``${NAME:-default value}`` to return the default value when
+the variable isn't set:
 
 .. code-block:: console
 
-  $ # show the fallback value since the variable isn't set
-  $ THISVAR='something'
-  $ unset THISVAR; echo ${THISVAR:-no such thing}
+  $ unset THISVAR
+  $ echo ${THISVAR}  # prints an empty line
+
+  $ echo ${THISVAR:-no such thing}  # variable is not set
   no such thing
-  $ THISVAR="some value"; echo ${THISVAR:-no such thing}
+  $ THISVAR="some value"
+  $ echo ${THISVAR:-no such thing}  # variable is set
   some value
 
 Sub-Process vs Source
@@ -110,14 +135,25 @@ Assume we have a bash script called ``dosomething.sh``:
   export MYENVVAR="MYENVVAR is set to what I want"
   echo "do something"
 
-The variable isn't set in the calling shell:
+When running the script in a sub-process, the variable ``MYENVVAR`` isn't set
+in the calling shell:
 
 .. code-block:: console
 
-  $ unset MYENVVAR; ./dosomething.sh; echo ${MYENVVAR:-"MYENVVAR is not set"}
+  $ unset MYENVVAR
+  $ ./dosomething.sh
+  $ echo ${MYENVVAR:-"MYENVVAR is not set"}
   do something
   MYENVVAR is not set
-  $ unset MYENVVAR; source ./dosomething.sh; echo ${MYENVVAR:-"MYENVVAR is not set"}
+
+When sourcing the script in the current shell, the variable ``MYENVVAR`` gets
+set:
+
+.. code-block:: console
+
+  $ unset MYENVVAR
+  $ source ./dosomething.sh
+  $ echo ${MYENVVAR:-"MYENVVAR is not set"}
   do something
   MYENVVAR is set to what I want
 
@@ -243,15 +279,15 @@ over in a script.
 Makefile
 ========
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 ``Makefile`` is the input file of a tool called ``make``.  ``make`` has many
 derived implementations since its creation in 1976 at Bell Labs.  The most
 popular implementation is GNU ``make``, which is also required in building the
 Linux kernel.  We will be focusing on GNU ``make``.
  
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
+
 A Makefile consists of rules in the following format:
 
 .. code-block:: make
@@ -315,7 +351,7 @@ Then write two rules for the object files.  First ``hello.o``:
 
 .. code-block:: make
 
-	hello.o: hello.cpp hello.hpp
+  hello.o: hello.cpp hello.hpp
           $(CXX) -c hello.cpp -o hello.o
 
 Second ``hellomain.o``:
@@ -323,7 +359,7 @@ Second ``hellomain.o``:
 .. code-block:: make
 
   hellomain.o: hellomain.cpp hello.hpp
-  	        $(CXX) -c hellomain.cpp -o hellomain.o
+          $(CXX) -c hellomain.cpp -o hellomain.o
 
 Now we can use a single command to run all the recipes for building ``hello``:
 
@@ -468,7 +504,7 @@ Another common use of phony targets is to redirect the default rule:
 
   # Implicit rules will be skipped when searching for default.
   #%.o: %.cpp hello.hpp
-  #	$(CXX) -c $< -o $@
+  #        $(CXX) -c $< -o $@
 
   hello.o: hello.cpp hello.hpp
           $(CXX) -c $< -o $@
@@ -493,13 +529,10 @@ Another common use of phony targets is to redirect the default rule:
 CMake
 =====
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
-Automation is needed to simplify entangled operations which induce human
-errors.  Cross-platform building is a common example of such operations.  We've
-seen in a previous example (a bash shell script) how it comes to us:
+CMake is more than just an automation tool.  For mere automation, we usually
+choose to use bash or make.  We want to use CMake usually for cross-platform
+automation.  In a previous example, we have seen the handling of cross-platform
+execution in a bash shell script:
 
 .. code-block:: bash
 
@@ -533,6 +566,10 @@ trees.
 Since cmake is only used to deal with complex configuration, we may not use a
 simple example to show how it is used.  Instead, high-level information about
 what it does will be provided.
+
+.. contents:: Contents in the section
+  :local:
+  :depth: 1
 
 How to Run CMake
 ++++++++++++++++
@@ -1242,10 +1279,10 @@ You may be curious why?  Let's use our vector example again:
   // angle before vector by Bob
   std::tuple<double, double> rotate(double rad, std::tuple<double, double> const & vec);
 
-Assume Abby develop her version first.  If she kept that herself, nothing
+Assume Abby developed her version first.  If she kept that herself, nothing
 prevents Bob's incompatible version from being written.  But if Abby somehow
-tells her colleagues her design, Bob may not create the incompatible version in
-the first place.
+told Bob her design, Bob would not create the incompatible version in the first
+place.
 
 Code review is an efficient way for Abby to communicate with Bob about her
 change.  It actually works in two way:
@@ -1257,7 +1294,7 @@ change.  It actually works in two way:
    implementation, and asks Bob to modify.
 
 Here is a real-world example for how code review works:
-https://github.com/QuantStack/xtensor-python/pull/175.
+https://github.com/solvcon/devenv/pull/58.
 
 .. _nsd-engineering-timing:
 
