@@ -15,12 +15,14 @@ NSD Schedule 2021 Autumn NYCU
   * - Week
     - Date
     - Subject
-    - Homework
+    - Comments
   * - 1
     - 9/13
+      `online (butter)
+      <https://app.butter.us/yyc/nsd-01engineering-with-introduction>`__
     - :doc:`Introduction <../00intro>` and
       Unit 1: :doc:`../01engineering/engineering`
-    - assignment #1
+    - hw #1
   * - 2
     - 9/20
     - No meeting (mid-autumn holiday)
@@ -28,11 +30,11 @@ NSD Schedule 2021 Autumn NYCU
   * - 3
     - 9/27
     - Unit 2: :doc:`../02numpy/numpy`
-    - project proposal start
+    - proposal
   * - 4
     - 10/4
     - Unit 3: :doc:`../03cpp/cpp`
-    - assignment #2
+    - hw #2
   * - 5
     - 10/11
     - No meeting (national day)
@@ -40,11 +42,11 @@ NSD Schedule 2021 Autumn NYCU
   * - 6
     - 10/18
     - Unit 4: :doc:`../04matrix/matrix`
-    - assignment #3
+    - hw #3
   * - 7
     - 10/25
     - Unit 5: :doc:`../05cache/cache`
-    - project proposal due
+    - proposal due
   * - 8
     - 11/1
     - Unit 6: :doc:`../06simd/simd`
@@ -56,7 +58,7 @@ NSD Schedule 2021 Autumn NYCU
   * - 10
     - 11/15
     - Unit 7: :doc:`../07mem/mem`
-    - assignment #4
+    - hw #4
   * - 11
     - 11/22
     - Unit 8: :doc:`../08smart/smart`
@@ -64,7 +66,7 @@ NSD Schedule 2021 Autumn NYCU
   * - 12
     - 11/29
     - Unit 9: :doc:`../09moderncpp/moderncpp`
-    - assignment #5
+    - hw #5
   * - 13
     - 12/6
     - Unit 10: :doc:`../10cpppy/cpppy`
@@ -72,7 +74,7 @@ NSD Schedule 2021 Autumn NYCU
   * - 14
     - 12/13
     - Unit 11: :doc:`../11arraydesign/arraydesign`
-    - assignment #6
+    - hw #6
   * - 15
     - 12/20
     - Unit 12: :doc:`../12advpy/advpy`
