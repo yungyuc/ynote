@@ -876,17 +876,6 @@ In addition to branching and merging, rebase is also a critical technique for
 operating a git repository, but it is best to learn it by yourself when
 developing code in this course.
 
-Bisecting
-+++++++++
-
-With the clear history in a repository, when we have a bug in a system, it
-becomes relatively easy to hunt down when and how the problem is introduced by
-bisection.
-
-.. figure:: image/bisection.png
-  :align: center
-  :width: 90%
-
 .. _nsd-engineering-testing:
 
 Automatic Testing
@@ -1232,15 +1221,14 @@ CI Service
 ++++++++++
 
 Continuous integration (CI) is tightly coupled with a version control system.
-Recall bisection:
+The basic feature of a CI system is to regularly run tests.  It does not need
+to run every test with every check-in.  Oftentimes it is not practical to do
+so.  As long as the tests are run regularly, we can apply the technique of
+bisection:
 
 .. figure:: image/bisection.png
   :align: center
   :width: 90%
-
-For bisection to work, we need to know the test results for every change.
-There needs to be a CI server to monitor each of the check-ins to the shared
-repository, build the software, and run necessary tests.
 
 `Github Action <https://github.com/features/actions>`__ is one of such services
 available for public use, and fully integrated with Github.
