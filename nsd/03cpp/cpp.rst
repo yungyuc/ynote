@@ -871,46 +871,38 @@ When writing OOP code, we should keep the SOLID principles in mind:
 * Dependency inversion: Depend on abstraction rather than concrete
   implementation.
 
-Class
-+++++
-
-A class defines how objects organize the data and logic.  C++ provides two
-keywords to define a class: ``class`` and ``struct``.  In most cases one can be
-used to replace the other.  By default, the accessibility of ``class`` is
-``private``, if no access specifier is used.  On the other hand, ``struct``\ 's
-default accessibility is ``public``.
-
-In addition to the mostly equivalent behavior, conventionally, ``struct`` has a
-strong implication that the type is a POD (plain old data).  As such, when you
-need a class, prefer ``class`` over ``struct``.  If you want a POD, use
-``struct``.
-
 Encapsulation
--------------
++++++++++++++
 
-Class is the basic unit for encapsulation, i.e., separating the interface from
-the implementation detail.  Users of the class should not know how the class is
-implemented internally.  C++ class has 3 access controls to help encapsulation.
-The ``private`` access means only the class itself may access the member (data
-or functions).  The ``public`` access means everything can access the member.
-The ``protected`` applies to inherited classes.  Only the defining class and
-its derived classes can access ``protected``.
+C++ uses classes as a basic construct for encapsulation, i.e., separating the
+interface from the implementation detail.  Consumers of the class should not
+know how the class is implemented internally.
 
-Encapsulation is very useful for numerical code.  In the first impression, the
-access control prevents "straight-forward" code to access data.  However, when
-we start development it's impossible to foresee all the logic and constructs.
-Without proper encapsulation, we may not productively move forward.
+C++ class uses 3 access controls to realize encapsulation:
+
+* The ``private`` access means only the class itself may access the member
+  (data or functions).
+* The ``public`` access means everything can access the member.
+* The ``protected`` applies to inherited classes.  Only the defining class and
+  its derived classes can access ``protected``.
 
 For private member data, we want a convention to distinguish them from other
 variables.  Prefixing ``m_`` is a common one.  Other popular choices include
 ``mMember`` (prefixing ``m`` with camel-case) and ``member_`` (postfixing
 ``_``).
 
-Declaration Syntax
-------------------
+Encapsulation is very useful for numerical code.  In the first impression, the
+access control prevents "straight-forward" code to access data.  However, when
+we start development it's impossible to foresee all the logic and constructs.
+Without proper encapsulation, we may not productively move forward.
 
-C++ classes can be declared by using either ``class`` or ``struct``.  When
-using ``class``, the default access is ``private``:
+Class
++++++
+
+C++ provides two keywords to define a class: ``class`` and ``struct``.
+
+In most cases one can be used to replace the other.  By default, the
+accessibility of ``class`` is ``private``, if no access specifier is used.
 
 .. code-block:: cpp
   :caption: Use ``class`` to declare a point class
@@ -927,7 +919,7 @@ using ``class``, the default access is ``private``:
       void setY(float v) { m_y = v; }
   }; /* end class PointClass */
 
-When using ``struct``, the default access is ``public``:
+On the other hand, ``struct``\ 's default accessibility is ``public``.
 
 .. code-block:: cpp
   :caption: Use ``struct`` to declare a point class
@@ -939,6 +931,11 @@ When using ``struct``, the default access is ``public``:
   }; /* end class PointStruct */
 
 The full example code can be found in :ref:`class.cpp <nsd-cpp-example-class>`.
+
+In addition to the mostly equivalent behavior, conventionally, ``struct`` has a
+strong implication that the type is a POD (plain old data).  As such, when you
+need a class, prefer ``class`` over ``struct``.  If you want a POD, use
+``struct``.
 
 Accessors
 +++++++++
