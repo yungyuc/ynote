@@ -2,22 +2,25 @@
 C++ and Computer Architecture
 =============================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
-C++ is particularly difficult, but it is still a preferred language to
-implement the numerical methods for speed.
-
-There are attempts to invent an easier language running equally fast for
-numerical calculation, but they are not very close to success.  There are two
-reasons.  The first is speed.  C++ is able to resort to assembly in a flexible
-way, and almost always can be optimized to obtain the best performance from the
-hardware.
+C++ is the programming language chosen for implementing numerical methods
+because it runs fast.  C++ has one of the most advanced compilers.  The
+compiler is able to generate fast machine code.  C++ also allows to directly
+write fast assembly.
 
 The second is maintenance.  A numerical system usually takes years to develop.
 When proven useful, it will be maintained for decades.  Such a long-living
-system needs extensive support from the compiler.  C++ offers it.
+system needs extensive support from the compiler.  C++ offers it.  The stable
+interface makes it possible to access a wide range of third-party software.
+
+C++ is hard and it is impossible to cover it from end to end.  In this chapter
+we will make a basic introduction with :ref:`nsd-cpp-compile`,
+:ref:`nsd-cpp-int`, :ref:`nsd-cpp-pointer`, and :ref:`nsd-cpp-float`.  Then we
+will discuss :ref:`nsd-cpp-oop`, which is critically important for a system
+achieving speed and flexibility in the same time.  After that, we will cover
+the productive skills of :ref:`nsd-cpp-stl`, :ref:`nsd-cpp-poly`, and
+:ref:`nsd-cpp-crtp`.
+
+.. _nsd-cpp-compile:
 
 Compile and Link
 ================
@@ -60,6 +63,10 @@ The ``g++`` command does two things: compilation and then `linking
 the argument ``-c``, it performs only the compiling part to take the source
 code and output the object file.  The object file contains the machine code,
 but doesn't include the functions not defined in the source file.
+
+.. figure:: image/compiler.png
+  :align: center
+  :width: 60%
 
 .. admonition:: Useful tool: compiler explorer
 
@@ -142,7 +149,7 @@ We need to build the object file using ``-c``.
 
 .. code-block:: console
 
-  $ g++ -c hello.cpp -o hello
+  $ g++ -c hello.cpp -o hello.o
 
 Main Program
 ------------
@@ -353,6 +360,8 @@ to be in the library search paths):
     ld: library not found for -lcblas
     clang: error: linker command failed with exit code 1 (use -v to see invocation)
 
+.. _nsd-cpp-int:
+
 C++ Integer Types
 =================
 
@@ -371,8 +380,8 @@ standard to assist writing portable code.
   :header-rows: 1
   :align: center
 
-  * - Type
-    - Name
+  * -
+    - Type Name
     - Width
   * - Boolean
     - ``bool``
@@ -442,8 +451,8 @@ width of indexing integer than by changed addressing space.
   :header-rows: 1
   :align: center
 
-  * - Type
-    - Name
+  * -
+    - Type Name
     - Width
   * - Signed integer
     - ``int8_t``
@@ -530,6 +539,8 @@ It's such a common mistake that compiler provides a check:
   the signed and unsigned integer in some places.  When we are forced to write
   it, make the reasons very clear in the code.
 
+.. _nsd-cpp-pointer:
+
 Pointer and Array Indexing
 ==========================
 
@@ -559,6 +570,9 @@ The code creates a conventional C-style array :cpp:var:`!data`.  Two pointers
   int32_t * odata = pdata + 50;
   // Initialize the array.
   for (size_t it=0; it<100; ++it) { data[it] = it + 5000; }
+
+Pointer as Array
+++++++++++++++++
 
 Both :cpp:var:`!data` "the array" and :cpp:var:`!pdata` "the pointer" work like
 arrays when indexing.  It is shown by printing the 10-th element of
@@ -605,6 +619,9 @@ The two statements print the same element:
   data[50]: 5050
   odata[0]: 5050
 
+Negative Index
+++++++++++++++
+
 Now we show how negative index works:
 
 .. code-block:: cpp
@@ -644,6 +661,8 @@ The output:
   process immediately and the latter leads to unpredictable behaviors, which is
   much harder to debug than the former.
 
+.. _nsd-cpp-float:
+
 Floating-Point Value
 ====================
 
@@ -653,8 +672,8 @@ Floating-Point Value
 
 x86 architecture follows the IEEE 754-1985 standard for floating-point.  A
 floating-point value uses 3 fields to represent: sign, exponent (biased)
-(denoted by $p$), and fraction (denoted by :math:`f` and :math:`f<1`).  The
-formula is:
+(denoted by :math:`p`), and fraction (denoted by :math:`f` and :math:`f<1`).
+The formula is:
 
 .. math::
 
@@ -730,7 +749,7 @@ is sign; 0 is positive while 1 is negative.  In C++, the type name is ``double``
 
 Use the same example of 2.75 for the double-precision floating-point.  Write
 :math:`2.75 = (1.011)_2 \times 2^1`.  The exponent bias for double-precision
-floating-point is 1023 (:math:`(\mathtt{11 \, 1111 \, 1111})_2`).  The bit
+floating-point is 1023 (:math:`(\mathtt{011 \, 1111 \, 1111})_2`).  The bit
 fields are:
 
 .. table::
@@ -826,6 +845,8 @@ Execution results:
   std::numeric_limits<float>::min() / 10: 1.17549e-39
     FE_UNDERFLOW
 
+.. _nsd-cpp-oop:
+
 Object-Oriented Programming
 ===========================
 
@@ -836,7 +857,19 @@ Object-Oriented Programming
 Object-oriented programming (OOP) allows us to organize data with logic.  The
 organized entities are called objects.  The point of using OOP is to make it
 easier to process the data.  It usually may result in fewer lines of code and
-make more helper functions memorable.
+make more helper functions memorable.  Because numerical software needs to
+process a lot of data, OOP becomes a natural design.
+
+When writing OOP code, we should keep the SOLID principles in mind:
+
+* Single responsibility: Each class has one and only one responsibility.
+* Open-closed: Open for extension but closed for modification.
+* Liskov substitution: Reference to a base class can be replaced by a derived
+  class without special code.
+* Interface segregation: Multiple smaller, client-specific interfaces work
+  better than single bigger, general interface.
+* Dependency inversion: Depend on abstraction rather than concrete
+  implementation.
 
 Class
 +++++
@@ -849,11 +882,11 @@ default accessibility is ``public``.
 
 In addition to the mostly equivalent behavior, conventionally, ``struct`` has a
 strong implication that the type is a POD (plain old data).  As such, when you
-need a class, prefer ``class`` over `struct`.  If you want a POD, use
+need a class, prefer ``class`` over ``struct``.  If you want a POD, use
 ``struct``.
 
 Encapsulation
-+++++++++++++
+-------------
 
 Class is the basic unit for encapsulation, i.e., separating the interface from
 the implementation detail.  Users of the class should not know how the class is
@@ -868,18 +901,19 @@ access control prevents "straight-forward" code to access data.  However, when
 we start development it's impossible to foresee all the logic and constructs.
 Without proper encapsulation, we may not productively move forward.
 
-Class Example
-+++++++++++++
-
 For private member data, we want a convention to distinguish them from other
 variables.  Prefixing ``m_`` is a common one.  Other popular choices include
 ``mMember`` (prefixing ``m`` with camel-case) and ``member_`` (postfixing
 ``_``).
 
-See the differences between ``class`` and ``struct``.  Use ``class`` to define
-a point:
+Declaration Syntax
+------------------
+
+C++ classes can be declared by using either ``class`` or ``struct``.  When
+using ``class``, the default access is ``private``:
 
 .. code-block:: cpp
+  :caption: Use ``class`` to declare a point class
   :linenos:
 
   class PointClass
@@ -893,9 +927,10 @@ a point:
       void setY(float v) { m_y = v; }
   }; /* end class PointClass */
 
-Alternately, use ``struct``:
+When using ``struct``, the default access is ``public``:
 
 .. code-block:: cpp
+  :caption: Use ``struct`` to declare a point class
   :linenos:
 
   struct PointStruct
@@ -903,22 +938,7 @@ Alternately, use ``struct``:
       float m_x, m_y; // by default public.
   }; /* end class PointStruct */
 
-.. literalinclude:: code/class.cpp
-  :caption: Full example for C++ classes
-  :language: cpp
-  :linenos:
-  :end-before: // vim: set
-
-Execution results:
-
-.. code-block:: console
-  :linenos:
-
-  $ g++ class.cpp -o class --std=c++11
-  $ ./class
-  PointClass and PointStruct has the same size: true
-  pntc.getX() = 1002, pntc.getY() = 2004
-  pnts.m_x = 1007, pnts.m_y = 1009
+The full example code can be found in :ref:`class.cpp <nsd-cpp-example-class>`.
 
 Accessors
 +++++++++
@@ -1088,6 +1108,8 @@ Execution results:
   point 0: x = 9 y = 1
   point 1: x = 1 y = 3
   point 2: x = 2 y = 5
+
+.. _nsd-cpp-stl:
 
 Standard Template Library (STL)
 ===============================
@@ -1274,6 +1296,8 @@ Execution results:
   set1 has key 3
   set1 does not have key 6
 
+.. _nsd-cpp-poly:
+
 Polymorphism
 ============
 
@@ -1408,7 +1432,7 @@ caution.
 .. _nsd-cpp-crtp:
 
 Curiously Recursive Template Pattern (CRTP)
-+++++++++++++++++++++++++++++++++++++++++++
+===========================================
 
 If we want to make a class hierarchy polymorphic without the runtime overhead,
 CRTP helps.  Usually the word polymorphism means *dynamic* polymorphism, as we
