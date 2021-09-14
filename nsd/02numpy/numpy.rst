@@ -547,10 +547,59 @@ appropriate :py:class:`~numpy:numpy.dtype` for the constructed array:
   >>> print("int and real:", array3, type(array3), array3.dtype)
   int and real: [1. 1. 2. 3. 5.] <class 'numpy.ndarray'> float64
 
-This shows a difference between a Python list (or sequence) and an array.  A
-list does not know the type of the data it contains, but the array does.  The
-type information allows numpy to process the array data using pre-compiled C
-code.
+This is where a Python list (or sequence) differs from an array.  A list does
+not know the type of the data it contains, but the array does.  The type
+information allows numpy to process the array data using pre-compiled C code.
+
+The following table lists commonly used dtypes:
+
+.. list-table:: Commonly used dtypes
+  :header-rows: 1
+  :align: center
+
+  * - dtype (object)
+    - dtype string name
+    - C++ type name
+  * - ``numpy.bool_``
+    - ``"bool"``
+    - ``bool``
+  * - ``numpy.int8``
+    - ``"int8"``
+    - ``int8_t``
+  * - ``numpy.int16``
+    - ``"int16"``
+    - ``int16_t``
+  * - ``numpy.int32``
+    - ``"int32"``
+    - ``int32_t``
+  * - ``numpy.int64``
+    - ``"int64"``
+    - ``int64_t``
+  * - ``numpy.uint8``
+    - ``"uint8"``
+    - ``uint8_t``
+  * - ``numpy.uint16``
+    - ``"uint16"``
+    - ``uint16_t``
+  * - ``numpy.uint32``
+    - ``"uint32"``
+    - ``uint32_t``
+  * - ``numpy.uint64``
+    - ``"uint64"``
+    - ``uint64_t``
+  * - ``numpy.float32``
+    - ``"float32"``
+    - ``float``
+  * - ``numpy.float64``
+    - ``"float64"``
+    - ``double``
+
+When specifying dtype in a numpy function, the string names are oftentimes more
+convenient than the object, like the example code in
+:ref:`nsd-numpy-construction`.
+
+For the full list of dtypes, see :ref:`numpy:basics.types` in the numpy
+document
 
 .. _nsd-numpy-itemsize:
 
@@ -579,6 +628,8 @@ elements of the array:
   >>> array = np.array([[0, 1, 2], [3, 4, 5]])
   >>> print("nbytes:", array.nbytes)
   nbytes: 48
+
+.. _nsd-numpy-construction:
 
 Construction
 ++++++++++++
