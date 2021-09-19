@@ -874,9 +874,10 @@ When writing OOP code, we should keep the SOLID principles in mind:
 Encapsulation
 +++++++++++++
 
-C++ uses classes as a basic construct for encapsulation, i.e., separating the
-interface from the implementation detail.  Consumers of the class should not
-know how the class is implemented internally.
+Encapsulation is a central concept of OOP.  C++ uses classes as a basic
+construct for encapsulation, i.e., separating the interface from the
+implementation detail.  Consumers of the class should not know how the class is
+implemented internally.
 
 C++ class uses 3 access controls to realize encapsulation:
 
@@ -896,7 +897,9 @@ access control prevents "straight-forward" code to access data.  However, when
 we start development it's impossible to foresee all the logic and constructs.
 Without proper encapsulation, we may not productively move forward.
 
-Class
+Class & Accessors
++++++++++++++++++
+
 +++++
 
 C++ provides two keywords to define a class: ``class`` and ``struct``.
@@ -936,9 +939,6 @@ In addition to the mostly equivalent behavior, conventionally, ``struct`` has a
 strong implication that the type is a POD (plain old data).  As such, when you
 need a class, prefer ``class`` over ``struct``.  If you want a POD, use
 ``struct``.
-
-Accessors
-+++++++++
 
 To access the private member data, accessors are usually needed.  It may be
 argued that in a good OO design, classes should not let their consumers know
@@ -1077,7 +1077,7 @@ leak.)
   {
   public:
       Line(size_t size) : m_size(size), m_coord(new float[size*2]) {}
-      // Desctructor.
+      // Destructor.
       ~Line() { if (nullptr != m_coord) { delete[] m_coord; } }
   private:
       size_t m_size = 0; // number of points.
@@ -1105,6 +1105,75 @@ Execution results:
   point 0: x = 9 y = 1
   point 1: x = 1 y = 3
   point 2: x = 2 y = 5
+
+Rule of Five
+++++++++++++
+
+In C++ programming there are many coding guidance concluded by years of
+practice, and the rule of five is one of them.  Originally it was the rule of
+three, stating that if any of the destructor, copy constructor, and copy
+assignment operator is customized, all of them should need to be
+customized.
+
+.. note::
+
+  Default constructor, copy constructor, move constructor, copy assignment
+  operator, move assignment operator, and destructor are the special member
+  functions.
+
+Modern C++ (C++11 and beyond) extends it to the rule of five, because of the
+addition of the move semantics.  It becomes that if any of the following is
+implemented (does not use the implicit implementation), all of them should be
+explicitly implemented:
+
+* Destructor
+* Copy constructor
+* Copy assignment operator
+* Move constructor
+* Move assignment operator
+
+When a class declaration is long, sometimes it is not obvious whether or not
+the rule of five is followed.  We can use the ``default`` keyword to always
+write the special member functions even though we want to use the implicit
+implementation.
+
+.. code-block:: cpp
+  :linenos:
+
+  class Line
+  {
+  public:
+      Line() = default; // default constructor.
+      Line(Line const & ) = default; // copy constructor.
+      Line(Line       &&) = default; // move constructor.
+      Line & operator=(Line const & ) = default; // copy assignment operator.
+      Line & operator=(Line       &&) = default; // move assignment operator.
+      ~Line() = default;
+  };
+
+If there is not a custom implementation to a special member function, the
+compiler generates an implicit one.  But it is also possible to tell the
+compiler to avoid the implicit implementation without providing the custom one.
+It uses the ``delete`` keyword.
+
+.. code-block:: cpp
+  :linenos:
+
+  class Line
+  {
+  public:
+      Line(double x0, double y0, double x1, double y1); // custom constructor.
+      Line() = delete; // remove the default constructor.
+      Line(Line const & ) = delete; // remove the copy constructor.
+      Line(Line       &&) = delete; // remove the move constructor.
+      Line & operator=(Line const & ) = delete; // remove the copy assignment operator.
+      Line & operator=(Line       &&) = delete; // remove the move assignment operator.
+      ~Line() = default; // removing destructor doesn't make sense.
+  };
+
+.. note::
+
+  Only the special member functions can be defaulted or deleted.
 
 .. _nsd-cpp-stl:
 
