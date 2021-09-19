@@ -182,6 +182,7 @@ html_favicon = 'favicon.ico'
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Generationdoc'
 
+html_codeblock_linenos_style = 'table'
 
 # -- Options for LaTeX output --------------------------------------------------
 
