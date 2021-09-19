@@ -197,6 +197,8 @@ It is confirmed that copy constructor is not called:
   Nothing is copied
   Data destructed @0x7ffee9ebe1c0
 
+.. _nsd-moderncpp-move:
+
 Move Semantics and Copy Elision
 ===============================
 

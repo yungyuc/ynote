@@ -1054,7 +1054,6 @@ A copy constructor is called when the compiler needs to copy the object:
   Line line1; // invokes default constructor
   Line line2(line1); // invokes copy constructor
 
-
 A move constructor is called when the compiler knows the object to be
 instantiated will move the resources from the argument:
 
@@ -1063,7 +1062,8 @@ instantiated will move the resources from the argument:
 
   Line line3(std::move(line2)); // invokes move constructor
 
-(Move semantics will be discussed in later lectures.)
+(Move semantics will be discussed in later lectures.  See
+:ref:`nsd-moderncpp-move`.)
 
 When an object is no longer in use, the compiler calls its destructor to remove
 it from memory.  The destructor is responsible for releasing the resources that
