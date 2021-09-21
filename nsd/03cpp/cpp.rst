@@ -1271,8 +1271,9 @@ Execution results:
 
 STL ``list`` supports constant time insertion and deletion of elements.  Unlike
 ``vector``, iterators and references to an element in a ``list`` don't get
-invalidated by adding or removing other elements.  The price to pay, however,
-is the slow random access.
+invalidated by adding or removing other elements.  ``list::splice`` supports
+transferring of elements from one container to another without copy or
+reallocation.  The price to pay is the slower random access than ``vector``.
 
 ``std::list`` is usually implemented as a doubly-linked list.
 
@@ -1300,7 +1301,8 @@ Execution results:
 
 STL ``map`` is an ordered container for key-value pairs.  The keys are unique
 and don't allow duplication.  ``map`` is usually implemented as a red-black
-tree.
+tree.  Search, insertion, and removal of elements in a ``map`` have logarithmic
+time complexity.
 
 STL ``set`` is a unique key container.  Like ``map``, it's usually implemented
 as a red-black tree.
@@ -1338,8 +1340,8 @@ logarithmic time complexity.  While ``unordered_map`` usually offers faster
 runtime than ``map``, it tends to use more memory since red-black trees is very
 efficient in memory usage.
 
-Like ``set`` is a valueless version of ``map``, ``unordered_map`` also has a
-valueless version called ``unordered_set``.  STL ``unordered_set``, like
+Just like ``map`` having ``set``, ``unordered_map`` also has a valueless
+version called ``unordered_set``.  STL ``unordered_set``, like
 ``unordered_map``, is usually implemented using hash table.
 
 .. literalinclude:: code/unordered_map.cpp
@@ -1511,7 +1513,7 @@ compile time).  First is to not have runtime overhead.  The second is to avoid
 the memory overhead associated with virtual functions.  RTTI needs some
 information to determine types in runtime.  That is usually (if not always)
 accomplished by a virtual function table, which at least add one more word on
-_every_ polymorphic object.  For very small objects, like a resource handle,
+*every* polymorphic object.  For very small objects, like a resource handle,
 which usually occupies one or two words, it's a great overhead.
 
 This is how a CRTP hierarchy looks like.  ``PointBase`` is our class template
