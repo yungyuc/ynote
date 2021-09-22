@@ -29,6 +29,8 @@ NSD Schedule 2021 Autumn NYCU
     -
   * - 3
     - 9/27
+      `online (butter)
+      <https://app.butter.us/yyc/nsd-02numpy>`__
     - Unit 2: :doc:`../02numpy/numpy`
     - proposal
   * - 4
