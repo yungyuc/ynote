@@ -158,6 +158,9 @@ In `modmesh <https://github.com/solvcon/modmesh>`__, there is a class template
 memory.  It is still in an early stage of development and may use a lot of
 enhancements.
 
+A sample project proposal in this direction can be found in
+:doc:`nsd_21au_nycu_project_simple_array`.
+
 .. _nsd-21au-project-columnar:
 
 Columnar Array
