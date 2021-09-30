@@ -35,6 +35,8 @@ NSD Schedule 2021 Autumn NYCU
     - proposal
   * - 4
     - 10/4
+      `online (zoom)
+      <https://us02web.zoom.us/j/82239172380?pwd=NEpXb3hpUytOdjI1cjlwQWdTWG1nZz09>`__
     - Unit 3: :doc:`../03cpp/cpp`
     - hw #2
   * - 5
