@@ -35,11 +35,15 @@ BLAS is organized in 3 levels:
   * ``SDOT()``: :math:`\mathbf{x}\cdot\mathbf{y}`, dot product of two vectors.
   * ``SNRM2()``: :math:`\sqrt{\mathbf{y}\cdot\mathbf{y}}`, Euclidean norm.
 * `Level 2 <http://www.netlib.org/blas/#_level_2>`__ is matrix-vector
-  operations, e.g., ``SGEMV()`` that performs the general matrix-vector
-  multiplication.
+  operations, e.g.,
+
+  * ``SGEMV()``: :math:`\mathbf{y} = \alpha\mathrm{A}\mathbf{x} +
+    \beta\mathbf{y}`, performs the general matrix-vector multiplication.
 * `Level 3 <http://www.netlib.org/blas/#_level_3>`__ is matrix-matrix
-  operations, e.g., ``SGEMM()`` that performs the general matrix-matrix
-  multiplication.
+  operations, e.g.,
+
+  * ``SGEMM()``: :math:`\mathrm{C} = \alpha\mathrm{A}\mathrm{B} +
+    \beta\mathrm{C}`, performs the general matrix-matrix multiplication.
 
 .. note::
 
@@ -212,7 +216,6 @@ in the C++ standard.
   {
       // This should not work since width is unknown in compile time.
       double (*matrix)[width] = reinterpret_cast<double (*)[width]>(buffer);
-      
       //...
   }
 
@@ -239,9 +242,7 @@ index is the trailing index of the 2D array:
 .. code-block:: cpp
 
   constexpr size_t width = 5;
-
   double * buffer = new double[width*width];
-  std::cout << "buffer address: " << buffer << std::endl;
 
 .. math::
 
@@ -315,9 +316,7 @@ index is the leading index of the 2D array:
 .. code-block:: cpp
 
   constexpr size_t width = 5;
-
   double * buffer = new double[width*width];
-  std::cout << "buffer address: " << buffer << std::endl;
 
 The code is the same as that of the row-majoring since the number of column and
 row is the same.  But for column-majoring arrays, the elements order
@@ -480,11 +479,7 @@ The full example code can be found in :ref:`ma01_matrix_class.cpp
 <nsd-matrix-example-ma01-matrix-class>`.
 
 Matrix Transpose
-================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
+++++++++++++++++
 
 Before other operations related to a 2D array, we should first discuss matrix
 transpose.  Write a :math:`m\times n` (:math:`m` rows and :math:`n` columns)
@@ -751,7 +746,7 @@ buffer.  Multiply the new matrix with the same vector:
 
   std::cout << ">>> copied transposed matrix-vector multiplication:" << std::endl;
   Matrix mat3 = mat2;
-  res3 = mat2 * vec3;
+  res3 = mat3 * vec3;
 
   std::cout << "matrix A:" << mat3 << std::endl;
   std::cout << "matrix A buffer:" << mat3.buffer_vector() << std::endl;
@@ -860,8 +855,8 @@ Aided by the formula, we can write down the C++ code for the naive algorithm:
 The 3-level nested loops in lines 12--23 are the runtime hotspot.  The full
 example code can be found in :ref:`ma03_matrix_matrix.cpp
 <nsd-matrix-example-ma03-matrix-matrix>`.  We will examine two cases.  The
-first is to multiply a :math:`3\times2` matrix :math:`\mathrm{A}` by a
-:math:`2\times3` matrix :math:`\mathrm{B}`:
+first is to multiply a :math:`2\times3` matrix :math:`\mathrm{A}` by a
+:math:`3\times2` matrix :math:`\mathrm{B}`:
 
 .. code-block:: cpp
   :linenos:
@@ -876,7 +871,7 @@ first is to multiply a :math:`3\times2` matrix :math:`\mathrm{A}` by a
   std::cout << "matrix B (3x2):" << mat2 << std::endl;
   std::cout << "result matrix C (2x2) = AB:" << mat3 << std::endl;
 
-The result is a :math:`3\times3` matrix :math:`\mathrm{C}`:
+The result is a :math:`2\times2` matrix :math:`\mathrm{C}`:
 
 .. code-block:: none
 
@@ -892,8 +887,8 @@ The result is a :math:`3\times3` matrix :math:`\mathrm{C}`:
     22 28
     49 64
 
-Then multiply :math:`\mathrm{B}` (:math:`{2\times3}`) by :math:`\mathrm{A}`
-(:math:`{3\times2}`):
+Then multiply :math:`\mathrm{B}` (:math:`{3\times2}`) by :math:`\mathrm{A}`
+(:math:`{2\times3}`):
 
 .. code-block:: cpp
   :linenos:
@@ -904,7 +899,7 @@ Then multiply :math:`\mathrm{B}` (:math:`{2\times3}`) by :math:`\mathrm{A}`
   std::cout << "matrix A (2x3):" << mat1 << std::endl;
   std::cout << "result matrix D (3x3) = BA:" << mat4 << std::endl;
 
-The result is a :math:`2\times2` matrix :math:`\mathrm{D}`:
+The result is a :math:`3\times3` matrix :math:`\mathrm{D}`:
 
 .. code-block:: none
 
@@ -1661,7 +1656,7 @@ Given 4 data points :math:`(1, 17)`, :math:`(2, 58)`, :math:`(3, 165)`,
 
 .. math::
 
-  f(x) = a_1x^3 + a_2x_2 + a_3x
+  f(x) = a_1x^3 + a_2x^2 + a_3x
 
 The linear system is
 
@@ -1746,7 +1741,7 @@ the fitted polynomial function is
 
 .. math::
 
-  f(x) = 5.35749 x^3 - 2.04348 x_2 + 12.5266 x
+  f(x) = 5.35749 x^3 - 2.04348 x^2 + 12.5266 x
 
 To make it clearer, we plot the fitted function along with the input points:
 

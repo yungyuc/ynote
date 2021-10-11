@@ -206,7 +206,7 @@ int main(int argc, char ** argv)
 
     std::cout << ">>> copied transposed matrix-vector multiplication:" << std::endl;
     Matrix mat3 = mat2;
-    res3 = mat2 * vec3;
+    res3 = mat3 * vec3;
 
     std::cout << "matrix A:" << mat3 << std::endl;
     std::cout << "matrix A buffer:" << mat3.buffer_vector() << std::endl;
