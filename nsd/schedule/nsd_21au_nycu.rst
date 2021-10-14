@@ -45,6 +45,8 @@ NSD Schedule 2021 Autumn NYCU
     -
   * - 6
     - 10/18
+      `online (zoom)
+      <https://us02web.zoom.us/j/82239172380?pwd=NEpXb3hpUytOdjI1cjlwQWdTWG1nZz09>`__
     - Unit 4: :doc:`../04matrix/matrix`
     - hw #3
   * - 7
