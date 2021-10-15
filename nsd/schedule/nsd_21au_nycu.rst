@@ -48,15 +48,15 @@ NSD Schedule 2021 Autumn NYCU
       `online (zoom)
       <https://us02web.zoom.us/j/82239172380?pwd=NEpXb3hpUytOdjI1cjlwQWdTWG1nZz09>`__
     - Unit 4: :doc:`../04matrix/matrix`
-    - hw #3
+    -
   * - 7
     - 10/25
     - Unit 5: :doc:`../05cache/cache`
-    - proposal due
+    - hw #3
   * - 8
     - 11/1
     - Unit 6: :doc:`../06simd/simd`
-    -
+    - proposal due
   * - 9
     - 11/8
     - Mid-term examination
