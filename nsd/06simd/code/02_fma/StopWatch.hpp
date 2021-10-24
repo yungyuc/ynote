@@ -7,7 +7,7 @@ class StopWatch
 
 private:
 
-    using clock_type = std::chrono::high_resolution_clock;
+    using clock_type = std::chrono::system_clock;
     using time_type = std::chrono::time_point<clock_type>;
 
 public:

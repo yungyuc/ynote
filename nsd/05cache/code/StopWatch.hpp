@@ -7,7 +7,7 @@ class StopWatch
 
 private:
 
-    using clock_type = std::chrono::high_resolution_clock;
+    using clock_type = std::chrono::system_clock;
     using time_type = std::chrono::time_point<clock_type>;
 
 public:
@@ -40,10 +40,7 @@ public:
     /**
      * Return seconds between end and start.
      */
-    double duration() const
-    {
-        return std::chrono::duration<double>(m_stop - m_start).count();
-    }
+    double duration() const { return std::chrono::duration<double>(m_stop - m_start).count(); }
 
     /**
      * Return resolution in second.
