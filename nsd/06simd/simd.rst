@@ -16,9 +16,11 @@ Parallelism appears in various levels, from high to low:
 
 Cluster or server farm
   Multiple computers are networked together to solve one problem.
-Multiple threads
+
+Multiple core with multiple threads
   Multiple threads runs concurrently on the multiple cores on a single computer
   host.
+
 Single instruction multiple data (SIMD)
   Computers offer special instructions that can process multiple data at one
   time to achieve data parallelism.
