@@ -54,9 +54,7 @@ public:
     {
         if (&other != this)
         {
-            decref();
             m_impl = other.m_impl;
-            incref();
         }
 
         return *this;

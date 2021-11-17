@@ -618,13 +618,12 @@ Byte Counter
 
       ByteCounter(ByteCounter && other)
         : m_impl(other.m_impl)
-      { other.decref(); }
+      { incref(); }
 
       ByteCounter & operator=(ByteCounter && other)
       {
           if (&other != this)
           {
-              decref();
               m_impl = other.m_impl;
           }
 
