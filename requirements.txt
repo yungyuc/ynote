@@ -1,1 +1,2 @@
 pillow
+sphinx==4.2
