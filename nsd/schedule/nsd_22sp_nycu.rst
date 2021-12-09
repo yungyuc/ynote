@@ -4,8 +4,8 @@ NSD Schedule 2022 Spring NYCU
 
 .. begin schedule contents
 
-.. `Link to NYCU course system.
-.. <https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=110&Sem=1&CrsNo=5296>`__
+`Link to NYCU course system.
+<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=110&Sem=2&CrsNo=5292>`__
 
 .. list-table::
   :header-rows: 1
