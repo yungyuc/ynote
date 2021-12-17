@@ -1,0 +1,103 @@
+name: writing
+
+on:
+  push:
+    branches:
+      - 'writing/**'
+      - 'master'
+  pull_request:
+    branches:
+      - 'writing/**'
+      - 'master'
+  schedule:
+    - cron: '02 18 * * *'
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      PYBOOST11ROOT: writing/2021/pyboost11/code
+
+    strategy:
+        matrix:
+          os: [ubuntu-20.04, macos-10.15]
+
+        fail-fast: false
+
+    steps:
+
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: apt (ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get -q update
+        sudo apt-get -qy install \
+            curl build-essential make cmake libc6-dev \
+            gcc g++ clang clang-tidy \
+            gfortran intel-mkl-full libboost-all-dev \
+            python3 python3-pip python3-pytest \
+            python3-numpy python3-scipy python3-pandas
+
+    - name: brew (macos)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew install make cmake llvm libomp python3 radare2 boost boost-python3
+
+    - name: pip (ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo pip3 install -U flake8
+
+    - name: pip (macos)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        pip3 install -U pip
+        pip3 install -U setuptools
+        pip3 install -U pytest numpy scipy pandas
+        pip3 install -U flake8
+        pip3 install -U https://github.com/aldanor/ipybind/tarball/master
+
+    - name: INSTALL_PREFIX (ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        echo "INSTALL_PREFIX=/usr" >> ${GITHUB_ENV}
+
+    - name: INSTALL_PREFIX (macos)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        echo "INSTALL_PREFIX=/usr/local" >> ${GITHUB_ENV}
+
+    - name: custom
+      run: |
+        INSTALL_PREFIX=${{ env.INSTALL_PREFIX }}
+        echo "INSTALL_PREFIX=${INSTALL_PREFIX}"
+        #nsd/contrib/install.sh radare2 # skip to save time, for now
+        nsd/contrib/install.sh pybind11
+
+    - name: show dependency
+      run: |
+        echo "radare2 path: $(which radare2)"
+        echo "radare2 version: $(radare2 -v)"
+        echo "gcc path: $(which gcc)"
+        echo "gcc version: $(gcc --version)"
+        echo "cmake path: $(which cmake)"
+        echo "cmake version: $(cmake --version)"
+        echo "python3 path: $(which python3)"
+        echo "python3 version: $(python3 --version)"
+        python3 -c 'import numpy ; print("numpy.__version__:", numpy.__version__)'
+        echo "pytest path: $(which pytest)"
+        echo "pytest version: $(pytest --version)"
+        echo "clang-tidy path: $(which clang-tidy)"
+        echo "clang-tidy version: $(clang-tidy -version)"
+        echo "flake8 path: $(which flake8)"
+        echo "flake8 version: $(flake8 --version)"
+
+    - name: pyboost11
+      run: |
+        make -C ${{ env.PYBOOST11ROOT }} clean
+        make -C ${{ env.PYBOOST11ROOT }} test
