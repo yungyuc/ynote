@@ -31,7 +31,8 @@ Why Mixing Two Wrapping Systems?
 
 It is very rare to need to use pybind11 and Boost.Python together.  When it
 happens, I guess you either use Boost.Python already and want or need to use
-pybind11 to replace it, or need to combine two systems using different tools.
+pybind11 to replace it, or need to combine two systems that unfortunately chose
+the different tools.
 
 If you are creating a new wrapping layer, choose pybind11_, because modern C++
 is the way to go, and pybind11 offers much cleaner and powerful API.
