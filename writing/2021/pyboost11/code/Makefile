@@ -23,6 +23,12 @@ modbpy$(pyextsuffix): modbpy.cpp $(HEADERS) CMakeLists.txt
 %: %.cpp Makefile
 	${CXX} ${CXXFLAGS} -o $@ $<
 
+ALL_FILES := Makefile CMakeLists.txt ${HEADERS} modpyb.cpp modbpy.cpp *.py
+
+.PHONY: tar
+tar: ${ALL_FILES}
+	tar cfz pyboost11_code.tar.gz ${ALL_FILES}
+
 .PHONY: test
 test: modpyb$(pyextsuffix) modbpy$(pyextsuffix)
 	env PYTHON_PATH=.:${PYTHON_PATH} python3 -m pytest -v -s
