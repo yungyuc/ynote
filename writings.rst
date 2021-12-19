@@ -5,6 +5,7 @@ Other Writings
 .. toctree::
   :maxdepth: 1
 
+  writing/2021/pyboost11/pyboost11
   writing/2021/teach_nsd/teach_nsd
   writing/2020/sciwork_start/index
   writing/2016/resource/index
