@@ -35,6 +35,6 @@ Other
   :maxdepth: 1
 
   condensed3days
-  nsd_22sp_nycu
+  22sp_nycu/schedule
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:

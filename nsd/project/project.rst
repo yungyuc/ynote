@@ -18,9 +18,9 @@ Software Engineering
 * Build system
 * Testing
 * Version control
-* History quality
-* Issue tracking
-* Documentation
+* History quality [adv]_
+* Issue tracking [adv]_
+* Documentation [adv]_
 
 .. _nsd-grading-correct:
 
@@ -29,27 +29,18 @@ Correctness
 
 * Existence of golden
 * Quality of golden
-* Development procedure
-* Validation process
+* Sequence of development [adv]_
 
 .. _nsd-grading-arch:
 
 Software Architecture
 +++++++++++++++++++++
 
-* SOLID
-* API granularity
-* API stability
-* Proper use of high-level language wrapping
-* Level of modularity
-
-  * C++ code structure
-  * Python code structure
-* Profiling
-* Runtime
-* Memory
-* Design for testing
-* Iterative design
+* Modularity: SOLID, C++, and Python
+* Use of wrapping
+* API granularity and design for testing
+* Performance, including runtime and memory consumption [adv]_
+* Design, including iterative implementation [adv]_
 
 .. _nsd-grading-present:
 
@@ -60,3 +51,6 @@ Presentation
 * Slide clarity
 * Time control
 * Appearance
+
+.. [adv] Advanced points.  It is recommended to address them after the basic
+         points.
