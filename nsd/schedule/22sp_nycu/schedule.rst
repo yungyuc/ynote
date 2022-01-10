@@ -227,7 +227,7 @@ The graph partitioning code should support:
 .. admonition:: References
 
   * `METIS <http://glaros.dtc.umn.edu/gkhome/views/metis>`__
-  * `SCOTCH <https://www.labri.fr/perso/pelegrin/scotch/>`__.
+  * `SCOTCH <https://www.labri.fr/perso/pelegrin/scotch/>`__
 
 .. _nsd-22sp-project-rtree:
 
@@ -252,7 +252,7 @@ The requirements of an implementation of the R-Tree search engine are:
 .. admonition:: References
 
   * `R-tree implementation in boost.geometry
-    <https://www.boost.org/doc/libs/1_77_0/libs/geometry/doc/html/index.html>`__.
+    <https://www.boost.org/doc/libs/1_77_0/libs/geometry/doc/html/index.html>`__
 
 .. _nsd-22sp-project-voronoi:
 
