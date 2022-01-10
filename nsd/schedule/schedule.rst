@@ -5,7 +5,7 @@ Schedule
 .. toctree::
   :maxdepth: 1
 
-  nsd_21au_nycu
+  22sp_nycu/schedule
 
 Past
 ====
@@ -13,6 +13,7 @@ Past
 .. toctree::
   :maxdepth: 1
 
+  nsd_21au_nycu
   nsd_21sp_nycu
 
 * `2020 autumn schedule at NCTU
@@ -35,6 +36,5 @@ Other
   :maxdepth: 1
 
   condensed3days
-  22sp_nycu/schedule
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
