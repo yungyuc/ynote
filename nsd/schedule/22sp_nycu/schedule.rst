@@ -300,4 +300,10 @@ NOT, XOR, of polygons.  The polygonal Boolean operations are useful when we
 want to extract geometrical properties of the graphics.  In two-dimensional
 space we deal with polygons.  In three-dimensional space it is polyhedra.
 
+.. admonition:: References
+
+  * `The boost.polygon library
+    <https://www.boost.org/doc/libs/1_76_0/libs/polygon/doc/index.htm>`__
+
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
