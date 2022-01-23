@@ -9,17 +9,29 @@ Introduction
 What Is Numerical Software
 ==========================
 
-Digital computer was originally invented to do mathematics.  The mission of the
-first digital computer, Electronic Numerical Integrator and Computer (`ENIAC
-<https://www.britannica.com/technology/ENIAC>`__, 1945), was to quickly obtain
-artillery range tables.  Running at the electronic speed, the computer
-performed a tremendous amount of calculation.
+`ENIAC <https://www.britannica.com/technology/ENIAC>`__, the first electronic
+digital computer, was invented to quickly obtain artillery range tables.  The
+history of the computers started with solving numerical problems.  Taking
+advantage of the speed of light, the machines are used for a huge amount of
+calculation that cannot be done otherwise.  Admittedly, computers are now much
+more widely used for its versatility for information technology, but its use
+for mathematics and science remains equally if not more important.
 
-We use digital computers to crunch more and more numbers.  Computer code
-follows the numerical methods, which are developed based on the mathematical
-formulations.  Sometimes the mathematics has an associated physical problem.
-But sometimes, it's just mathematics.  The applications are endless, but here
-list some famous packages to give you an idea:
+The general flow of making software to solve the mathematical and scientific
+problems is to translate the mathematics to numerical methods, and the
+numerical methods to computer code.  The former two disciplines are much more
+established than the latter.  But we do not really have universal laws to guide
+the code develop, for which software engineering is required to reliably
+produce trustworthy results.  What we have are the "best practices", which are
+very different from how science works.  This is the setting for numerical
+software, which is also known as technical software, scientific software,
+engineering software, etc.
+
+Numerical software always has an application domain attached, and cannot be
+handled solely in computer science.  But it cannot exist without computer
+science, since it uses computers anyway.  Naturally it is cross-discipline and
+requires knowledge and skills in two or more fields from the practitioners.
+Some famous open-source scientific software systems:
 
 * Infrastructure: `NumPy <https://numpy.org>`__
 * Data analytics: `Pandas <https://pandas.pydata.org>`__, `Arrow
@@ -38,12 +50,6 @@ Despite the versatility, numerical software shares common traits:
 * Knowledge-intensive, unintuitive to code
 * Computation-intensive, often incorporating parallelism, distributed
   computing, and special hardware
-
-Numerical software is developed to solve problems in science and engineering.
-It always has an application domain attached, and cannot be handled solely in
-computer science.  Of course, since it is computer software, it cannot exist
-without computer science.  Naturally it is cross-discipline and demands
-knowledge and skills in two or more fields from the practitioners.
 
 .. _nsd-reason:
 
