@@ -7,6 +7,14 @@ NSD Schedule 2022 Spring NYCU
 `Link to NYCU course system.
 <https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=110&Sem=2&CrsNo=5292>`__
 
+The course introduces the art of building numerical software, i.e., computer
+programs applying numerical methods for solving mathematical, scientific, or
+engineering problems.  We will be using Python, C++ and other tools (e.g.,
+bash, git, make, etc.) to learn the modern development processes.
+
+For questions about the course, please send me :ref:`an email <contact>` with
+the subject line starting with ``[nsd-course]``.
+
 .. list-table::
   :header-rows: 1
   :align: center
