@@ -56,14 +56,12 @@ Despite the versatility, numerical software shares common traits:
 Why Develop Numerical Software
 ==============================
 
-Numerical software is developed to solve problems that are either impracticable
-without it.
-
-Numerical software simply enables the solution so that we can study the
-impracticable problems, e.g., those in the fields of fluid dynamics and
-astrophysics.  The software may also significantly reduce the cost to solution,
-so that industrial products can be derived from the solution, e.g., machine
-learning, visualization, communication, etc.
+Numerical software is developed to solve problems that are impracticable
+without it.  The solution allows us to study the impracticable problems, e.g.,
+those in the fields of fluid dynamics and astrophysics.  The software may
+significantly reduce the cost to solution, so that industrial products can be
+derived from the solution, e.g., machine learning, visualization,
+communication, etc.
 
 .. note::
 
