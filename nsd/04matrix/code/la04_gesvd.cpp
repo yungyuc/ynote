@@ -2,12 +2,17 @@
 #include <iomanip>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
-#ifdef NOMKL
-#include <lapacke.h>
-#else // NOMKL
+#ifdef HASMKL
+#include <mkl_lapack.h>
 #include <mkl_lapacke.h>
-#endif // NOMKL
+#else // HASMKL
+#ifdef __MACH__
+#include <clapack.h>
+#include <Accelerate/Accelerate.h>
+#endif // __MACH__
+#endif // HASMKL
 
 class Matrix {
 
@@ -192,31 +197,61 @@ int main(int argc, char ** argv)
     int status;
 
     std::cout << ">>> SVD" << std::endl;
-    Matrix mat(m, n, false);
+    Matrix mat(m, n, /* column_major */ true);
     mat(0,0) = 3; mat(0,1) = 5; mat(0,2) = 2; mat(0, 3) = 6;
     mat(1,0) = 2; mat(1,1) = 1; mat(1,2) = 3; mat(1, 3) = 2;
     mat(2,0) = 4; mat(2,1) = 3; mat(2,2) = 2; mat(2, 3) = 4;
     std::vector<double> s(m), superb(m);
-    Matrix u(m, m, false);
-    Matrix vt(n, n, false);
+    Matrix u(m, m, /* column_major */ true);
+    Matrix vt(n, n, /* column_major */ true);
 
     std::cout << "A:" << mat << std::endl;
 
+#if !defined(HASMKL) || defined(NOMKL)
+    {
+        char jobu = 'A';
+        char jobv = 'A';
+        int mm = m;
+        int nn = n;
+        int matnrow = mat.nrow();
+        int lwork = 5 * std::max(m, n);
+        std::vector<double> work(lwork);
+
+        dgesvd_(
+            &jobu
+          , &jobv
+          , &mm // int *: m
+          , &nn // int *: n
+          , mat.data() // double *: a
+          , &matnrow // int *: lda
+          , s.data() // double *: s
+          , u.data() // double *: u
+          , &mm
+          , vt.data() // double *: vt
+          , &nn // int *: ldvt
+          , work.data() // double *: work
+          , &lwork // int *: lwork
+          , &status
+          // for column major matrix, ldb remains the leading dimension.
+        );
+    }
+#else // HASMKL NOMKL
     status = LAPACKE_dgesvd(
-        LAPACK_ROW_MAJOR // int matrix_layout;
+        LAPACK_COL_MAJOR // int matrix_layout;
       , 'A' // char jobu;
       , 'A' // char jobvt;
       , m // lapack_int m
       , n // lapack_int n
       , mat.data() // double * a
-      , mat.ncol() // lapack_int lda
+      , mat.nrow() // lapack_int lda
       , s.data() // double * s
       , u.data() // double * u
-      , u.ncol() // lapack_int ldu
+      , u.nrow() // lapack_int ldu
       , vt.data() // double * vt
-      , vt.ncol() // lapack_int ldvt
+      , vt.nrow() // lapack_int ldvt
       , superb.data() // double * superb
     );
+#endif // HASMKL NOMKL
 
     std::cout << "dgesvd status: " << status << std::endl;
     std::cout << "singular values: " << s << std::endl;

@@ -2,12 +2,17 @@
 #include <iomanip>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
-#ifdef NOMKL
-#include <lapacke.h>
-#else // NOMKL
+#ifdef HASMKL
+#include <mkl_lapack.h>
 #include <mkl_lapacke.h>
-#endif // NOMKL
+#else // HASMKL
+#ifdef __MACH__
+#include <clapack.h>
+#include <Accelerate/Accelerate.h>
+#endif // __MACH__
+#endif // HASMKL
 
 class Matrix {
 
@@ -195,7 +200,7 @@ int main(int argc, char ** argv)
     // Use least-square to fit the data of (x, y) tuple:
     // (1, 17), (2, 58), (3, 165), (4, 360) to
     // the equation: a_1 x^3 + a_2 x^2 + a_3 x.
-    Matrix mat(m, n, false);
+    Matrix mat(m, n, /* column_major */ true);
     mat(0,0) = 1; mat(0,1) = 1; mat(0,2) = 1;
     mat(1,0) = 8; mat(1,1) = 4; mat(1,2) = 2;
     mat(2,0) = 27; mat(2,1) = 9; mat(2,2) = 3;
@@ -208,8 +213,34 @@ int main(int argc, char ** argv)
     std::cout << "J:" << mat << std::endl;
     std::cout << "y:" << y << std::endl;
 
+#if !defined(HASMKL) || defined(NOMKL)
+    {
+        char trans = 'N';
+        int mm = m;
+        int nn = n;
+        int nrhs = 1;
+        int matnrow = mat.nrow();
+        int lwork = mm*nn + std::max(mm*nn, nrhs);
+        std::vector<double> work(lwork);
+
+        dgels_(
+            &trans
+          , &mm // int *: m
+          , &nn // int *: n
+          , &nrhs // int *: nrhs
+          , mat.data() // double *: a for the 'J' matrix
+          , &mm // int *: lda
+          , y.data() // double *: the 'b' RHS buffer
+          , &mm // int *: ldb
+          , work.data() // double *: working buffer
+          , &lwork // int *: size of working buffer
+          , &status
+          // for column major matrix, ldb remains the leading dimension.
+        );
+    }
+#else // HASMKL NOMKL
     status = LAPACKE_dgels(
-        LAPACK_ROW_MAJOR // int matrix_layout
+        LAPACK_COL_MAJOR // int matrix_layout
       , 'N' // transpose;
             // 'N' is no transpose,
             // 'T' is transpose,
@@ -218,10 +249,11 @@ int main(int argc, char ** argv)
       , n // number of columns of matrix
       , 1 // nrhs; number of columns of RHS
       , mat.data() // a; the 'J' matrix
-      , n // lda; leading dimension of matrix
+      , m // lda; leading dimension of matrix
       , y.data() // b; RHS
-      , 1 // ldb; leading dimension of RHS
+      , m // ldb; leading dimension of RHS
     );
+#endif // HASMKL NOMKL
 
     std::cout << "dgels status: " << status << std::endl;
     std::cout << "a: " << y << std::endl;

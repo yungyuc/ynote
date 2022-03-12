@@ -126,8 +126,6 @@ jobs:
         make -C ${{ env.MATRIXROOT }} runma
 
     - name: 04matrix_la
-      # macos does not have MKL.
-      if: startsWith(matrix.os, 'ubuntu')
       run: |
         make -C ${{ env.MATRIXROOT }} clean
         make -C ${{ env.MATRIXROOT }} runla

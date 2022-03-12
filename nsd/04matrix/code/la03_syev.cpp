@@ -3,11 +3,15 @@
 #include <vector>
 #include <stdexcept>
 
-#ifdef NOMKL
-#include <lapacke.h>
-#else // NOMKL
+#ifdef HASMKL
+#include <mkl_lapack.h>
 #include <mkl_lapacke.h>
-#endif // NOMKL
+#else // HASMKL
+#ifdef __MACH__
+#include <clapack.h>
+#include <Accelerate/Accelerate.h>
+#endif // __MACH__
+#endif // HASMKL
 
 class Matrix {
 
@@ -192,7 +196,7 @@ int main(int argc, char ** argv)
     int status;
 
     std::cout << ">>> Solve Ax=lx (row major, A symmetric)" << std::endl;
-    Matrix mat(n, n, false);
+    Matrix mat(n, n, /* column_major */ true);
     mat(0,0) = 3; mat(0,1) = 5; mat(0,2) = 2;
     mat(1,0) = 5; mat(1,1) = 1; mat(1,2) = 3;
     mat(2,0) = 2; mat(2,1) = 3; mat(2,2) = 2;
@@ -200,8 +204,31 @@ int main(int argc, char ** argv)
 
     std::cout << "A:" << mat << std::endl;
 
+#if !defined(HASMKL) || defined(NOMKL)
+    {
+        char jobz = 'V';
+        char uplo = 'U';
+        int nn = n;
+        int matncol = mat.ncol();
+        int lwork = 3*n;
+        std::vector<double> work(lwork);
+
+        dsyev_(
+            &jobz
+          , &uplo
+          , &nn // int * n: number of linear equation
+          , mat.data() // double *: a
+          , &matncol // int *: lda
+          , w.data() // double *: w
+          , work.data() // double *: work array
+          , &lwork // int *: lwork
+          , &status
+          // for column major matrix, ldb remains the leading dimension.
+        );
+    }
+#else // HASMKL NOMKL
     status = LAPACKE_dsyev(
-        LAPACK_ROW_MAJOR // int matrix_layout
+        LAPACK_COL_MAJOR // int matrix_layout
       , 'V' // char jobz;
             // 'V' to compute both eigenvalues and eigenvectors,
             // 'N' only eigenvalues
@@ -210,9 +237,10 @@ int main(int argc, char ** argv)
             // 'L' use the lower
       , n // lapack_int n
       , mat.data() // double * a
-      , mat.ncol() // lapack_int lda
+      , mat.nrow() // lapack_int lda
       , w.data() // double * w
     );
+#endif // HASMKL NOMKL
 
     std::cout << "dsyev status: " << status << std::endl;
     std::cout << "eigenvalues: " << w << std::endl;
