@@ -211,7 +211,7 @@ int main(int argc, char ** argv)
         int bnrow = b.nrow();
         int matnrow = mat.nrow();
 
-        dgesv_(
+        dgesv_( // column major.
             &nn // int * n: number of linear equation
           , &bncol // int * nrhs: number of RHS
           , mat.data() // double * a: array (lda, n)
@@ -269,7 +269,7 @@ int main(int argc, char ** argv)
         int b2nrow = b2.nrow();
         int mat2nrow = mat2.nrow();
 
-        dgesv_(
+        dgesv_( // column major.
             &nn // int * n: number of linear equation
           , &b2ncol // int * nrhs: number of RHS
           , mat2.data() // double * a: array (lda, n)

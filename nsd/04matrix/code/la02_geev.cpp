@@ -210,24 +210,24 @@ int main(int argc, char ** argv)
         char jobvl = 'V';
         char jobvr = 'V';
         int nn = n;
-        int vlncol = vl.ncol();
-        int vrncol = vr.ncol();
-        int matncol = mat.ncol();
+        int vlnrow = vl.nrow();
+        int vrnrow = vr.nrow();
+        int matnrow = mat.nrow();
         int lwork = 4*n;
         std::vector<double> work(lwork);
 
-        dgeev_(
+        dgeev_( // column major.
             &jobvl
           , &jobvr
           , &nn // int * n: number of linear equation
           , mat.data() // double *: a
-          , &matncol // int *: lda
+          , &matnrow // int *: lda
           , wr.data() // double *: wr
           , wi.data() // double *: wi
           , vl.data() // double *: vl
-          , &vlncol // int *: ldvl
+          , &vlnrow // int *: ldvl
           , vr.data() // double *: vr
-          , &vrncol // int *: ldvr
+          , &vrnrow // int *: ldvr
           , work.data() // double *: work array
           , &lwork // int *: lwork
           , &status

@@ -217,7 +217,7 @@ int main(int argc, char ** argv)
         int lwork = 5 * std::max(m, n);
         std::vector<double> work(lwork);
 
-        dgesvd_(
+        dgesvd_( // column major.
             &jobu
           , &jobv
           , &mm // int *: m

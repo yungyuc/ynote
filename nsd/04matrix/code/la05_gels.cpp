@@ -219,11 +219,10 @@ int main(int argc, char ** argv)
         int mm = m;
         int nn = n;
         int nrhs = 1;
-        int matnrow = mat.nrow();
         int lwork = mm*nn + std::max(mm*nn, nrhs);
         std::vector<double> work(lwork);
 
-        dgels_(
+        dgels_( // column major.
             &trans
           , &mm // int *: m
           , &nn // int *: n

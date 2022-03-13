@@ -209,7 +209,7 @@ int main(int argc, char ** argv)
         char jobz = 'V';
         char uplo = 'U';
         int nn = n;
-        int matncol = mat.ncol();
+        int matnrow = mat.nrow();
         int lwork = 3*n;
         std::vector<double> work(lwork);
 
@@ -218,7 +218,7 @@ int main(int argc, char ** argv)
           , &uplo
           , &nn // int * n: number of linear equation
           , mat.data() // double *: a
-          , &matncol // int *: lda
+          , &matnrow // int *: lda
           , w.data() // double *: w
           , work.data() // double *: work array
           , &lwork // int *: lwork
