@@ -6,9 +6,18 @@ Matrix Operations
   :local:
   :depth: 1
 
-Matrices are broadly used in numerical analysis, and arrays are used to allow
-computer code to process matrices.  Arrays are also the data structure that is
-the closest to the fundamental types that are supported by hardware.
+System should be designed as simple as possible.  Any excessive complexity slows
+it down.  This is why we use arrays so frequently when it comes to designing a
+high-performance system.  Array is the data structure closest to the fundamental
+types, and the hardware knows how to process the data quickly in batch.  By
+making the data complex, we will force the computers to take more time to
+mitigate our laziness.
+
+In numerical analysis, the counterpart of array is matrix.  It is coincident
+that matrices are so useful to a wide range of real-world problems, but it is
+undeniable that computers extend the application to an unbelievable scale.  It
+probably has something to do with the linearity of human minds, but don't quote
+me on the anecdotal statement.
 
 Linear Algebra
 ==============
