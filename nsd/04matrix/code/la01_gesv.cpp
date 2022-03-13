@@ -3,11 +3,15 @@
 #include <vector>
 #include <stdexcept>
 
-#ifdef NOMKL
-#include <lapacke.h>
-#else // NOMKL
+#ifdef HASMKL
+#include <mkl_lapack.h>
 #include <mkl_lapacke.h>
-#endif // NOMKL
+#else // HASMKL
+#ifdef __MACH__
+#include <clapack.h>
+#include <Accelerate/Accelerate.h>
+#endif // __MACH__
+#endif // HASMKL
 
 class Matrix {
 
@@ -200,6 +204,35 @@ int main(int argc, char ** argv)
     std::cout << "A:" << mat << std::endl;
     std::cout << "b:" << b << std::endl;
 
+#if !defined(HASMKL) || defined(NOMKL)
+    {
+        int nn = n;
+        int bncol = b.ncol();
+        int bnrow = b.nrow();
+        int matnrow = mat.nrow();
+
+        dgesv_( // column major.
+            &nn // int * n: number of linear equation
+          , &bncol // int * nrhs: number of RHS
+          , mat.data() // double * a: array (lda, n)
+          , &matnrow // int * lda: leading dimension of array a
+          , ipiv.data() // int * ipiv: pivot indices
+          , b.data() // double * b: array (ldb, nrhs)
+          , &bnrow // int * ldb: leading dimension of array b
+          , &status
+          // for column major matrix, ldb remains the leading dimension.
+        );
+    }
+#else // HASMKL NOMKL
+    /*
+     * "Note that using row-major ordering may require more memory and time
+     * than column-major ordering, because the routine must transpose the
+     * row-major order to the column-major order required by the underlying
+     * LAPACK routine."  See:
+     *
+     * - https://www.netlib.org/lapack/lapacke.html#_array_arguments
+     * - https://github.com/Reference-LAPACK/lapack/blob/2a39774316821436989cb755a59255cfa1ae9d99/LAPACKE/src/lapacke_dgesv_work.c#L63
+     */
     status = LAPACKE_dgesv(
         LAPACK_ROW_MAJOR // int matrix_layout
       , n // lapack_int n
@@ -211,6 +244,7 @@ int main(int argc, char ** argv)
       , b.ncol() // lapack_int ldb
       // for row major matrix, ldb becomes the trailing dimension.
     );
+#endif // HASMKL NOMKL
 
     std::cout << "solution x:" << b << std::endl;
     std::cout << "dgesv status: " << status << std::endl;
@@ -228,6 +262,26 @@ int main(int argc, char ** argv)
     std::cout << "A:" << mat2 << std::endl;
     std::cout << "b:" << b2 << std::endl;
 
+#if !defined(HASMKL) || defined(NOMKL)
+    {
+        int nn = n;
+        int b2ncol = b2.ncol();
+        int b2nrow = b2.nrow();
+        int mat2nrow = mat2.nrow();
+
+        dgesv_( // column major.
+            &nn // int * n: number of linear equation
+          , &b2ncol // int * nrhs: number of RHS
+          , mat2.data() // double * a: array (lda, n)
+          , &mat2nrow // int * lda: leading dimension of array a
+          , ipiv.data() // int * ipiv: pivot indices
+          , b2.data() // double * b: array (ldb, nrhs)
+          , &b2nrow // int * ldb: leading dimension of array b
+          , &status
+          // for column major matrix, ldb remains the leading dimension.
+        );
+    }
+#else // HASMKL NOMKL
     status = LAPACKE_dgesv(
         LAPACK_COL_MAJOR // int matrix_layout
       , n // lapack_int n
@@ -239,6 +293,7 @@ int main(int argc, char ** argv)
       , b2.nrow() // lapack_int ldb
       // for column major matrix, ldb remains the leading dimension.
     );
+#endif // HASMKL NOMKL
 
     std::cout << "solution x:" << b2 << std::endl;
     std::cout << "dgesv status: " << status << std::endl;

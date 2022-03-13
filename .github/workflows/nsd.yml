@@ -29,7 +29,7 @@ jobs:
 
     strategy:
         matrix:
-          os: [ubuntu-20.04, macos-10.15]
+          os: [ubuntu-20.04, macos-11]
 
         fail-fast: false
 
@@ -126,8 +126,6 @@ jobs:
         make -C ${{ env.MATRIXROOT }} runma
 
     - name: 04matrix_la
-      # macos does not have MKL.
-      if: startsWith(matrix.os, 'ubuntu')
       run: |
         make -C ${{ env.MATRIXROOT }} clean
         make -C ${{ env.MATRIXROOT }} runla

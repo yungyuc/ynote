@@ -6,9 +6,18 @@ Matrix Operations
   :local:
   :depth: 1
 
-Matrices are broadly used in numerical analysis, and arrays are used to allow
-computer code to process matrices.  Arrays are also the data structure that is
-the closest to the fundamental types that are supported by hardware.
+System should be designed as simple as possible.  Any excessive complexity slows
+it down.  This is why we use arrays so frequently when it comes to designing a
+high-performance system.  Array is the data structure closest to the fundamental
+types, and the hardware knows how to process the data quickly in batch.  By
+making the data complex, we will force the computers to take more time to
+mitigate our laziness.
+
+In numerical analysis, the counterpart of array is matrix.  It is coincident
+that matrices are so useful to a wide range of real-world problems, but it is
+undeniable that computers extend the application to an unbelievable scale.  It
+probably has something to do with the linearity of human minds, but don't quote
+me on the anecdotal statement.
 
 Linear Algebra
 ==============
@@ -17,16 +26,16 @@ Linear Algebra
   :local:
   :depth: 1
 
-One of the most frequent use of matrices and arrays is linear algebra.  BLAS_
-[1]_ and LAPACK_ [2]_ are the two most important libraries for numerical
-calculations for linear algebra.  BLAS stands for Basic Linear Algebra
-Subprograms, and LAPACK is Linear Algebra PACKage.  They were originally
-developed in Fortran_.  Although the Fortran code is still being maintained
-today, it serves more like a reference implementation.  Multiple vendors
-provide optimized implementation, e.g., Intel's Math Kernel Library (MKL) [3]_,
-Apple's vecLib [4]_, etc.
+One of the most frequent use of matrices is linear algebra.  BLAS_ [1]_ and
+LAPACK_ [2]_ are the two most important libraries for numerical calculations for
+linear algebra.  BLAS stands for Basic Linear Algebra Subprograms, and LAPACK is
+Linear Algebra PACKage.  They were originally developed in Fortran_.  The
+Fortran code is still being maintained today, and serves as a reference
+implementation.  Production code is encouraged to use the vendor-optimized
+implementation, e.g., Intel's Math Kernel Library (MKL) [3]_, Apple's
+Accelerate/vecLib [4]_, etc.
 
-BLAS is organized in 3 levels:
+BLAS is organized at 3 levels:
 
 * `Level 1 <http://www.netlib.org/blas/#_level_1>`__ is vector operations, e.g.,
 
@@ -58,7 +67,7 @@ multiplication, LAPACK provides more versatile computation helpers or solvers,
 e.g., a system of linear equations, least square, and eigen problems.
 
 Both BLAS and LAPACK provide C API (no native C++ interface).  CBLAS is the C
-API for BLAS, and LAPACKE is that for LAPACK.
+API for BLAS and CLAPACK and LAPACKE are that for LAPACK.
 
 POD Arrays
 ==========
@@ -68,11 +77,10 @@ POD Arrays
   :depth: 1
 
 The plain-old-data (POD) arrays are also called C-style arrays.  They are given
-the names because they are nothing more than just data and support no mechanism
-fancier than arithmetic.  We do, oftentimes, wrap POD with fancy C++
-constructs, but all the heavy-lifting numerical calculations still need to be
-done with POD.  That's how von Neumann computers work.  (It clearly reveals
-itself in the machine code.)
+the names because they are nothing more than just plain buffers in memory and
+support no mechanism fancier than that.  We do, oftentimes, wrap POD with fancy
+C++ constructs, but the underneath heavy-lifting calculations still deal with
+POD directly.  (It clearly reveals itself in the machine code.)
 
 Vector: 1D Array
 ++++++++++++++++
@@ -95,8 +103,14 @@ It can be indexed and populated using the index:
       vector[i] = i;
   }
 
-It is common to use the index to manipulate the 1-D array.  The following code
-prints the contents:
+It is common to use the index to manipulate the 1-D array.  The memory layout
+is:
+
+.. figure:: image/pod_vector.png
+  :align: center
+  :width: 10em
+
+The following code prints the contents:
 
 .. code-block:: cpp
 
@@ -107,7 +121,8 @@ prints the contents:
   }
   std::cout << std::endl;
 
-The execution results are:
+The execution results verify that the contents are following the depicted memory
+layout:
 
 .. code-block:: none
 
@@ -150,7 +165,8 @@ with 0, not 1.  It would make coding easier to rewrite the matrix using the
     a_{40} & a_{41} & a_{42} & a_{43} & a_{44}
   \end{array}\right)
 
-In C++ we can use an auto variable for the matrix:
+There is a simple and convenient way in C++ to handle the matrices and it is
+to use to following syntax:
 
 .. code-block:: cpp
 
@@ -158,7 +174,7 @@ In C++ we can use an auto variable for the matrix:
 
   double amatrix[width][width];
 
-The elements are accessed through two consecutive operators ``[]``:
+The elements are accessed through two consecutive operators ``[][]``:
 
 .. code-block:: cpp
 
@@ -197,6 +213,9 @@ The execution results are:
 The full example code can be found in :ref:`pod02_matrix_auto.cpp
 <nsd-matrix-example-pod02-matrix-auto>`.
 
+But there is a caveat.  The multi-dimensional array syntax only works with
+auto variable.  That is what will be discussed next.
+
 .. _nsd-vla:
 
 Variable-Length Array
@@ -233,8 +252,18 @@ in the C++ standard.
 The full example code can be found in :ref:`pod_bad_matrix.cpp
 <nsd-matrix-example-pod-bad-matrix>`.
 
+In general, we should not use the simple multi-dimensional syntax when the size
+of the array is not known during compile time.  If the memory offset needs to be
+determined during runtime, use syntax for obviously runtime behavior.
+
 Row-Major 2D Array
 ++++++++++++++++++
+
+A row-major 2D array makes the access of data in a matrix row to be contiguous:
+
+.. figure:: image/rowmajor_scan.png
+  :align: center
+  :width: 20em
 
 The elements of a row-major 2D array are stored so that the fastest changing
 index is the trailing index of the 2D array:
@@ -267,7 +296,7 @@ following code populates the buffer):
   }
 
 We may play the pointer trick (which didn't work for :ref:`VLA <nsd-vla>`) to
-use two consecutive operators ``[]`` for accessing the element:
+use two consecutive operators ``[][]`` for accessing the element:
 
 .. code-block:: cpp
   :emphasize-lines: 12
@@ -310,6 +339,13 @@ The full example code can be found in :ref:`pod03_matrix_rowmajor.cpp
 Column-Major 2D Array
 +++++++++++++++++++++
 
+A column-major 2D array makes the access of data in a matrix column to be
+contiguous:
+
+.. figure:: image/colmajor_scan.png
+  :align: center
+  :width: 20em
+
 The elements of a column-major 2D array are stored so that the fastest changing
 index is the leading index of the 2D array:
 
@@ -318,13 +354,14 @@ index is the leading index of the 2D array:
   constexpr size_t width = 5;
   double * buffer = new double[width*width];
 
-The code is the same as that of the row-majoring since the number of column and
-row is the same.  But for column-majoring arrays, the elements order
+The above code is the same as that of the row-majoring since the number of
+column and row is the same.  But for column-majoring arrays, the elements order
 differently:
 
 .. math::
 
-  \mathrm{buffer} = [a_{00}, a_{10}, a_{20}, a_{30}, a_{40}, a_{01}, a_{11}, a_{21}, \ldots, a_{34}, a_{44}]
+  \mathrm{buffer} = [a_{00}, a_{10}, a_{20}, a_{30}, a_{40},
+    a_{01}, a_{11}, a_{21}, \ldots, a_{34}, a_{44}]
 
 Similar to a row-major array, we need to know the stride.  But this time it's
 for the column (trailing) index:
@@ -341,7 +378,7 @@ for the column (trailing) index:
       }
   }
 
-The same pointer trick allows to use two consecutive operators ``[]``, but it
+The same pointer trick allows to use two consecutive operators ``[][]``, but it
 does not know the different stride needed by column-majoring, and does not work
 well.  We need to flip ``i`` and ``j`` to hack out the column-major stride:
 
@@ -1008,8 +1045,8 @@ We can write code to solve the sample problem above by calling LAPACK:
 .. note::
 
   The reference implementation of LAPACK is Fortran, which uses column major.
-  The dimensional arguments of the LAPACK subroutines changes meaning when we
-  call them from C with row-major matrices.
+  When using the row-major interface provided by LAPACKE, the leading dimension
+  arguments may differ.
 
 The execution results are:
 

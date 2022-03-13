@@ -3,11 +3,15 @@
 #include <vector>
 #include <stdexcept>
 
-#ifdef NOMKL
-#include <lapacke.h>
-#else // NOMKL
+#ifdef HASMKL
+#include <mkl_lapack.h>
 #include <mkl_lapacke.h>
-#endif // NOMKL
+#else // HASMKL
+#ifdef __MACH__
+#include <clapack.h>
+#include <Accelerate/Accelerate.h>
+#endif // __MACH__
+#endif // HASMKL
 
 class Matrix {
 
@@ -192,29 +196,60 @@ int main(int argc, char ** argv)
     int status;
 
     std::cout << ">>> Solve Ax=lx (row major)" << std::endl;
-    Matrix mat(n, n, false);
+    Matrix mat(n, n, /* column_major */ true);
     mat(0,0) = 3; mat(0,1) = 5; mat(0,2) = 2;
     mat(1,0) = 2; mat(1,1) = 1; mat(1,2) = 3;
     mat(2,0) = 4; mat(2,1) = 3; mat(2,2) = 2;
     std::vector<double> wr(n), wi(n);
-    Matrix vl(n, n, false), vr(n, n, false);
+    Matrix vl(n, n, /* column_major */ true), vr(n, n, /* column_major */ true);
 
     std::cout << "A:" << mat << std::endl;
 
+#if !defined(HASMKL) || defined(NOMKL)
+    {
+        char jobvl = 'V';
+        char jobvr = 'V';
+        int nn = n;
+        int vlnrow = vl.nrow();
+        int vrnrow = vr.nrow();
+        int matnrow = mat.nrow();
+        int lwork = 4*n;
+        std::vector<double> work(lwork);
+
+        dgeev_( // column major.
+            &jobvl
+          , &jobvr
+          , &nn // int * n: number of linear equation
+          , mat.data() // double *: a
+          , &matnrow // int *: lda
+          , wr.data() // double *: wr
+          , wi.data() // double *: wi
+          , vl.data() // double *: vl
+          , &vlnrow // int *: ldvl
+          , vr.data() // double *: vr
+          , &vrnrow // int *: ldvr
+          , work.data() // double *: work array
+          , &lwork // int *: lwork
+          , &status
+          // for column major matrix, ldb remains the leading dimension.
+        );
+    }
+#else // HASMKL NOMKL
     status = LAPACKE_dgeev(
-        LAPACK_ROW_MAJOR // int matrix_layout
+        LAPACK_COL_MAJOR // int matrix_layout
       , 'V' // char jobvl; 'V' to compute left eigenvectors, 'N' to not compute them
       , 'V' // char jobvr; 'V' to compute right eigenvectors, 'N' to not compute them
       , n // lapack_int n
       , mat.data() // double * a
-      , mat.ncol() // lapack_int lda
+      , mat.nrow() // lapack_int lda
       , wr.data() // double * wr
       , wi.data() // double * wi
       , vl.data() // double * vl
-      , vl.ncol() // lapack_int ldvl
+      , vl.nrow() // lapack_int ldvl
       , vr.data() // double * vr
-      , vr.ncol() // lapack_int ldvr
+      , vr.nrow() // lapack_int ldvr
     );
+#endif // HASMKL NOMKL
 
     std::cout << "dgeev status: " << status << std::endl;
 
