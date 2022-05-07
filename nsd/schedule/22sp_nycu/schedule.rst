@@ -89,11 +89,11 @@ the subject line starting with ``[nsd-course]``.
     -
   * - 16
     - 5/30
-    - Project presentation
+    - Project presentation #1
     -
   * - 17
     - 6/6
-    - To be planned
+    - Project presentation #2
     -
   * - 18
     - 6/13
