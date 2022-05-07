@@ -76,7 +76,7 @@ the subject line starting with ``[nsd-course]``.
   * - 13
     - 5/9
     - Unit 10: :doc:`../../10cpppy/cpppy`
-    -
+    - `Zoom <https://us02web.zoom.us/j/85718489338?pwd=Smh0amkvMFNSMDFjaFJkelMxczZGQT09>`__
   * - 14
     - 5/16
     - Unit 11: :doc:`../../11arraydesign/arraydesign`
