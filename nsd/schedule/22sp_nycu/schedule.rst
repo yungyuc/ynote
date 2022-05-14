@@ -82,19 +82,27 @@ the subject line starting with ``[nsd-course]``.
   * - 14
     - 5/16
     - Unit 11: :doc:`../../11arraydesign/arraydesign`
-    - hw #6
+    - `Zoom
+      <https://us02web.zoom.us/j/86536552006?pwd=QU0xY2U5a3dhcHE3djJZTEVoRVNUdz09>`__
+      online only; hw #6
   * - 15
     - 5/23
     - Unit 12: :doc:`../../12advpy/advpy`
-    -
+    - `Zoom
+      <https://us02web.zoom.us/j/85770438970?pwd=UWtMdGkxUkU5MzBIckNsUWtLTjJZZz09>`__
+      online only
   * - 16
     - 5/30
     - Project presentation #1
-    -
+    - `Zoom
+      <https://us02web.zoom.us/j/85758830306?pwd=U251ekh1V3A0U25yUXEzTXc1NWRTUT09>`__
+      online only
   * - 17
     - 6/6
     - Project presentation #2
-    -
+    - `Zoom
+      <https://us02web.zoom.us/j/82756614480?pwd=VVg5NXFVZDhheVg3c3RqdzUyTE9ndz09>`__
+      online only
   * - 18
     - 6/13
     - To be planned
