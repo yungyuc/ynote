@@ -330,7 +330,7 @@ in the same way as the iterators we used earlier.
 
 .. code-block:: pycon
 
-  >>> # Provide the offset as an argument to the generator function.
+  >>> # Iterate over the generator iterator.
   >>> for v in generator:
   ...     print(v)
   ... 
