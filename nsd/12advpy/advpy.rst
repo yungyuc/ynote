@@ -18,209 +18,29 @@ Iterator
   :local:
   :depth: 1
 
-When processing a big amount of data, repetition and conditional operations are
-used everywhere.  Data are kept in containers and we write code to iterate
-through the elements.  Python provides the :ref:`iterator protocol
-<python:typeiter>` for the iterating idioms.
+When processing a big amount of data, repetition is used everywhere. The data
+need to be kept somewhere, and that is why we use containers. We write code to
+access the elements one by one.  This pattern is called iteration.
 
-Let us see a simple example of having 10 elements in a list:
-
-.. code-block:: pycon
-
-  >>> data = list(range(10))
-  >>> print(data, type(data))
-
-Custom Iterator
-+++++++++++++++
-
-Python provides iterator out of the box.  To demonstrate how it works, here we
-make a custom class that implements the :ref:`Python iterator protocol
-<python:typeiter>`:
-
-.. code-block:: python
-  :linenos:
-
-  class ListIterator:
-
-      def __init__(self, data, offset=0):
-          self.data = data
-          self.it = None
-          self.offset = offset
-
-      def __iter__(self):
-          return self
-
-      def __next__(self):
-          if None is self.it:
-              self.it = 0
-          elif self.it >= len(self.data)-1:
-              raise StopIteration
-          else:
-              self.it += 1
-          return self.data[self.it] + self.offset
-
-Create the custom iterator from the list:
+Python provides the :ref:`iterator protocol <python:typeiter>` for this pattern.
+Let us see a simple.  Create a list holding 10 integer elements:
 
 .. code-block:: pycon
 
-  >>> list_iterator = ListIterator(data)
+  >>> # Build a list of numerical data:
+  >>> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  >>> type(data)  # Show the type: it's indeed a list.
+  <class 'list'>
 
-Check the type of the custom iterator object:
-
-.. code-block:: pycon
-
-  >>> print(list_iterator)
-  <__main__.ListIterator object at 0x10cfaebd0>
-
-Take a look at its members:
+Then iterate over all the elements in ``data`` through the ``for ... in ...``
+loop:
 
 .. code-block:: pycon
 
-  >>> print(dir(list_iterator))
-  ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__',
-  '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
-  '__init_subclass__', '__iter__', '__le__', '__lt__', '__module__', '__ne__',
-  '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__',
-  '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__',
-  'data', 'it', 'offset']
-
-Python uses the iterator object in the ``for ... in ...`` looping construct.
-Every time the construct needs the next element,
-:py:meth:`!ListIterator.__next__` is called.  Let us see how it executes:
-
-.. code-block:: pycon
-
-  >>> for i in list_iterator:
-  >>>     print(i)
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
-
-:ref:`List comprehensions <python:tut-listcomps>` are another construct that
-uses the iterator protocol:
-
-.. code-block:: pycon
-
-  >>> print([value+100 for value in data])
-  [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]
-
-Built-In Iterator
-+++++++++++++++++
-
-Of course, it is not necessary to write a custom class
-:py:class:`!ListIterator` for iterating a list on a daily basis.  Python
-already builds in an iterator :py:func:`python:iter`:
-
-.. code-block:: pycon
-
-  >>> list_iterator2 = iter(data)
-  >>> for i in list_iterator2:
-  >>>     print(i)
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
-
-Check the type of the built-in iterator object:
-
-.. code-block:: pycon
-
-  >>> print(list_iterator2)
-  <list_iterator object at 0x10cfb2990>
-
-.. admonition:: Comparison
-
-  Compare with the type of our custom iterator:
-
-  .. code-block:: pycon
-
-    >>> print(list_iterator)
-    <__main__.ListIterator object at 0x10cfaebd0>
-
-Take a look at the members of the built-in iterator:
-
-.. code-block:: pycon
-
-  >>> print(dir(list_iterator2))
-  ['__class__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__',
-  '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
-  '__init_subclass__', '__iter__', '__le__', '__length_hint__', '__lt__',
-  '__ne__', '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__',
-  '__setattr__', '__setstate__', '__sizeof__', '__str__', '__subclasshook__']
-
-.. admonition:: Comparison
-
-  Compare with the members of our custom iterator:
-
-  .. code-block:: pycon
-
-    >>> print(dir(list_iterator))
-    ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__',
-    '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
-    '__init_subclass__', '__iter__', '__le__', '__lt__', '__module__', '__ne__',
-    '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__',
-    '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__',
-    'data', 'it', 'offset']
-
-Implicitly Created Iterator
-+++++++++++++++++++++++++++
-
-The built-in iterator may also be created by calling
-:py:meth:`python:container.__iter__` method on the container object
-(:py:func:`python:iter` simply does it for you):
-
-.. code-block:: pycon
-
-  >>> list_iterator3 = data.__iter__()
-  >>> print(list_iterator3)
-  <list_iterator object at 0x10cfbab90>
-
-Aided by :py:meth:`python:container.__iter__`, most of the time we can directly
-use a container in the loop construct ``for ... in ...``, because the construct
-knows about the :ref:`iterator protocol <python:typeiter>`:
-
-.. code-block:: pycon
-
-  >>> for i in data:
-  >>>     print(i)
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
-
-List Comprehension
-++++++++++++++++++
-
-:ref:`List comprehensions <python:tut-listcomps>` are the construct ``[... for
-... in ...]``.  Python borrowed the syntax of list :ref:`comprehension
-<python:comprehensions>` from other languages, e.g., Haskell.  List
-comprehensions follow the :ref:`iterator protocol <python:typeiter>`.
-
-The construct is very convenient.  When used wisely, it makes code look
-cleaner.  For example, the above ``for`` loop can be replaced by a one-liner:
-
-.. code-block:: pycon
-
-  >>> print("\n".join([str(i) for i in data]))
+  >>> # This uses the iterator protocol.
+  >>> for v in data:
+  ...     print(v)
+  ... 
   0
   1
   2
@@ -234,121 +54,144 @@ cleaner.  For example, the above ``for`` loop can be replaced by a one-liner:
 
 .. note::
 
-  While list comprehensions are mostly a short-hand to the ``for`` loop, it may
-  runs faster or slowers than the ``for`` loop.  It depends on the complexity
-  of your statement and the container.
+  Python iteration is slow.  High-performance code almost never loops in Python.
+  However it is easy to write and helpful when debugging.  A high-performance
+  system commonly provides it as a supplement for a fast but hard-to-debug API.
 
-Generator
-+++++++++
+Custom Iterator
++++++++++++++++
 
-An advanced use of the :ref:`Python iterator protocol <python:typeiter>` is the
-:term:`generator <python:generator>`.  A generator is a function returning an
-iterator (the iterator is also known as a :term:`generator iterator
-<python:generator iterator>`).  An example of such a generator function:
+The iterator protocol works closely with the ``for`` loop.  A programmer can use
+it to change the behavior of the loop.  In the following example, we create a
+class implementing the iterator protocol.  It takes a sequence, and create a new
+value on the fly when returning the elements.
 
 .. code-block:: python
+  :linenos:
 
-  def list_generator(input_data):
-      for i in input_data:
-          yield i
+  class ListIterator:
+      """
+      This class takes an offset value for all the element in the container.
+      """
 
-A generator function uses the :ref:`yield <python:yield>` statement instead of
-the :ref:`return <python:return>` statement.
+      def __init__(self, data, offset=0):
 
-When "calling" the generator function, we get the generator object in return:
+          self.data = data  # The data container.
+          self.it = None  # The current index in the container.
+          self.offset = offset  # The offset value.
+
+      # Return the iterator object itself.
+      def __iter__(self):
+
+          return self
+
+      # Return the next element from the iterator.
+      def __next__(self):
+
+          if None is self.it:
+
+              self.it = 0
+
+          elif self.it >= len(self.data)-1:
+
+              self.it = None
+
+              # Raise the exception if there is no more elements to be iterated.
+              raise StopIteration
+
+          else:
+
+              self.it += 1
+
+          return self.data[self.it] + self.offset
+
+To use it, we need to create the custom iterator from the existing data list:
 
 .. code-block:: pycon
 
-  >>> generator = list_generator(data)
-  >>> print(generator)
-  <generator object list_generator at 0x10cf756d0>
+  >>> # Iterate all elements but return (100 + v) instead of v.
+  >>> list_iterator = ListIterator(data, offset=100)
+  >>> # Print the iterator object and review the type.
+  >>> print(list_iterator)
+  <__main__.ListIterator object at 0x10cfaebd0>
 
-The generator object is an :ref:`iterator <python:typeiter>` with the methods
-:py:meth:`python:iterator.__iter__` and :py:meth:`python:iterator.__next__`:
+Take a look at its members.  Look for ``__iter__`` and ``__next__``.
 
 .. code-block:: pycon
+  :emphasize-lines: 5, 7
 
-  >>> print(dir(generator))
-  ['__class__', '__del__', '__delattr__', '__dir__', '__doc__', '__eq__',
+  >>> print(dir(list_iterator))
+  ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__',
   '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
-  '__init_subclass__', '__iter__', '__le__', '__lt__', '__name__', '__ne__',
-  '__new__', '__next__', '__qualname__', '__reduce__', '__reduce_ex__',
-  '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__',
-  'close', 'gi_code', 'gi_frame', 'gi_running', 'gi_yieldfrom', 'send',
-  'throw']
+  '__init_subclass__',
+  '__iter__',
+  '__le__', '__lt__', '__module__', '__ne__', '__new__',
+  '__next__',
+  '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__',
+  '__str__', '__subclasshook__', '__weakref__', 'data', 'it', 'offset']
 
-It works in the same way as the iterators we used earlier:
-
-.. code-block:: pycon
-
-  >>> for i in list_generator(data):
-  >>>     print(i)
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
-
-Generator Expression
-++++++++++++++++++++
-
-A more convenient way of creating a :term:`generator <python:generator>` is to
-use the :ref:`generator expression <python:genexpr>` ``(... for ... in ...)``.
-Note this looks like the list comprehension ``[... for ... in ...]``, but uses
-parentheses to replace the brackets.
-
-Use the generator expression to return a generator object (and check its type):
+Every time the construct needs the next element, ``ListIterator.__next__()`` is
+called.  Let us see how it runs.  In the ``for`` loop iterating over
+``list_iterator``, it does not return the value in the ``data`` list, but the
+value offset by 100.
 
 .. code-block:: pycon
 
-  >>> generator2 = (i for i in data)
-  >>> print(generator2)
-  <generator object <genexpr> at 0x10cfce1d0>
+  >>> # The iterator offset the value in the list.
+  >>> for v in list_iterator:
+  ...     print(v)
+  ... 
+  100
+  101
+  102
+  103
+  104
+  105
+  106
+  107
+  108
+  109
 
-See what are on the object:
-
-.. code-block:: pycon
-
-  >>> print(dir(generator2))
-  ['__class__', '__del__', '__delattr__', '__dir__', '__doc__', '__eq__',
-  '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
-  '__init_subclass__', '__iter__', '__le__', '__lt__', '__name__', '__ne__',
-  '__new__', '__next__', '__qualname__', '__reduce__', '__reduce_ex__',
-  '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__',
-  'close', 'gi_code', 'gi_frame', 'gi_running', 'gi_yieldfrom', 'send',
-  'throw']
-
-The generator iterator returned from the generator expression works just like
-the iterator shown before:
-
-.. code-block:: pycon
-
-  >>> for i in generator2:
-  >>>     print(i)
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
-
-Since the generator expression is an expression, it can be used to replace the
-list comprehension in an expression.  The one-liner that printed the data can
-have the brackets removed (turning from using a list comprehension to using a
-generator expression):
+If hard-coding the offset value in the loop, you can do the same thing without
+the custom iterator.  To put it in another way, we may say, the custom iterator
+parameterizes the offset value.
 
 .. code-block:: pycon
 
-  >>> print("\n".join(str(i) for i in data))
+  >>> # Hard-code the offset value in the loop.
+  >>> for v in data:
+  ...     print(v + 100)
+  ... 
+  100
+  101
+  102
+  103
+  104
+  105
+  106
+  107
+  108
+  109
+
+Built-In Iterator
++++++++++++++++++
+
+Python provides a built-in iterator helper :py:func:`python:iter` so it is not
+really necessary to create a custom iterator class if you do not need a very
+special treatment. (The custom class ``ListIterator`` is not really special
+enough to warrant a custom class. We will cover this part later.)
+
+.. code-block:: pycon
+
+  >>> # Create an iterator object using the built-in iter() function.
+  >>> list_iterator2 = iter(data)
+  >>> # Check the type of the built-in iterator object:
+  >>> print(list_iterator2)
+  <list_iterator object at 0x10cfb2990>
+  >>> # The built-in iterator works the same as directly iterating the list.
+  >>> for v in list_iterator2:
+  ...     print(v)
+  ...
   0
   1
   2
@@ -362,21 +205,344 @@ generator expression):
 
 .. admonition:: Comparison
 
-  Compare with the list comprehension:
+  Compare with the type of our custom iterator:
 
   .. code-block:: pycon
 
-    >>> print("\n".join( [ str(i) for i in data ] ))
-    0
-    1
-    2
-    3
-    4
-    5
-    6
-    7
-    8
-    9
+    >>> print(list_iterator)
+    <__main__.ListIterator object at 0x10cfaebd0>
+
+Take a look at its members of the built-in iterator.  Look for ``__iter__`` and
+``__next__`` like we did for the custom iterator.
+
+.. code-block:: pycon
+  :emphasize-lines: 5, 7
+
+  >>> print(dir(list_iterator2))
+  ['__class__', '__delattr__', '__dir__', '__doc__', '__eq__',
+  '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
+  '__init_subclass__',
+  '__iter__',
+  '__le__', '__length_hint__', '__lt__', '__ne__', '__new__',
+  '__next__',
+  '__reduce__', '__reduce_ex__', '__repr__',
+  '__setattr__', '__setstate__', '__sizeof__', '__str__', '__subclasshook__']
+
+.. admonition:: Comparison
+
+  Compare with the members of our custom iterator.  The only difference is that
+  the custom iterator has one additional member ``__dict__``.
+
+  .. code-block:: pycon
+    :emphasize-lines: 5, 7
+
+    >>> print(dir(list_iterator))
+    ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__',
+    '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
+    '__init_subclass__',
+    '__iter__',
+    '__le__', '__lt__', '__module__', '__ne__', '__new__',
+    '__next__',
+    '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__',
+    '__str__', '__subclasshook__', '__weakref__', 'data', 'it', 'offset']
+
+Implicitly Created Iterator
++++++++++++++++++++++++++++
+
+The built-in iterator may also be created by calling
+:py:meth:`python:container.__iter__` method on the container object
+(:py:func:`python:iter` simply does it for you):
+
+.. code-block:: pycon
+
+  >>> # Create an iterator object using the iterator protocol.
+  >>> list_iterator3 = data.__iter__()
+  >>> print(list_iterator3)
+  <list_iterator object at 0x10cfbab90>
+
+Aided by :py:meth:`python:container.__iter__`, most of the time we can directly
+use a container in the loop construct ``for ... in ...``, because the construct
+knows about the iterator protocol.
+
+Generator
++++++++++
+
+:term:`Generator <python:generator>` is an advanced use of the :ref:`iterator
+protocol <python:typeiter>`.  It is a special way to make a function to return
+an iterator.  It is a special iterator that is also known as a :term:`generator
+iterator <python:generator iterator>`.  Let us see a simple example of the
+generator function.
+
+.. code-block:: python
+
+  def list_generator(input_data, offset=0):
+      """
+      Generator function to return the element in a sequence by adding the given
+      offset value.
+      """
+      for v in input_data:
+          # This is what makes it special.
+          yield v + offset
+
+What makes it special is the :ref:`yield <python:yield>` statement. A generator
+function uses the yield statement instead of the :ref:`return <python:return>`
+statement.  The yield statement does not return the object it takes, but a
+generator object that will return the object it takes.
+
+The generator function can do the same thing as the custom iterator class
+``ListIterator`` we made previously.  Let us see how it works step by step.
+
+The first step is to call the generator function and print its return.
+
+.. code-block:: pycon
+
+  >>> # Call the generator function and get the return.
+  >>> generator = list_generator(data, offset=100)
+  >>> # Print the return.  See it is not the value returned by "yield".
+  >>> print(generator)
+  <generator object list_generator at 0x10cf756d0>
+
+The object returned by the generator function ``list_generator()`` is a
+generator object.  The generator object is an :ref:`iterator <python:typeiter>`,
+and has the methods :py:meth:`python:iterator.__iter__` and
+:py:meth:`python:iterator.__next__`. (The members in line 10 -- 11 are not in
+the built-in iterator.  But just like the additional members in our
+``ListIterator``, these members do no harm either.)
+
+.. code-block:: pycon
+  :linenos:
+  :emphasize-lines: 5, 7, 10-11
+
+  >>> print(dir(generator))
+  ['__class__', '__del__', '__delattr__', '__dir__', '__doc__', '__eq__',
+  '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
+  '__init_subclass__',
+  '__iter__',
+  '__le__', '__lt__', '__name__', '__ne__', '__new__',
+  '__next__',
+  '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__',
+  '__sizeof__', '__str__', '__subclasshook__',
+  'close', 'gi_code', 'gi_frame', 'gi_running', 'gi_yieldfrom', 'send',
+  'throw']
+
+The second step is to put the generator in a for loop.  And we will see it works
+in the same way as the iterators we used earlier.
+
+.. code-block:: pycon
+
+  >>> # Provide the offset as an argument to the generator function.
+  >>> for v in generator:
+  ...     print(v)
+  ... 
+  100
+  101
+  102
+  103
+  104
+  105
+  106
+  107
+  108
+  109
+
+List Comprehension
+++++++++++++++++++
+
+By :ref:`list comprehensions <python:tut-listcomps>`, we are talking about
+the construct:
+
+.. code-block:: python
+  
+  [ ... for ... in ... ]
+
+It is not an iterator but heavily depends on the iterator protocol.
+
+Python borrowed the syntax of list :ref:`comprehension
+<python:comprehensions>` from other languages, e.g., Haskell.  List
+comprehensions also follow the :ref:`iterator protocol <python:typeiter>`.  And
+that is why we are talking about it in this section.
+
+The list comprehensions provide an elegant way to build a list in a one-liner.
+It makes code look cleaner when used wisely.  For example, the ``for``
+loop:
+
+.. code-block:: pycon
+
+  >>> for v in data:
+  ...     print(v)
+  ... 
+  0
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+
+can be replaced by a one-liner:
+
+.. code-block:: pycon
+
+  >>> print("\n".join([str(v) for v in data]))
+  0
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+
+They make it easier to change the format of the print.
+
+.. code-block:: pycon
+
+  >>> print(", ".join([str(v) for v in data]))
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+
+In the above examples, the code using the list comprehensions is more readable
+than the ``for`` loop version.  That is usually the guideline for choosing
+between a list comprehension or a ``for`` loop: readability.
+
+And back to our custom iterator example.  The list comprehensions also provide a
+nicer way to do what we did with the class ``ListIterator``.
+
+.. code-block:: pycon
+
+  >>> # The single line offset list.
+  >>> print([v+100 for v in data])
+  [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]
+  >>> # The multi-line version of the offset list.
+  >>> print("\n".join([str(v+100) for v in data]))
+  100
+  101
+  102
+  103
+  104
+  105
+  106
+  107
+  108
+  109
+
+.. note::
+
+  While list comprehensions are mostly a short-hand to the ``for`` loop, it may
+  runs faster or slowers than the ``for`` loop.  It depends on the complexity
+  of your statement and the container.
+
+Generator Expression
+++++++++++++++++++++
+
+The list comprehensions pave the road for explaining what is a generator
+expression. The :ref:`generator expression <python:genexpr>`
+
+.. code-block:: python
+  
+  ( ... for ... in ... )
+
+is a more convenient way to create a :term:`generator <python:generator>`.
+
+.. note::
+
+  Although a generator expression ``( ... for ... in ... )`` (using parentheses)
+  looks like a list comprehension ``[ ... for ... in ... ]`` (using brackets),
+  they are different things.
+
+Take a look at its members and confirm that it also has ``__iter__`` and
+``__next__``.
+
+.. code-block:: pycon
+
+  >>> # Use the generator expression to create a generator.
+  >>> generator2 = (v + 100 for v in data)  # Hard-code the offset.
+  >>> # See the type of the object.
+  >>> print(generator2)
+  <generator object <genexpr> at 0x10cfce1d0>
+
+See what are in the object.
+
+.. code-block:: pycon
+  :emphasize-lines: 5, 7
+
+  >>> print(dir(generator2))
+  ['__class__', '__del__', '__delattr__', '__dir__', '__doc__', '__eq__',
+  '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
+  '__init_subclass__',
+  '__iter__',
+  '__le__', '__lt__', '__name__', '__ne__', '__new__',
+  '__next__',
+  '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__',
+  '__sizeof__', '__str__', '__subclasshook__',
+  'close', 'gi_code', 'gi_frame', 'gi_running', 'gi_yieldfrom', 'send',
+  'throw']
+
+The generator iterator returned from the generator expression works just like
+the iterator shown before:
+
+.. code-block:: pycon
+
+  >>> for v in generator2:
+  ...     print(v)
+  ... 
+  100
+  101
+  102
+  103
+  104
+  105
+  106
+  107
+  108
+  109
+
+Because it is an expression, it can be used to replace the list comprehension in
+an expression.  The one-liner that printed the data can have the brackets
+removed (turning from using a list comprehension to using a generator
+expression):
+
+.. code-block:: pycon
+
+  >>> print("\n".join(str(v + 100) for v in data))
+  0
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+
+.. admonition:: Comparison
+
+  Compare with the list comprehension.
+
+  .. code-block:: pycon
+
+    >>> print("\n".join( [ str(v+100) for v in data ] ))
+    100
+    101
+    102
+    103
+    104
+    105
+    106
+    107
+    108
+    109
+
+While it is not obvious in this small test, the list-comprehension version uses
+more memory than the generator-expression version, because the list
+comprehension really creates a new list.  The generator, on the other hand, is a
+small iterator object.  It makes a big difference in memory consumption when the
+``data`` object is large.
 
 Stack Frame
 ===========
