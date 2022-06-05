@@ -5,7 +5,7 @@ Schedule
 .. toctree::
   :maxdepth: 1
 
-  22sp_nycu/schedule
+  22au_nycu/schedule
 
 Past
 ====
@@ -13,6 +13,7 @@ Past
 .. toctree::
   :maxdepth: 1
 
+  22sp_nycu/schedule
   nsd_21au_nycu
   nsd_21sp_nycu
 
@@ -35,7 +36,6 @@ Other
 .. toctree::
   :maxdepth: 1
 
-  22au_nycu/schedule
   condensed3days
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:

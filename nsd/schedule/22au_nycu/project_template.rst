@@ -89,15 +89,15 @@ we adjust the plan.
 To start, you can list the to-do items on a weekly basis and assume the
 development of the project takes 8 weeks:
 
-* Planning phase (6 weeks including 2/21, 2/28, 3/7, 3/14, 3/21, 3/28):
-* Week 1 (4/4):
-* Week 2 (4/11):
-* Week 3 (4/18):
-* Week 4 (4/25):
-* Week 5 (5/2):
-* Week 6 (5/9):
-* Week 7 (5/16):
-* Week 8 (5/23):
+* Planning phase (6 weeks from 9/19 to 10/31):
+* Week 1 (10/31):
+* Week 2 (11/7):
+* Week 3 (11/14):
+* Week 4 (11/21):
+* Week 5 (11/28):
+* Week 6 (12/5):
+* Week 7 (12/12):
+* Week 8 (12/19):
 
 References
 ==========
