@@ -2,6 +2,10 @@
 C++ and Computer Architecture
 =============================
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 C++ is the programming language chosen for implementing numerical methods
 because it runs fast.  C++ has one of the most advanced compilers.  The
 compiler is able to generate fast machine code.  C++ also allows to directly

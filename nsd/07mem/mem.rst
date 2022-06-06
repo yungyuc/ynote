@@ -2,6 +2,10 @@
 Memory Management
 =================
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 Numerical software tends to use as much memory as a workstation has.  The
 memory has two major uses: (i) to hold the required huge amount of data, and
 (ii) to gain speed.
@@ -14,10 +18,6 @@ Farther from the CPU, we have cache memory in multiple levels.  It takes 1 to
 30 cycles to get data from cache memory to CPU, depending on the level.  Then
 we reach the main memory.  Data in main memory takes 50-200 cycles of latency
 before getting to CPU.
-
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
 
 Register, Stack, Heap, and Memory Map
 =====================================

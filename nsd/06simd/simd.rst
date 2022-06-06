@@ -2,6 +2,10 @@
 SIMD (Vector Processing)
 ========================
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 Numerical software means a lot of computation for solutions.  The computation
 calls for a huge amount of cycles in the computer (processor).  Users always
 want shorter processing time.  The demand for faster speed keeps increasing at

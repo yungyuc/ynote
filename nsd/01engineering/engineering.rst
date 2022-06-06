@@ -2,6 +2,10 @@
 Fundamental Engineering
 =======================
 
+.. contents:: Contents in the chapter
+  :local:
+  :depth: 1
+
 While there are so many things to do with engineering, the central idea is
 automation.  Automation is to accomplish work not by human beings, but by
 machines.  The concept becomes recursive when we make software.  The software
