@@ -5,7 +5,8 @@ import inspect
 
 def main():
     for it, fi in enumerate(inspect.stack()):
-        sys.stdout.write('frame #{}:\n  {}\n\n'.format(it, fi))
+        sys.stdout.write('frame #{}:\n  line {}\n\n'.format(
+            it, fi.frame.f_lineno))
 
 if __name__ == '__main__':
     main()

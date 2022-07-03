@@ -551,15 +551,50 @@ Stack Frame
   :local:
   :depth: 1
 
-Print Stack Frames
-++++++++++++++++++
+Python uses a stack-based interpreter.  When calling a function, the interpreter
+adds a *frame* object on a stack, and the frame object is responsible for
+keeping track of the state in the execution construct. The frame is considered
+the implementation detail of the Python interpreter, so it is not guaranteed to
+always work or be backward compatible, but the implementation has been pretty
+stable.
 
-(C)Python uses a stack-based interpreter.  Although there is not documented
-API, it is possible to look into the stack frames of Python.  For example, the
-following code prints all the previous stack frames:
+Consider the following code that calls ``f3()``, ``f2()``, and then ``f1()`` in
+chain:
 
 .. code-block:: python
   :linenos:
+
+  def f1():
+      pass
+
+  def f2():
+      f1()
+
+  def f3():
+      f2()
+
+  f3()
+
+The call stack will look like:
+
+.. figure:: image/framestack.png
+  :align: center
+  :width: 25em
+
+Python provides helpers to access the frame data in :py:mod:`python:traceback`
+and :py:mod:`python:inspect`.
+
+Print the Call Stack
+++++++++++++++++++++
+
+The following code uses :py:mod:`python:traceback` to print all the previous
+stack frames in ``f1()``:
+
+.. code-block:: python
+  :linenos:
+  :caption:
+    Code for showing the call stack (:download:`showstack.py
+    <code/showstack.py>`).
 
   import traceback
 
@@ -572,7 +607,7 @@ following code prints all the previous stack frames:
   def f3():
       f2()
 
-The printed stack frames:
+Run ``f3()``:
 
 .. code-block:: pycon
 
@@ -585,7 +620,7 @@ The printed stack frames:
 Frame Object
 ++++++++++++
 
-We can get the :py:class:`!frame` object of the current stack frame using
+We can get the ``frame`` object of the current stack frame using
 :py:func:`python:inspect.currentframe`:
 
 .. code-block:: pycon
@@ -593,19 +628,25 @@ We can get the :py:class:`!frame` object of the current stack frame using
   >>> import inspect
   >>> f = inspect.currentframe()
 
-A :py:class:`!frame` object has the following attributes:
+A ``frame`` object has the following attributes, as documented in
+the :py:mod:`python:inspect` module in the standard library.  The attributes
+can be put in two groups.
 
-* Namespace:
+* Namespace attributes for the data accessible from the frame:
 
-  * ``f_builtins``: builtin namespace seen by this frame
-  * ``f_globals``: global namespace seen by this frame
-  * ``f_locals``: local namespace seen by this frame
-* Other:
+  * ``f_builtins``: builtin namespace seen by this frame (as a
+    :py:class:`python:dict`)
+  * ``f_globals``: global namespace seen by this frame (as a
+    :py:class:`python:dict`)
+  * ``f_locals``: local namespace seen by this frame (as a
+    :py:class:`python:dict`)
+* Other information:
 
   * ``f_back``: next outer frame object (this frame's caller)
   * ``f_code``: code object being executed in this frame
   * ``f_lasti``: index of last attempted instruction in bytecode
   * ``f_lineno``: current line number in Python source code
+  * ``f_trace``: tracing function for this frame, or None
 
 Let us see it ourselves:
 
@@ -615,66 +656,9 @@ Let us see it ourselves:
   ['clear', 'f_back', 'f_builtins', 'f_code', 'f_globals', 'f_lasti',
   'f_lineno', 'f_locals', 'f_trace', 'f_trace_lines', 'f_trace_opcodes']
 
-We can learn many things about the frame in the object.  For example, take a
-look in the builtin namespace (``f_builtins``):
-
-.. code-block:: pycon
-
-  >>> print(f.f_builtins.keys())
-  dict_keys(['__name__', '__doc__', '__package__', '__loader__', '__spec__',
-  '__build_class__', '__import__', 'abs', 'all', 'any', 'ascii', 'bin',
-  'breakpoint', 'callable', 'chr', 'compile', 'delattr', 'dir', 'divmod',
-  'eval', 'exec', 'format', 'getattr', 'globals', 'hasattr', 'hash', 'hex',
-  'id', 'input', 'isinstance', 'issubclass', 'iter', 'len', 'locals', 'max',
-  'min', 'next', 'oct', 'ord', 'pow', 'print', 'repr', 'round', 'setattr',
-  'sorted', 'sum', 'vars', 'None', 'Ellipsis', 'NotImplemented', 'False',
-  'True', 'bool', 'memoryview', 'bytearray', 'bytes', 'classmethod', 'complex',
-  'dict', 'enumerate', 'filter', 'float', 'frozenset', 'property', 'int',
-  'list', 'map', 'object', 'range', 'reversed', 'set', 'slice', 'staticmethod',
-  'str', 'super', 'tuple', 'type', 'zip', '__debug__', 'BaseException',
-  'Exception', 'TypeError', 'StopAsyncIteration', 'StopIteration',
-  'GeneratorExit', 'SystemExit', 'KeyboardInterrupt', 'ImportError',
-  'ModuleNotFoundError', 'OSError', 'EnvironmentError', 'IOError', 'EOFError',
-  'RuntimeError', 'RecursionError', 'NotImplementedError', 'NameError',
-  'UnboundLocalError', 'AttributeError', 'SyntaxError', 'IndentationError',
-  'TabError', 'LookupError', 'IndexError', 'KeyError', 'ValueError',
-  'UnicodeError', 'UnicodeEncodeError', 'UnicodeDecodeError',
-  'UnicodeTranslateError', 'AssertionError', 'ArithmeticError',
-  'FloatingPointError', 'OverflowError', 'ZeroDivisionError', 'SystemError',
-  'ReferenceError', 'MemoryError', 'BufferError', 'Warning', 'UserWarning',
-  'DeprecationWarning', 'PendingDeprecationWarning', 'SyntaxWarning',
-  'RuntimeWarning', 'FutureWarning', 'ImportWarning', 'UnicodeWarning',
-  'BytesWarning', 'ResourceWarning', 'ConnectionError', 'BlockingIOError',
-  'BrokenPipeError', 'ChildProcessError', 'ConnectionAbortedError',
-  'ConnectionRefusedError', 'ConnectionResetError', 'FileExistsError',
-  'FileNotFoundError', 'IsADirectoryError', 'NotADirectoryError',
-  'InterruptedError', 'PermissionError', 'ProcessLookupError', 'TimeoutError',
-  'open', 'copyright', 'credits', 'license', 'help', '__IPYTHON__', 'display',
-  'get_ipython'])
-
-The field ``f_code`` is a mysterious ``code`` object:
-
-.. code-block:: pycon
-
-  >>> print(f.f_code)
-  <code object <module> at 0x10d0d1810, file "<ipython-input-26-dac680851f0c>",
-  line 3>
-
-.. danger::
-
-  Because a :class:`!frame` object holds everything a construct uses, after
-  finishing using the :class:`!frame` object, make sure to break the reference
-  to it:
-
-  .. code-block:: pycon
-
-    >>> f.clear()
-    >>> del f
-
-  If we don't do it, it may take long time for the interpreter to break the
-  reference for you.
-
-An example of using the :py:class:`!frame` object is to print the stack frame
+The :py:mod:`python:inspect` module provides other helpers for getting frames.
+For example, the function :py:func:`python:inspect.stack` allows us to obtain
+all frames in the stack.  The following code uses it to print the stack frames
 in a custom way:
 
 .. literalinclude:: code/showframe.py
@@ -690,14 +674,212 @@ in a custom way:
 
   $ ./showframe.py
   frame #0:
-    FrameInfo(frame=<frame at 0x7f8d4c31fdc0, file './showframe.py', line 8, code main>,
-    filename='./showframe.py', lineno=7, function='main',
-    code_context=['    for it, fi in enumerate(inspect.stack()):\n'], index=0)
+    line 9
 
   frame #1:
-    FrameInfo(frame=<frame at 0x104762450, file './showframe.py', line 11, code <module>>,
-    filename='./showframe.py', lineno=11, function='<module>',
-    code_context=['    main()\n'], index=0)
+    line 12
+
+.. danger::
+
+  Because a :class:`!frame` object holds everything a construct uses, after
+  finishing using the :class:`!frame` object, make sure to break the reference
+  to it:
+
+  .. code-block:: pycon
+
+    >>> f.clear()
+    >>> del f
+
+  If we don't do it, it may take long time for the interpreter to break the
+  reference for you.
+
+Frame Namespace
++++++++++++++++
+
+The 3 namespaces Python provides in each frame can be explained in the following
+example function:
+
+.. code-block:: python
+  :linenos:
+  :caption:
+    Example code of namespace (:download:`shownamespace.py
+    <code/shownamespace.py>`).
+
+  import inspect
+
+  module_specific = "module data"
+
+  def main():
+      function_local = "local data"
+
+      f = inspect.currentframe()
+
+The builtins namespace holds the symbols that are available no matter what are
+defined in the source code.  We can print it using:
+
+.. code-block:: python
+
+  print(sorted(f.f_builtins.keys()))
+
+The result is:
+
+.. code-block:: pycon
+
+  ['ArithmeticError', 'AssertionError', 'AttributeError', 'BaseException',
+  'BlockingIOError', 'BrokenPipeError', 'BufferError', 'BytesWarning',
+  'ChildProcessError', 'ConnectionAbortedError', 'ConnectionError',
+  'ConnectionRefusedError', 'ConnectionResetError', 'DeprecationWarning',
+  'EOFError', 'Ellipsis', 'EnvironmentError', 'Exception', 'False',
+  'FileExistsError', 'FileNotFoundError', 'FloatingPointError', 'FutureWarning',
+  'GeneratorExit', 'IOError', 'ImportError', 'ImportWarning',
+  'IndentationError', 'IndexError', 'InterruptedError', 'IsADirectoryError',
+  'KeyError', 'KeyboardInterrupt', 'LookupError', 'MemoryError',
+  'ModuleNotFoundError', 'NameError', 'None', 'NotADirectoryError',
+  'NotImplemented', 'NotImplementedError', 'OSError', 'OverflowError',
+  'PendingDeprecationWarning', 'PermissionError', 'ProcessLookupError',
+  'RecursionError', 'ReferenceError', 'ResourceWarning', 'RuntimeError',
+  'RuntimeWarning', 'StopAsyncIteration', 'StopIteration', 'SyntaxError',
+  'SyntaxWarning', 'SystemError', 'SystemExit', 'TabError', 'TimeoutError',
+  'True', 'TypeError', 'UnboundLocalError', 'UnicodeDecodeError',
+  'UnicodeEncodeError', 'UnicodeError', 'UnicodeTranslateError',
+  'UnicodeWarning', 'UserWarning', 'ValueError', 'Warning', 'ZeroDivisionError',
+  '__build_class__', '__debug__', '__doc__', '__import__', '__loader__',
+  '__name__', '__package__', '__spec__', 'abs', 'all', 'any', 'ascii', 'bin',
+  'bool', 'breakpoint', 'bytearray', 'bytes', 'callable', 'chr', 'classmethod',
+  'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict', 'dir',
+  'divmod', 'enumerate', 'eval', 'exec', 'exit', 'filter', 'float', 'format',
+  'frozenset', 'getattr', 'globals', 'hasattr', 'hash', 'help', 'hex', 'id',
+  'input', 'int', 'isinstance', 'issubclass', 'iter', 'len', 'license', 'list',
+  'locals', 'map', 'max', 'memoryview', 'min', 'next', 'object', 'oct', 'open',
+  'ord', 'pow', 'print', 'property', 'quit', 'range', 'repr', 'reversed',
+  'round', 'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum',
+  'super', 'tuple', 'type', 'vars', 'zip']
+
+We do not need to do anything and the symbols are available (automatically
+"built in").
+
+The global namespace holds symbols defined in the module.  In the above example
+code, there are a module, a function, and a variable defined in the "global"
+namespace.
+
+.. code-block:: python
+  :linenos:
+
+  # Commonly imported modules are global
+  assert "inspect" in f.f_globals
+  # Commonly defined functions are global
+  assert "main" in f.f_globals
+  # The "global" variables are actually module-level
+  assert "module_specific" in f.f_globals
+  assert "module data" == f.f_globals["module_specific"]
+
+.. note::
+
+  Python "global" variables are actually module-level global.  The "really
+  global" symbols are the builtins, which we rarely change.
+
+The local namespace holds the symbols defined in the frame:
+
+.. code-block:: python
+  :linenos:
+
+  # The local variables are in the local namespace
+  assert "function_local" in f.f_locals
+  assert "local data" == f.f_locals["function_local"]
+
+Although the frame can access both the global and local variables, the
+namespaces are different. The locally defined symbols are not available in the
+global namespace, and vice versa.
+
+.. code-block:: python
+  :linenos:
+
+  # Local variables are not in globals
+  assert "function_local" not in f.f_globals
+
+  # "Global" variables are not in local namespace
+  assert "module_specific" not in f.f_locals
+
+The 3 namespaces are useful in many ways.  We only need to get them from the
+frame object when we want to access those not in the current frame.  If we want
+to programmatically access the namespaces in the current scope, Python provides
+more convenient API: ``__builtins``, ``globals``, and ``locals()``.
+
+.. code-block:: python
+  :linenos:
+
+  # f_builtins is exactly the __builtins__ available at the frame
+  assert f.f_builtins == __builtins__.__dict__
+  assert f.f_builtins is __builtins__.__dict__
+  # f_globals is exactly the globals() available at the frame
+  assert f.f_globals == globals()
+  assert f.f_globals is globals()
+  # f_locals is exactly the locals() available at the frame
+  assert f.f_locals == locals()
+  assert f.f_locals is locals()
+
+Frame Code
+++++++++++
+
+The field ``f_code`` is a mysterious ``code`` object. When studying the Python
+interpreter internal, these fields are a great starting point.
+
+.. code-block:: pycon
+
+  >>> print(f.f_code)
+  <code object <module> at 0x10d0d1810, file "<ipython-input-26-dac680851f0c>",
+  line 3>
+
+It contains a lot of information:
+
+.. code-block:: pycon
+
+  >>> print(sorted(k for k in dir(f.f_code) if not k.startswith("__")))
+  ['co_argcount', 'co_cellvars', 'co_code', 'co_consts', 'co_filename',
+  'co_firstlineno', 'co_flags', 'co_freevars', 'co_kwonlyargcount', 'co_lnotab',
+  'co_name', 'co_names', 'co_nlocals', 'co_posonlyargcount', 'co_stacksize',
+  'co_varnames', 'replace']
+
+We can find a list of the fields in the document of the module
+:py:mod:`python:inspect`.  That's pretty much the official document of the
+``code`` object.  We need to do study outselves to learn more.  In the following
+example code, it shows the following fields:
+
+* ``co_name``: name with which this code object was defined
+* ``co_argcount``: number of arguments (not including keyword only arguments,
+  ``*`` or ``**`` args)
+* ``co_filename``: name of file in which this code object was created
+* ``co_firstlineno``: number of first line in Python source code
+
+.. code-block:: python
+  :linenos:
+  :caption:
+    Example code for showing the code object (:download:`showcode.py
+    <code/showcode.py>`).
+
+  #!/usr/bin/env python3
+
+  import inspect
+
+  def main():
+      f = inspect.currentframe()
+
+      # Get the code object
+      c = f.f_code
+      
+      # Show the function name and argument count
+      print("name and argcount:", c.co_name, c.co_argcount)
+      # Show file name and line number
+      print("filename, line number:", c.co_filename, c.co_firstlineno)
+
+  main()
+
+The result is:
+
+.. code-block:: pycon
+
+  name and argcount: main 0
+  filename, line number: /Users/yungyuc/work/ynote/nsd/12advpy/code/./showcode.py 5
 
 Module Magic with meta_path
 ===========================
