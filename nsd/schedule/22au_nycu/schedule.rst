@@ -12,7 +12,7 @@ programs applying numerical methods for solving mathematical, scientific, or
 engineering problems.  We will be using Python, C++ and other tools (e.g., bash,
 git, make, etc.) to learn the modern development processes.  This is a practical
 course for making software.  The grade composition is: homework 30%, mid-term
-exam: 30%, and term project: 40%.
+exam 30%, and term project 40%.
 
 Practical skills can only be acquired by practicing, and that is why the project
 you are requested to define and implement takes 40%.  If you are not familiar
@@ -33,7 +33,7 @@ Should you have any questions, file an issue on GitHub, send an email to the
 grader or me, or send a message in the private telegram chatroom.  (Preference
 is in that order and do not send homework assignments to the sciwork community.)
 
-Sholud you have any questions about the course, please send me :ref:`an email
+Should you have any questions about the course, please send me :ref:`an email
 <contact>` with the subject line starting with ``[nsd-course]``.  Email is a
 great tool for serious discussions.  Please use more of it.
 
