@@ -9,11 +9,33 @@ NSD Schedule 2022 Autumn NYCU
 
 The course introduces the art of building numerical software, i.e., computer
 programs applying numerical methods for solving mathematical, scientific, or
-engineering problems.  We will be using Python, C++ and other tools (e.g.,
-bash, git, make, etc.) to learn the modern development processes.
+engineering problems.  We will be using Python, C++ and other tools (e.g., bash,
+git, make, etc.) to learn the modern development processes.  This is a practical
+course for making software.  The grade composition is: homework 30%, mid-term
+exam: 30%, and term project: 40%.
 
-For questions about the course, please send me :ref:`an email <contact>` with
-the subject line starting with ``[nsd-course]``.
+Practical skills can only be acquired by practicing, and that is why the project
+you are requested to define and implement takes 40%.  If you are not familiar
+with self-learning, it will be difficult for you, so I would like to offer
+additional help.  One of the help is the `sciwork community
+<https://sciwork.dev>`__.  It is set up to help people who want to write
+scientific code.  I understand that it may be difficult for you to initiate a
+project alone.  You might not know exactly where to start or how to effectively
+discuss.  The community is a place you can ask for help.  Please join the
+discord server https://discord.gg/6MAkFrD and follow the rules.  (If you simply
+want to make friends who care about numerical software, welcome too.)
+
+The second thing I would like you to know is the practicing homework assignment
+(number 0).  You are required to submit homework assignments using both GitHub
+PR and E3.  I created the homework #0 to help you practice the use of GitHub,
+and a demonstration is provided at https://github.com/yungyuc/nsdhw_22au/pull/1.
+Should you have any questions, file an issue on GitHub, send an email to the
+grader or me, or send a message in the private telegram chatroom.  (Preference
+is in that order and do not send homework assignments to the sciwork community.)
+
+Sholud you have any questions about the course, please send me :ref:`an email
+<contact>` with the subject line starting with ``[nsd-course]``.  Email is a
+great tool for serious discussions.  Please use more of it.
 
 .. list-table::
   :header-rows: 1
