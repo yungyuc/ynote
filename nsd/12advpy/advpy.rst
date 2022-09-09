@@ -888,14 +888,42 @@ Module Magic with meta_path
   :local:
   :depth: 1
 
-Python :doc:`importlib <python:library/importlib>` allows high degree of
-freedom in customizing how modules are imported.  Not a lot of people know the
-capabilities, and perhaps one of the most useful hidden gems is
-:py:data:`python:sys.meta_path`.
+Python modules are also Python objects.  There is API to create it from Python
+(:py:class:`python:types.ModuleType`) and from C
+(:c:var:`python:PyModule_Type`).  When writing Python, we simply use:
 
-Here I will use an example to show how to use :py:data:`python:sys.meta_path`
-to customize module loading.  I will use a module, :py:mod:`!onemod`, locating
-in an alternate directory, ``altdir/``, and ask Python to load it from the
+.. code-block:: python
+
+  import useful_module
+
+to import a module and use the code written in it.  It may be interesting to
+know that a module is also an object:
+
+.. code-block:: pycon
+
+  >>> isinstance(useful_module, object)
+  True
+  >>> type(useful_module)
+  <class 'module'>
+
+We can print the module to show some information:
+
+.. code-block:: pycon
+
+  >>> print(useful_module)
+  <module 'useful_module' from '/path/to/useful_module.py'>
+
+In most scenarios, that's what we need to know about modules.  But there are
+cases that we want to control how to import a module, which involves the
+creation of the module object.
+
+Python :py:mod:`python:importlib` allows us to customize how modules are
+imported with a high degree of freedom.  Among many approaches, a convenient
+facility is :py:data:`python:sys.meta_path`.
+
+Here I will use an example to show how to use :py:data:`python:sys.meta_path` to
+customize module loading.  I will use a module, ``onemod``, locating in an
+alternate directory, ``altdir/``, and ask Python to load it from the
 non-standard location.
 
 .. note::
@@ -904,10 +932,16 @@ non-standard location.
 
   .. code-block:: pycon
 
-    >>> # Bookkeeping code: keep the original meta_path.
-    >>> old_meta_path = sys.meta_path[:]
+    >>> old_meta_path = sys.meta_path[:]  # Keep the original meta path
 
-  .. >>> #sys.meta_path = old_meta_path[:-1]
+  Then later the meta path can be reset by:
+
+  .. code-block:: pycon
+
+    >>> sys.meta_path = old_meta_path  # Reset meta path to original
+
+Meta Path
++++++++++
 
 :py:data:`python:sys.meta_path` defines a list of
 :py:class:`python:importlib.abc.MetaPathFinder` objects for customizing the
@@ -916,14 +950,13 @@ import process.  Take a look at the contents in
 
 .. code-block:: pycon
 
-  >>> sys.meta_path = old_meta_path  # Reset the list.
   >>> print(sys.meta_path)
-  [<class '_frozen_importlib.BuiltinImporter'>, <class
-  '_frozen_importlib.FrozenImporter'>, <class
-  '_frozen_importlib_external.PathFinder'>]
+  [<class '_frozen_importlib.BuiltinImporter'>,
+  <class '_frozen_importlib.FrozenImporter'>,
+  <class '_frozen_importlib_external.PathFinder'>]
 
-At this point, :py:mod:`!onemod` cannot be imported, because the path
-``altdir/`` is not in :py:data:`python:sys.path`:
+At this point, ``onemod`` cannot be imported, because the path ``altdir/`` is
+not in :py:data:`python:sys.path`:
 
 .. code-block:: pycon
 
@@ -932,12 +965,17 @@ At this point, :py:mod:`!onemod` cannot be imported, because the path
     File "<stdin>", line 1, in <module>
   ModuleNotFoundError: No module named 'onemod'
 
-In normal Python code, you will be asked to modify :py:data:`python:sys.path`
-to include the path ``altdir/`` for correctly import :py:mod:`!onemod`.  Here
-we will use :py:class:`~python:importlib.abc.MetaPathFinder`.  Derive from the
-abstract base class (ABC) and override the
-:py:meth:`~python:importlib.abc.MetaPathFinder.find_spec` method to tell it to
-load the module :py:mod:`!onemod` at the place we specify.
+In normal Python code, you will be asked to modify :py:data:`python:sys.path` to
+include the path ``altdir/`` for correctly import ``onemod``.  But to show how
+to customize module import, we will take another approach.
+
+Meta Path Finder
+++++++++++++++++
+
+Here we will use :py:class:`python:importlib.abc.MetaPathFinder`.  Derive from
+the abstract base class (ABC) and override the
+:py:meth:`python:importlib.abc.MetaPathFinder.find_spec` method to tell it to
+load the module ``onemod`` at the place we specify.
 
 For our path finder to work, we need to properly set up a
 :py:class:`python:importlib.machinery.ModuleSpec` and create a
@@ -962,8 +1000,7 @@ For our path finder to work, we need to properly set up a
           else:
               return None
 
-Add an instance of :py:class:`!MyMetaPathFinder` in
-:py:data:`python:sys.meta_path`:
+Add an instance of ``MyMetaPathFinder`` in :py:data:`python:sys.meta_path`:
 
 .. code-block:: pycon
 
@@ -974,7 +1011,7 @@ Add an instance of :py:class:`!MyMetaPathFinder` in
   '_frozen_importlib_external.PathFinder'>, <__main__.MyMetaPathFinder object
   at 0x10117b850>]
 
-With the meta path finder inserted, :py:mod:`!onemod` can be imported:
+With the meta path finder inserted, ``onemod`` can be imported:
 
 .. code-block:: pycon
 
@@ -983,8 +1020,8 @@ With the meta path finder inserted, :py:mod:`!onemod` can be imported:
   >>> print("show content in onemod module:", onemod.content)
   show content in onemod module: string in onemod
 
-It limits the special loading scheme to the specific module :py:mod:`!onemod`.
-To test, ask it to load a module that does not exist:
+It limits the special loading scheme to the specific module ``onemod``. To test,
+ask it to load a module that does not exist:
 
 .. code-block:: pycon
 
@@ -1003,8 +1040,8 @@ See the module we loaded.  Compare it with a "normal module".
   >>> print('re:', re)
   re: <module 're' from '/Users/yungyuc/hack/usr/opt39_210210/lib/python3.9/re.py'>
 
-The module objects have an important field :py:data:`!__spec__`, which is the
-:py:class:`~python:importlib.machinery.ModuleSpec` we created:
+The module objects have an important field ``__spec__``, which is the
+:py:class:`python:importlib.machinery.ModuleSpec` we created:
 
 .. code-block:: pycon
 
