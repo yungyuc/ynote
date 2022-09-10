@@ -2,10 +2,6 @@
 Matrix Operations
 =================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 System should be designed as simple as possible.  Any excessive complexity slows
 it down.  This is why we use arrays so frequently when it comes to designing a
 high-performance system.  Array is the data structure closest to the fundamental
@@ -21,10 +17,6 @@ me on the anecdotal statement.
 
 Linear Algebra
 ==============
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 One of the most frequent use of matrices is linear algebra.  BLAS_ [1]_ and
 LAPACK_ [2]_ are the two most important libraries for numerical calculations for
@@ -71,10 +63,6 @@ API for BLAS and CLAPACK and LAPACKE are that for LAPACK.
 
 POD Arrays
 ==========
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 The plain-old-data (POD) arrays are also called C-style arrays.  They are given
 the names because they are nothing more than just plain buffers in memory and
@@ -428,10 +416,6 @@ The full example code can be found in :ref:`pod04_matrix_colmajor.cpp
 C++ Class for Matrix
 ====================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Keeping track of the stride can be error-prone.  Even if we stick to one
 majoring order (usually it's row-majoring), it's easy to lose track of it when
 the number of row and column is different, or it's higher-dimensional.
@@ -586,10 +570,6 @@ the indexing helper.
 
 Matrix-Vector Multiplication
 ============================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Operations of a matrix and a vector make coding for matrices more interesting.
 To show how it works, let us use a concrete operation of matrix-vector
@@ -838,10 +818,6 @@ above.
 Matrix-Matrix Multiplication
 ============================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Matrix-matrix multiplication, :math:`\mathrm{C} = \mathrm{A}\mathrm{B}`, has
 more complexity in both time and space.  It generally uses a :math:`O(n^3)`
 algorithm for multiple copies of :math:`O(n^2)` data.  The formula is
@@ -973,10 +949,6 @@ already facilitates a good number of applications.
 
 Linear System
 =============
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 LAPACK provides ``?GESV()`` functions to solve a linear system using a general
 (dense) matrix: :math:`\mathrm{A}\mathbf{x} = \mathbf{b}`.  Say we have a
@@ -1132,10 +1104,6 @@ The full example code can be found in :ref:`la01_gesv.cpp
 
 Eigenvalue Problems
 ===================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Eigenvalue problems and SVD (singular-value decomposition) are popular ways to
 factorize matrices.  The eigenvalue problems are to find the eigenvalues
@@ -1619,10 +1587,6 @@ Compare with the results of keeping only the most significant singular value:
 
 Least Square
 ============
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 The linear least-square problem is to find a function of the form
 

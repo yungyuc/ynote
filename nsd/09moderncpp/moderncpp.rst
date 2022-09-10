@@ -2,16 +2,8 @@
 Modern C++
 ==========
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Copy Elision / Return Value Optimization (RVO)
 ==============================================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Copy elision is one of the two forms of optimization that are allowed to change
 the side effects.  (The other is allocation elision and extension.)
@@ -202,10 +194,6 @@ It is confirmed that copy constructor is not called:
 Move Semantics and Copy Elision
 ===============================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Move semantics greatly helps us to avoid copying expensive resources.  I would
 like to show how the movement interacts with copy elision.  The full example
 code is in :ref:`02_move.cpp <nsd-moderncpp-example-move>`.
@@ -395,10 +383,6 @@ throughout the whole process:
 
 Data Concatenation
 ==================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 After knowing that the compiler almost always does copy elision, to make code
 more readable, we prefer to write code that returns a container:
@@ -967,10 +951,6 @@ up with a (rather) optimized class library for data processing.
 Variadic Template
 =================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Variadic template allows us to capture any number of template arguments in a
 function template.  The full example of its use is in :ref:`01_factory.cpp
 <nsd-moderncpp-example-factory>`.
@@ -1155,10 +1135,6 @@ The execution results are:
 Perfect Forwarding
 ==================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 In the previous section, we used ``std::forward`` without explanation.  It will
 be explained in this section.  The template is used to enable perfect
 forwarding:
@@ -1223,10 +1199,6 @@ The execution result shows that the move is correctly done:
 
 Lambda Expression
 =================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 C++ lambda expression enables a shorthand for anonymous function.  The syntax
 (no variable is captured) is:
@@ -1422,10 +1394,6 @@ The execution results are:
 
 Closure
 =======
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 So far our use of lambda expressions doesn't capture any local variables.  When
 it does, we call the lambda expression a closure.

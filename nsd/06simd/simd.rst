@@ -2,10 +2,6 @@
 SIMD (Vector Processing)
 ========================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Numerical software means a lot of computation for solutions.  The computation
 calls for a huge amount of cycles in the computer (processor).  Users always
 want shorter processing time.  The demand for faster speed keeps increasing at
@@ -44,16 +40,8 @@ details required by the architecture.
 In this chapter, we will discuss the fundamental knowledge for bringing SIMD
 (which is also called *vector processing*) into a software system.
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Types of Parallel Software Development
 ======================================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 The popular computer architecture is based on sequential processing.  The most
 fundamental processing unit executes instructions one by one.
@@ -106,10 +94,6 @@ for multiple data at once:
 
 SIMD Instructions
 =================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 CPU Capabilities
 ++++++++++++++++

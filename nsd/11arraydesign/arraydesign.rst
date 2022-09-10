@@ -2,10 +2,6 @@
 Array Code in C++
 =================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 As we have learned in :doc:`../04matrix/matrix`, :doc:`../05cache/cache`, and
 :doc:`../06simd/simd`, fast code calls for regular access to compact data.  Not
 all data structures offer fast runtime.  For writing fast code, arrays are the
@@ -14,10 +10,6 @@ arrays to achieve high speed.
 
 Python Is Slow
 ==============
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 When using Python for number-crunching, the fact of its slowness needs to be
 kept in mind always.  Handling the slowness is the key to make Python run as
@@ -393,10 +385,6 @@ different computing kernels side by side:
 Overhead in Data Preparation
 ============================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Numerical calculation takes time.  Intuitively, developers spend time on
 optimizing the number-crunching code.  However, for a useful application, the
 house-keeping code for preparing the calculation data and post-processing the
@@ -626,10 +614,6 @@ The overhead of the Python house-keeping code is all gone.
 AOS and SOA
 ===========
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 To write code for arrays, i.e., contiguous buffers of data, we go with either
 :ref:`AOS (array of structures) <nsd-arraydesign-aos>` or :ref:`SOA (structure
 of arrays) <nsd-arraydesign-soa>`.  As a rule of thumb, AOS is easier to code
@@ -707,10 +691,6 @@ a handle or proxy class to access the point data.
 
 Translation between Dynamic and Static
 ======================================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 In C++ we can use template to do many things during compile time without
 needing to use a CPU instruction during runtime.  For example, we may use CRTP
@@ -911,10 +891,6 @@ When Python wants to call a callable controlled by
 
 Scoped-Based Timer
 ==================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Profiling is the first thing to do when we need to optimize the code we write.
 While profiling itself has nothing specific to array code, it is common for us

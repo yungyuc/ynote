@@ -2,16 +2,8 @@
 Ownership and Smart Pointers
 ============================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Pointer and Reference
 =====================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Raw Pointer
 +++++++++++
@@ -142,10 +134,6 @@ The allocated memory happens to be the same as that returned by ``malloc()``:
 Reference
 +++++++++
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 A reference works very similar to a pointer, but unlike a pointer, a reference
 cannot be used to deallocate or destruct the object it references.  In general,
 a reference is used just like an instance:
@@ -199,10 +187,6 @@ are introducing immediately.
 
 Ownership
 =========
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 In a practical system, memory (resource) is rarely freed immediately after
 allocation.  The resources are usually manipulated and probably passed around
@@ -399,10 +383,6 @@ pointers.
 
 Smart Pointers
 ==============
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 (Modern) C++ provides smart pointers to help manage object life cycles.  Since
 C++11, STL provides two smart pointers: ``unique_ptr`` (unique pointer) and
@@ -671,16 +651,8 @@ cycles.  We must not be tricked by the misunderstandings.
 In this section, some common guidelines and caveats of using shared pointers
 will be introduced.
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Exclusively Manage Data Object
 ++++++++++++++++++++++++++++++
-
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
 
 Sometimes we know a big resource (our ``Data`` class) must not be constructed
 and destructed frequently, and should be shared among multiple consumers.  It
@@ -951,10 +923,6 @@ The object is properly destructed:
 Get Shared Pointer from inside Object
 +++++++++++++++++++++++++++++++++++++
 
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
-
 Occasionally we get the ``Data`` object without the managing shared pointer
 object, but still want to return the ownership to the caller.
 
@@ -1142,10 +1110,6 @@ There is not double free any more.
 
 Avoid Circular Reference
 ++++++++++++++++++++++++
-
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
 
 Circular (or cyclic) reference means two objects contain pointers that point to
 each other.  The circle does not need to have only two objects.  It may contain

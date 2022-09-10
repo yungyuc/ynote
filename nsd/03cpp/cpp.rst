@@ -2,10 +2,6 @@
 C++ and Computer Architecture
 =============================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 C++ is the programming language chosen for implementing numerical methods
 because it runs fast.  C++ has one of the most advanced compilers.  The
 compiler is able to generate fast machine code.  C++ also allows to directly
@@ -28,10 +24,6 @@ the productive skills of :ref:`nsd-cpp-stl`, :ref:`nsd-cpp-poly`, and
 
 Compile and Link
 ================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Compiler is a complex system.  The most common way to use it is to execute the
 compiler driver from the command-line.  For example, of GCC, the C++ compiler
@@ -110,10 +102,6 @@ By dropping the ``-c`` argument, and supplying the object file as the input,
 
 Separate Compilation Units
 ++++++++++++++++++++++++++
-
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
 
 In a larger project, it is common to separate the declaration of functions to
 header files.  The code implementing the functions is put in the so-called
@@ -200,10 +188,6 @@ executable and run it:
 Include Syntax
 ++++++++++++++
 
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
-
 The directive ``#include`` may use two delimiters: ``""`` or ``<>``.  The
 former (see :ref:`above <nsd-cpp-example-hellomain-cpp>`) will search for the
 include file in the current directory and then the system directories.  The
@@ -236,10 +220,6 @@ using ``-I.``:
 Make Static Library
 +++++++++++++++++++
 
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
-
 If we have multiple object files, they can be combined into a static library
 for linking later.  The following example uses the only object file we have to
 show how to do it:
@@ -262,10 +242,6 @@ To use the library file, tell ``g++`` using ``-l`` followed by the library name
 
 Make Shared Object
 ++++++++++++++++++
-
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
 
 A shared object is a library that is linked when the program binary is loaded,
 not when it is built.  It is also called dynamically linked library (DLL).
@@ -368,10 +344,6 @@ to be in the library search paths):
 
 C++ Integer Types
 =================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Basic Integer Types
 +++++++++++++++++++
@@ -548,10 +520,6 @@ It's such a common mistake that compiler provides a check:
 Pointer and Array Indexing
 ==========================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Integers are used extensively in array indexing.  It wouldn't surprise anyone
 for they are the only thing that can be used to index elements in arrays.  Here
 we use the example of ":ref:`nsd-cpp-example-arrays-cpp`" to explain how they
@@ -669,10 +637,6 @@ The output:
 
 Floating-Point Value
 ====================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 x86 architecture follows the IEEE 754-1985 standard for floating-point.  A
 floating-point value uses 3 fields to represent: sign, exponent (biased)
@@ -853,10 +817,6 @@ Execution results:
 
 Object-Oriented Programming
 ===========================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Object-oriented programming (OOP) allows us to organize data with logic.  The
 organized entities are called objects.  The point of using OOP is to make it
@@ -1184,10 +1144,6 @@ It uses the ``delete`` keyword.
 Standard Template Library (STL)
 ===============================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Containers are essential to data processing.  The STL provides efficient
 implementation of commonly used containers.  They can be grouped in 3
 categories:
@@ -1372,10 +1328,6 @@ Execution results:
 
 Polymorphism
 ============
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 In C++, when a class has any member function that is virtual, it is
 polymorphic.  C++ compiler knows the object is polymorphic, and uses the type

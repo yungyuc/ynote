@@ -2,16 +2,8 @@
 C++ and C for Python
 ====================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Expectation from Python
 =======================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Python is the choice of driving scripts for numerical calculations.  Before
 introducing how to connect the low-level C++ and C code to the high-level
@@ -71,10 +63,6 @@ The plotted results are:
 
 pybind11 Build System
 =====================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 `pybind11 <https://pybind11.readthedocs.io/>`_ is a header-only C++ template
 library, that allows calling CPython API and provides C++ friendly semantics to
@@ -175,10 +163,6 @@ to write ``add_subdirectory`` in the ``CMakeLists.txt`` in your project.
 
 Custom Wrapping Layer
 =====================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Wrapper needs to take care of the differences between the dynamic behaviors in
 Python and the staticity in C++.  You can directly call pybind11_ API, but a
@@ -592,10 +576,6 @@ the commonality of the wrapper classes and significantly shortens the code.
 pybind11 Wrapping API
 =====================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 pybind11_ provides API to wrap between C++ and Python.
 
 Function and Property
@@ -918,10 +898,6 @@ final time marching).
 pybind11 Operating API
 ======================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 pybind11_ does not only provide API to wrap between C++ and Python, but also
 C++ API for operating the Python interpreter and the some Python containers:
 :py:class:`python:tuple`, :py:class:`python:list`, and :py:class:`python:dict`.
@@ -1161,10 +1137,6 @@ The results in the Python side are:
 
 CPython API with pybind11
 =========================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 It is possible to use Python C API along with pybind11_ and we will see how to
 do it.  Please keep in mind that the examples here omit a lot of error checking
@@ -1934,10 +1906,6 @@ The exception results in the Python side are:
 
 Python Memory Management
 ========================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Python has its own memory manager.  When writing Python extension, they should
 be used for :c:type:`python:PyObject`.  The memory managing system has three levels:

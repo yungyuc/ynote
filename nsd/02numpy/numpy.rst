@@ -2,20 +2,12 @@
 Python and Numpy
 ================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Python is easy to use and popular among scientists and engineers for its
 simplicity.  It is suitable for almost every task, and the versatility makes is
 one of the best tool as the programming interface for numerical applications.
 
 Organize Python Code
 ====================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 To help the discussions for Python code organization, we make a simple
 categorization:
@@ -30,10 +22,6 @@ categorization:
 
 How a Python Script Works
 +++++++++++++++++++++++++
-
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
 
 A script is a text file that the program loader sends to an engine (usually
 interpreter) to execute with the content.  We usually write scripts for
@@ -156,10 +144,6 @@ hard to read.
 
 Make a Module
 +++++++++++++
-
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
 
 A :term:`Python module <python:module>` is pretty much a Python source file.  A
 Python script is also a file containing Python code.  They differ in the way
@@ -300,10 +284,6 @@ knowing where the module file is.  The functionality is supported with the
 Make a Package
 ++++++++++++++
 
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
-
 When the code grows to a point that a single file is not enough to house
 everything, we should split the code into multiple files and put them in a
 directory.  Python :term:`package <python:package>` provides a framework to
@@ -396,10 +376,6 @@ But the ``-m`` option still works, because we have added :ref:`__main__.py
 A Real Useful Script
 ++++++++++++++++++++
 
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
-
 Here is a real-world example: :ref:`nsd-numpy-example-pstake`.  It converts
 `pstricks <http://tug.org/PSTricks/main.cgi/>`__ commands (see:
 :ref:`nsd-numpy-example-cce`) to an image file.
@@ -414,10 +390,6 @@ Here is a real-world example: :ref:`nsd-numpy-example-pstake`.  It converts
 
 Numpy for Array-Centric Code
 ============================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Arrays offer the highest performance when dealing with homogeneous data.  In
 Python, the `numpy <http://www.numpy.org/>`__ library provides everything we
@@ -470,10 +442,6 @@ Basic Meta-Data
 A numpy array object contains two data: the contiguous data buffer for the
 array elements, and the meta-data describing the buffer.  Here is a list of
 some frequently used meta-data.
-
-.. contents::
-  :local:
-  :depth: 1
 
 .. _nsd-numpy-shape:
 
@@ -636,10 +604,6 @@ Construction
 
 There are several ways to construct numpy arrays.
 
-.. contents::
-  :local:
-  :depth: 1
-
 .. note::
 
   See :doc:`numpy:reference/routines.array-creation` for more complete
@@ -795,10 +759,6 @@ placed in a closed interval:
 Multi-dimensional arrays
 ++++++++++++++++++++++++
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Multi-dimensional arrays are the building-block of matrices and linear algebra
 and much more useful than one-dimensional arrays.  We need to understand the
 memory layout needs to be understood before using them.  There are two ways to
@@ -922,10 +882,6 @@ the resulting array has shape (2, 4):
 
 Sub-Array Extraction
 ++++++++++++++++++++
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 :py:class:`numpy:numpy.ndarray` supports creation of sub-arrays through the
 bracket operator (``[]`` or :py:meth:`~python:object.__getitem__`).
@@ -1285,10 +1241,6 @@ and multiply:
 Python Tools for Numerical Analysis
 ===================================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 There are two equally important activities for software development.  One is to
 write code.  We will need to learn some basic concepts to write meaningful
 code.
@@ -1304,10 +1256,6 @@ you may use throughout the course and your future work.
 
 Drawing Using Matplotlib
 ++++++++++++++++++++++++
-
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
 
 `Matplotlib <https://matplotlib.org>`__ is a library for 2D plotting.  It can
 be used standalone or integrated with Jupyter notebook.
@@ -1371,10 +1319,6 @@ https://matplotlib.org/gallery/lines_bars_and_markers/multicolored_line.html#sph
 Linear Algebra with Numpy
 +++++++++++++++++++++++++
 
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
-
 Numpy provides wrappers for BLAS and LAPACK and can readily be used for solving
 linear systems.  For example, consider the system:
 
@@ -1398,10 +1342,6 @@ See also :doc:`numpy:references/routines.linalg`.
 
 Package Managers
 ++++++++++++++++
-
-.. contents:: Contents in the sub-section
-  :local:
-  :depth: 1
 
 To write code we need a runtime environment that has the dependency software
 installed.  Although manually building all the dependencies from source is

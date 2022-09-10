@@ -2,16 +2,8 @@
 Cache Optimization
 ==================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Memory Hierarchy
 ================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 In the simplest model of computers, we write programs that process data in a
 linearly-addressed memory.  In reality, to achieve good runtime performance,
@@ -128,10 +120,6 @@ Nothing is fast without cache.
 How Cache Works
 ===============
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 There are 3 ways to implement caches:
 
 1. Direct-map
@@ -182,10 +170,6 @@ Full associativity is too expensive in circuit implementation.
 
 Cache Block (Line) Size Determines Speed
 ========================================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 A cache block usually contains more than one byte or word.  In x86, the block
 (line) size is 64 bytes.  When loading data from main memory to cache, it's
@@ -349,10 +333,6 @@ The runtime will significantly slow down after the skip number is larger than
 Locality
 ========
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 While coding we usually don't have a lot of time to do detailed cache analysis.
 Instead, we keep in mind that the code runs faster when it's more compact by
 using the concept of locality.  There are two kinds of locality:
@@ -378,10 +358,6 @@ point takes 8 bytes.
 
 Data Layout
 ===========
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 To demonstrate how the data layout (majoring) affects runtime, we use an
 example of populating a matrix of :math:`1024 \times 1024 \times 64 = 67108864`

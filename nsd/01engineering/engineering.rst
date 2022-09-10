@@ -2,10 +2,6 @@
 Fundamental Engineering
 =======================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 While there are so many things to do with engineering, the central idea is
 automation.  Automation is to accomplish work not by human beings, but by
 machines.  The concept becomes recursive when we make software.  The software
@@ -26,10 +22,6 @@ and :ref:`nsd-engineering-timing`.
 
 Bash Scripting
 ==============
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Shell script is the most common way for automation.  A shell is responsible for
 taking commands from users.  Every operating system provides shells.  Because
@@ -288,10 +280,6 @@ derived implementations since its creation in 1976 at Bell Labs.  The most
 popular implementation is GNU ``make``, which is also required in building the
 Linux kernel.  We will be focusing on GNU ``make``.
  
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 A Makefile consists of rules in the following format:
 
 .. code-block:: make
@@ -571,10 +559,6 @@ Since cmake is only used to deal with complex configuration, we may not use a
 simple example to show how it is used.  Instead, high-level information about
 what it does will be provided.
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 How to Run CMake
 ++++++++++++++++
 
@@ -638,10 +622,6 @@ The option is supplied to cmake as such:
 
 Git Version Control System
 ==========================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Version control system (VCS), which is also called source control management
 (SCM), is essential for programmers to engineer software.  There are only two
@@ -884,10 +864,6 @@ developing code in this course.
 
 Automatic Testing
 =================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Automatic testing is part of software development flow.  When working on a
 project, we may first build the code:
@@ -1174,10 +1150,6 @@ test it easily.
 Continuous Integration
 ======================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Continuous integration (CI) is a practice that each developer in a team
 integrates the individual work into the shared mainstream regularly and
 frequently.  Thus, the chance for the developers to step on each other's toes
@@ -1248,10 +1220,6 @@ very specific to the products it serves.
 Code Review
 ===========
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Software development takes a lot of communication.  This may be
 counter-intuitive to non-developers.  In an ideal, entropy free world, there is
 no cost to transfer information between minds, and collaboration is conducted
@@ -1292,10 +1260,6 @@ https://github.com/solvcon/devenv/pull/58.
 
 Timing
 ======
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Measurement is the first and most important thing to do for developing
 high-performance code.

@@ -102,7 +102,7 @@ highlight_language = 'none'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'furo'
 
 # otherwise, readthedocs.org uses their theme by default, so no need to specify it
 
@@ -119,7 +119,7 @@ if 'sphinx_rtd_theme' in globals():
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "yyc"
+html_title = "Yung-Yu's Notes"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None

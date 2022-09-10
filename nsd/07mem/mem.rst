@@ -2,10 +2,6 @@
 Memory Management
 =================
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Numerical software tends to use as much memory as a workstation has.  The
 memory has two major uses: (i) to hold the required huge amount of data, and
 (ii) to gain speed.
@@ -35,10 +31,6 @@ used.
 
 C Dynamic Memory
 ================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 The C programming language defines 5 API functions for manipulate dynamic
 memory:
@@ -332,10 +324,6 @@ if it is later accessed, we will not get correct behavior:
 C++ Dynamic Memory
 ==================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Objects in C++ have 4 storage durations:
 
 1. static
@@ -553,10 +541,6 @@ The execution results are:
 
 STL Allocator
 =============
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 STL uses another set of template API for allocating the memory for most of its
 container.  By default, the STL containers use ``std::allocator`` class

@@ -6,9 +6,6 @@ Matrix-Vector Form of the Euler Equations
 
 My online note for the Euler equations in the useful form.
 
-.. contents::
-  :local:
-
 Governing Equations
 ===================
 

@@ -2,10 +2,6 @@
 Advanced Python
 ===============
 
-.. contents:: Contents in the chapter
-  :local:
-  :depth: 1
-
 Python is a simple language, but its base on dynamicity makes it to easily
 implement some magical behaviors.  Although the cost at runtime is high, the
 magics is very convenient.  Combined with the high-speed C++ and C code, the
@@ -13,10 +9,6 @@ advanced Python features are powerful when used correctly.
 
 Iterator
 ========
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 When processing a big amount of data, repetition is used everywhere. The data
 need to be kept somewhere, and that is why we use containers. We write code to
@@ -547,10 +539,6 @@ small iterator object.  It makes a big difference in memory consumption when the
 Stack Frame
 ===========
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Python uses a stack-based interpreter.  When calling a function, the interpreter
 adds a *frame* object on a stack, and the frame object is responsible for
 keeping track of the state in the execution construct. The frame is considered
@@ -884,10 +872,6 @@ The result is:
 Module Magic with meta_path
 ===========================
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Python modules are also Python objects.  There is API to create it from Python
 (:py:class:`python:types.ModuleType`) and from C
 (:c:var:`python:PyModule_Type`).  When writing Python, we simply use:
@@ -1059,10 +1043,6 @@ The module objects have an important field ``__spec__``, which is the
 Descriptor
 ==========
 
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
-
 Python is very flexible in accessing attributes in an object.  There are
 multiple ways to customize the access, and the :ref:`descriptor protocol
 <python:descriptors>` provides the most versatile API and allows us to route
@@ -1194,10 +1174,6 @@ first instance is not seen in the second one:
 
 Metaclass
 =========
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 :ref:`Metaclasses <python:metaclasses>` is a mechanism to perform
 meta-programming in Python.  That is, metaclasses change how the Python code
@@ -1355,10 +1331,6 @@ the attribute name:
 
 Abstract Base Class (ABC)
 =========================
-
-.. contents:: Contents in the section
-  :local:
-  :depth: 1
 
 Python is object-oriented and supports inheritance.  Most of the time we use a
 simple inheritance relation, and it works as expected.

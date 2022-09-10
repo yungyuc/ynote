@@ -28,9 +28,6 @@ Python in two C++ wrapping libraries `boost.python
 wrapping tool and has been popular for a decade.  The latter brings all the
 goodness from C++11 to the wrapping land.
 
-.. contents:: What's in This Article
-  :local:
-
 Shared Pointers
 ===============
 
