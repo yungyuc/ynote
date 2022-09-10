@@ -1305,8 +1305,17 @@ first is to use the :py:class:`!AutoAccessor` without the metaclass:
 .. code-block:: pycon
 
   >>> class MyAutoClassDefault(metaclass=type):
-  ...     x = AutoAccessor()
+  ...     x = AutoAccessor()  # Note: no name is given.
   ...
+  >>> # Nothing happens and it is not right.
+  >>> ao = MyAutoClassDefault()
+  >>> ao.x
+  On object <__main__.MyAutoClassDefault object at 0x101232040> , auto retrieve: None
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "/path/to/autoaccessor.py", line 8, in __get__
+      varname = '_acs' + self.name
+  TypeError: can only concatenate str (not "NoneType") to str
 
 The second is to use the metaclass.  The metaclass scans the class namespace
 and assigns the attribute name to the corresponding descriptor:
