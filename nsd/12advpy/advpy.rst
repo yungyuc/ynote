@@ -1412,7 +1412,14 @@ Let us see how MRO works with a single-level inheritance:
       pass
 
 In the above code, the inheritance relationship among the four classes form a
-"diamond".  The MRO is:
+"diamond":
+
+.. figure:: image/diamond_dbca.png
+  :name: diamon_dbca
+  :align: center
+  :width: 10em
+
+The MRO in the diamond inheritance is:
 
 .. code-block:: pycon
   :emphasize-lines: 3
@@ -1435,7 +1442,14 @@ If we change the order in the inheritance declaration:
   class D(C, B):
       pass
 
-the MRO changes accordingly:
+the inheritance diagram becomes:
+
+.. figure:: image/diamond_dcba.png
+  :name: diamon_dcba
+  :align: center
+  :width: 10em
+
+and the MRO changes accordingly:
 
 .. code-block:: pycon
   :emphasize-lines: 3
@@ -1460,6 +1474,13 @@ The following example have 3 diamonds crossing multiple levels:
   class C(D, F): pass
   class B(D, E): pass
   class A(B, C): pass
+
+The inheritance diagram is:
+
+.. figure:: image/complex_diamond.png
+  :name: complex_diamon
+  :align: center
+  :width: 10em
 
 The MRO of the complex inheritance is:
 

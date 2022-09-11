@@ -22,79 +22,79 @@ Memory comes in many kinds in the hierarchy.  I put them in 4 categories:
 
 1. CPU register file
 
-  The registers reside in the CPU circuits.  Instructions (machine code or
-  assembly) can directly operate them and the electronic signals flow through
-  the CPU circuits.  There is no delay in access time to registers.  They are
-  the fastest memory.
+   The registers reside in the CPU circuits.  Instructions (machine code or
+   assembly) can directly operate them and the electronic signals flow through
+   the CPU circuits.  There is no delay in access time to registers.  They are
+   the fastest memory.   
 
 2. CPU cache
 
-  CPU cache memory works as a 'buffer' between the registers and the main
-  memory.  It usually uses fast and expensive static random access memory
-  (SRAM).  It is called static because the circuit keeps in one of the two
-  stable states and access doesn't change the state.  The circuit takes more
-  transistors than slower types of memory.
+   CPU cache memory works as a 'buffer' between the registers and the main
+   memory.  It usually uses fast and expensive static random access memory
+   (SRAM).  It is called static because the circuit keeps in one of the two
+   stable states and access doesn't change the state.  The circuit takes more
+   transistors than slower types of memory.
 
-  The cache memory may be part of the CPU circuit or outside it.  A CPU usually
-  has multiple levels of cache.  It can be a couple of MBs, or as large as tens
-  or hundreds of MBs.  See the following example specification of some devices:
+   The cache memory may be part of the CPU circuit or outside it.  A CPU usually
+   has multiple levels of cache.  It can be a couple of MBs, or as large as tens
+   or hundreds of MBs.  See the following example specification of some devices:
 
-  * `Intel Xeon Platinum 9282
-    <https://en.wikichip.org/wiki/intel/xeon_platinum/9282>`__
+   * `Intel Xeon Platinum 9282
+     <https://en.wikichip.org/wiki/intel/xeon_platinum/9282>`__
 
-    * 56 cores
-    * 77MB L3 cache memory
-  * `AMD EPYC 7H12
-    <https://www.amd.com/en/products/cpu/amd-epyc-7h12>`__
+     * 56 cores
+     * 77MB L3 cache memory
+   * `AMD EPYC 7H12
+     <https://www.amd.com/en/products/cpu/amd-epyc-7h12>`__
 
-    * 64 cores
-    * 256MB L3 cache memory
+     * 64 cores
+     * 256MB L3 cache memory
 
 3. Main memory
 
-  Main memory is away from the CPU chip package.  It usually uses less
-  expensive dynamic random access memory (DRAM).  The circuit takes more time
-  to access the data but the lower cost allows much larger space.
+   Main memory is away from the CPU chip package.  It usually uses less
+   expensive dynamic random access memory (DRAM).  The circuit takes more time
+   to access the data but the lower cost allows much larger space.
 
-  Data in the main memory are lost when the system is powered off.
+   Data in the main memory are lost when the system is powered off.
 
-  Mainstream PC uses DDR (double data rate) 4 SDRAM (synchronous dynamic
-  random-access memory) with DIMM (dual in-line memory module) and its
-  variants, e.g. RDIMM (registered DIMM) and LRDIMM (load reduced DIMM).
-  Depending on the bandwidth of the CPU memory controller, the data throughput
-  may be around 60GB/s or higher.
+   Mainstream PC uses DDR (double data rate) 4 SDRAM (synchronous dynamic
+   random-access memory) with DIMM (dual in-line memory module) and its
+   variants, e.g. RDIMM (registered DIMM) and LRDIMM (load reduced DIMM).
+   Depending on the bandwidth of the CPU memory controller, the data throughput
+   may be around 60GB/s or higher.
 
-  A powerful server may have up to 6TB of main memory:
+   A powerful server may have up to 6TB of main memory:
 
-  * `24 RDIMM/LRDIMM slots
-    <https://www.supermicro.com/en/products/ultra>`__
+   * `24 RDIMM/LRDIMM slots
+     <https://www.supermicro.com/en/products/ultra>`__
 
-  * `256GB RDIMM/LRDIMM module
-    <https://www.samsung.com/semiconductor/dram/module/>`__
+   * `256GB RDIMM/LRDIMM module
+     <https://www.samsung.com/semiconductor/dram/module/>`__
 
 4. Storage
 
-  Data in the storage cannot be directly accessed by CPU instructions.  They
-  need to be loaded to main memory and then the instructions can touch them.
-  The loading and saving operations are considered input and output (I/O).
-  Data in the storage are persisted when the system is powered off.
+   Data in the storage cannot be directly accessed by CPU instructions.  They
+   need to be loaded to main memory and then the instructions can touch them.
+   The loading and saving operations are considered input and output (I/O).
+   Data in the storage are persisted when the system is powered off.
 
-  The storage is usually called the "disks", because it used to be hard-disk
-  drives (HDD).  In a recent system the storage changes to use the solid-state
-  drives (SSD), which use the flash memory instead of hard disk.
+   The storage is usually called the "disks", because it used to be hard-disk
+   drives (HDD).  In a recent system the storage changes to use the solid-state
+   drives (SSD), which use the flash memory instead of hard disk.
 
-  Example specification of some devices:
+   Example specification of some devices:
 
-  * `Seagate Burracuda 510 SSD
-    <https://www.seagate.com/internal-hard-drives/ssd/barracuda-ssd/>`__
+   * `Seagate Burracuda 510 SSD
+     <https://www.seagate.com/internal-hard-drives/ssd/barracuda-ssd/>`__
 
-    * sequential read 3.45 GB/s
-    * write 3.2 GB/s
-  * `Samsung PM1735 SSD
-    <https://www.samsung.com/semiconductor/ssd/enterprise-ssd/>`__
+     * sequential read 3.45 GB/s
+     * write 3.2 GB/s
+   * `Samsung PM1735 SSD
+     <https://www.samsung.com/semiconductor/ssd/enterprise-ssd/>`__
 
-    * sequential read 8 GB/s
-    * write 3.8 GB/s
+     * sequential read 8 GB/s
+     * write 3.8 GB/s
 
 Here is a table (excerpt from Figure 6.23 in CS:APP (3/e)) [1]_ showing the
 latency of each of the memory, measured in CPU cycle (less than 1 ns):

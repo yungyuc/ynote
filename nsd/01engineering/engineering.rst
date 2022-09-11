@@ -43,40 +43,40 @@ the CPython repository and has 4 parts:
 
 1. Shebang
 
-  .. code-block:: bash
+   .. code-block:: bash
 
-    #!/bin/bash
+     #!/bin/bash
 
 2. Comment/document
 
-  .. code-block:: bash
+   .. code-block:: bash
 
-    #
-    # This script clones the cpython repository.
-    #
+     #
+     # This script clones the cpython repository.
+     #
 
 3. Setup
 
-  .. code-block:: bash
+   .. code-block:: bash
 
-    # setup environment variables.
-    root=${ROOT:-~/tmp}
-    pkgname=python
-    pkgbranch=${VERSION:-3.7}
-    pkgfull=$pkgname-$pkgbranch
-    pkgrepo=https://github.com/python/cpython.git
+     # setup environment variables.
+     root=${ROOT:-~/tmp}
+     pkgname=python
+     pkgbranch=${VERSION:-3.7}
+     pkgfull=$pkgname-$pkgbranch
+     pkgrepo=https://github.com/python/cpython.git
 
 4. Action
 
-  .. code-block:: bash
+   .. code-block:: bash
 
-    # clone.
-    mkdir -p $root
-    cd $root
-    echo `pwd`
-    if [ ! -d $pkgfull ] ; then
-      git clone -q -b $pkgbranch $pkgrepo $pkgfull
-    fi
+     # clone.
+     mkdir -p $root
+     cd $root
+     echo `pwd`
+     if [ ! -d $pkgfull ] ; then
+       git clone -q -b $pkgbranch $pkgrepo $pkgfull
+     fi
 
 .. note::
 
