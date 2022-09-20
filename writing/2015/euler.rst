@@ -55,7 +55,7 @@ have 5 equtions but 6 unknowns (:math:`\rho`, :math:`\bvec{v}`, :math:`p`, and
 
   p = \rho RT
 
-Internal energy is related to temperate:
+Internal energy is related to temperature:
 
 .. math::
   :label: euler:internal
