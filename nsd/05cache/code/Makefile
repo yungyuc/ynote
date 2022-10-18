@@ -5,26 +5,29 @@ UNAME_S := $(shell uname -s)
 CXXFLAGS += -std=c++17 -O3 -g -m64 ${FLAGS}
 
 ifeq ($(UNAME_S),Darwin)
-MKLROOT ?= /opt/intel/mkl
-MKLINC ?= ${MKLROOT}/include
-MKLLIB ?= ${MKLROOT}/lib
-MKLEXT ?= a
+# Do not define "HASMKL" macro.
+INC += -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/Headers
+LINKFLAGS := -framework Accelerate
 else ifeq ($(UNAME_S),Linux)
-MKLINC ?= /usr/include/mkl
+INC += -I/usr/include/mkl
+
+CXXFLAGS += -DHASMKL -Wl,--no-as-needed
+
 MKLLIB ?= /usr/lib/x86_64-linux-gnu
 MKLEXT ?= so
-CXXFLAGS += -Wl,--no-as-needed
-endif
 
-MKLLINKLINE := \
+LINKFLAGS := \
 	${MKLLIB}/libmkl_intel_lp64.${MKLEXT} \
 	${MKLLIB}/libmkl_sequential.${MKLEXT} \
 	${MKLLIB}/libmkl_core.${MKLEXT} \
 	-lpthread -lm -ldl
+endif
 
 CXX = g++
 
 BINS := 01_skip_access 02_locality 03_matrix_matrix
+
+export VECLIB_MAXIMUM_THREADS=1
 
 .PHONY: default
 default: ${BINS}
@@ -37,7 +40,7 @@ run_%: %
 	./$<
 
 03_matrix_matrix: 03_matrix_matrix.cpp StopWatch.hpp Makefile
-	${CXX} $< -o $@ ${CXXFLAGS} -I${MKLINC} ${MKLLINKLINE}
+	${CXX} $< -o $@ ${CXXFLAGS} ${INC} ${LINKFLAGS}
 
 %: %.cpp StopWatch.hpp Makefile
 	${CXX} $< -o $@ ${CXXFLAGS}

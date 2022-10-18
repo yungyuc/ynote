@@ -1,6 +1,15 @@
 #include "StopWatch.hpp"
 
+#ifdef HASMKL
 #include <mkl.h>
+#include <mkl_lapack.h>
+#include <mkl_lapacke.h>
+#else // HASMKL
+#ifdef __MACH__
+#include <clapack.h>
+#include <Accelerate/Accelerate.h>
+#endif // __MACH__
+#endif // HASMKL
 
 #include <iostream>
 #include <sstream>
@@ -222,7 +231,11 @@ size_t calc_nflo(Matrix const & mat1, Matrix const & mat2)
  */
 Matrix multiply_mkl(Matrix const & mat1, Matrix const & mat2)
 {
+#if !defined(HASMKL) || defined(NOMKL)
+    // run with VECLIB_MAXIMUM_THREADS=1
+#else // HASMKL NOMKL
     mkl_set_num_threads(1);
+#endif // HASMKL NOMKL
 
     Matrix ret(mat1.nrow(), mat2.ncol());
 
