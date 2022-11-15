@@ -4,8 +4,8 @@ BIN := omp
 
 ifeq ($(UNAME_S),Darwin)
 # https://iscinumpy.gitlab.io/post/omp-on-high-sierra/
-CXXFLAGS := -Xpreprocessor -fopenmp
-LINKFLAGS := -lomp
+CXXFLAGS := -Xpreprocessor -fopenmp -I$(shell brew --prefix)/opt/libomp/include
+LINKFLAGS := -lomp -L$(shell brew --prefix)/opt/libomp/lib
 CXX = clang++
 endif
 
