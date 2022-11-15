@@ -38,11 +38,15 @@ circulated among the practitioners.
 
 .. _contact:
 
-You can find me `@yungyuc <https://twitter.com/yungyuc>`__ and my code at
-https://github.com/yungyuc.  For professional discussions please use
+You can find me |mastodon_link|, `@yungyuc <https://twitter.com/yungyuc>`__ and
+my code at https://github.com/yungyuc.  For professional discussions please use
 https://www.linkedin.com/in/yungyuc and state clearly who you are and what you
 want in your connect invitation.  But, as always, email works: `yyc@solvcon.net
 <mailto:Yung-Yu %20 Chen %20%3c yyc@solvcon.net %3e>`__.
+
+.. |mastodon_link| raw:: html
+
+  <a rel="me" href="https://mtd.pythonasia.org/@yyc">@yyc@mtd.pythonasia.org</a>
 
 .. admonition:: Footer
 
