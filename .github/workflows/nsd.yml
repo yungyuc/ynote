@@ -53,7 +53,11 @@ jobs:
     - name: brew (macos)
       if: startsWith(matrix.os, 'macos')
       run: |
-        brew install make cmake llvm libomp python3 radare2
+        # brew update  # No update because it is slow
+        # Force using python 3.10 from homebrew
+        brew unlink python
+        brew link --force --overwrite python@3.10
+        brew install make cmake llvm libomp radare2
 
     - name: pip (ubuntu)
       if: startsWith(matrix.os, 'ubuntu')
