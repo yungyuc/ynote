@@ -35,4 +35,4 @@ test: modpyb$(pyextsuffix) modbpy$(pyextsuffix)
 
 .PHONY: clean
 clean:
-	rm -rf __pycache__ *.pyc *.pyo build *$(pyextsuffix)
+	rm -rf __pycache__ *.pyc *.pyo build *.so *.dylib
