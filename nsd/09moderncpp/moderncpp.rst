@@ -2,6 +2,13 @@
 Modern C++
 ==========
 
+The term *modern C++* is interesting.  How "modern" the C++ code should be for
+it to be called "modern" C++?  It turns out that it only needs to be newer than
+2011.  In that year, a significantly different version of the C++ standard
+(ISO/IEC 14882) is released, and by convention it is named as C++11.  The
+subsequent versions, including C++14, C++17, C++20, and the to-be-released
+C++23, are all considered to be modern C++.
+
 Copy Elision / Return Value Optimization (RVO)
 ==============================================
 
