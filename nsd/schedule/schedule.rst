@@ -7,6 +7,14 @@ Schedule
 
   22au_nycu/schedule
 
+Future
+======
+
+.. toctree::
+  :maxdepth: 1
+
+  23sp_nycu/schedule
+
 Past
 ====
 
