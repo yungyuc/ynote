@@ -2,5 +2,6 @@ modmesh-master/
 turgon-master/
 *.pyc
 *.pyo
+*.o
 *.so
 *.dylib

@@ -25,6 +25,11 @@ PYTHON_VERSION ?= $(shell $(PYTHON) -c 'import sys; print("%d.%d" % (sys.version
 PYTHON_INC := $(shell python3-config --prefix)/include/python$(PYTHON_VERSION)
 NUMPY_INC := $(shell python3 -c 'import numpy ; print(numpy.get_include())')
 
+MODMESH_ROOT=modmesh_copy
+MODMESH_PYMOD=$(MODMESH_ROOT)/modmesh/buffer/pymod
+
+INC := -I$(shell python3-config --prefix)/include -I$(MODMESH_ROOT)
+
 PYTHON_LIB := $(shell python3-config --prefix)/lib
 
 CPATH := $(PYTHON_INC):$(NUMPY_INC)
@@ -60,12 +65,25 @@ testimport: libst
 #cpp -v /dev/null -o /dev/null
 
 data_prep.so: data_prep.cpp Makefile
-	g++ $< -o $@ -O3 -fPIC -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB) -I${MKLINC} ${MKLLINKLINE}
+	g++ $< -o $@ -O3 -fPIC -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB) ${INC} -I${MKLINC} ${MKLLINKLINE}
 
-%.so: %.cpp Makefile
-	g++ $< -o $@ -O3 -fPIC -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB)
+solve_cpp.so: solve_cpp.cpp Makefile
+	g++ solve_cpp.cpp -o $@ -O3 -fPIC -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB) ${INC}
 
 ../image/03_solve_cpp.png: 03_solve_cpp.py solve_cpp.so
+	./$<
+
+solve_cpp_simplearray.so: \
+	solve_cpp_simplearray.cpp \
+	$(MODMESH_PYMOD)/wrap_SimpleArray.cpp \
+	$(MODMESH_PYMOD)/wrap_ConcreteBuffer.cpp \
+	Makefile
+	g++ -c solve_cpp_simplearray.cpp -o solve_cpp_simplearray.o -O3 -fPIC -std=c++17 ${INC}
+	g++ -c $(MODMESH_PYMOD)/wrap_ConcreteBuffer.cpp -o wrap_ConcreteBuffer.o -O3 -fPIC -std=c++17 ${INC}
+	g++ -c $(MODMESH_PYMOD)/wrap_SimpleArray.cpp -o wrap_SimpleArray.o -O3 -fPIC -std=c++17 ${INC}
+	g++ solve_cpp_simplearray.o wrap_ConcreteBuffer.o wrap_SimpleArray.o -o $@ -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB)
+
+../image/03_solve_cpp_simplearray.png: 03_solve_cpp_simplearray.py solve_cpp_simplearray.so
 	./$<
 
 ../image/04_fit_poly.png: 04_fit_poly.py data_prep.so

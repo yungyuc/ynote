@@ -202,6 +202,7 @@ jobs:
     - name: 11arraydesign_solve_cpp
       run: |
         make -C ${{ env.ARRAYDESIGNROOT }} solve_cpp.so
+        make -C ${{ env.ARRAYDESIGNROOT }} solve_cpp_simplearray.so
 
     - name: 11arraydesign_data_prep
       # macos does not have MKL.
