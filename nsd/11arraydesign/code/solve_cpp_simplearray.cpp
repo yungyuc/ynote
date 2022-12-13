@@ -1,17 +1,38 @@
 #include <pybind11/pybind11.h>
-// YDEBUG #define FORCE_IMPORT_ARRAY
 #include <modmesh/buffer/buffer.hpp>
 #include <modmesh/buffer/pymod/buffer_pymod.hpp>
-// YDEBUG #include <xtensor-python/pyarray.hpp>
 
 #include <vector>
 #include <algorithm>
 #include <tuple>
 #include <iostream>
 
-// YDEBUG #include <xtensor/xarray.hpp>
-// YDEBUG #include <xtensor/xadapt.hpp>
-// YDEBUG #include <xtensor/xview.hpp>
+#include <pybind11/numpy.h>
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+
+namespace modmesh
+{
+
+namespace python
+{
+
+void import_numpy()
+{
+    auto local_import_numpy = []()
+    {
+        import_array2("cannot import numpy", false); // or numpy c api segfault.
+        return true;
+    };
+    if (!local_import_numpy())
+    {
+        throw pybind11::error_already_set();
+    }
+}
+
+}
+
+}
 
 template <typename T>
 T calc_norm_amax(modmesh::SimpleArray<T> const & arr0, modmesh::SimpleArray<T> const & arr1)
@@ -48,7 +69,6 @@ solve1(modmesh::SimpleArray<double> u)
                 un(it,jt) = (u(it+1,jt) + u(it-1,jt) + u(it,jt+1) + u(it,jt-1)) / 4;
             }
         }
-        // YDEBUG norm = xt::amax(xt::abs(un-u))();
         norm = calc_norm_amax(u, un);
         if (norm < 1.e-5) { converged = true; }
         u = un;
@@ -58,7 +78,7 @@ solve1(modmesh::SimpleArray<double> u)
 
 PYBIND11_MODULE(solve_cpp_simplearray, m)
 {
-    // YDEBUG xt::import_numpy();
+    modmesh::python::import_numpy();
     modmesh::python::wrap_ConcreteBuffer(m);
     modmesh::python::wrap_SimpleArray(m);
     m.def

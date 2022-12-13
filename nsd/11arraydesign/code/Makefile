@@ -77,11 +77,13 @@ solve_cpp_simplearray.so: \
 	solve_cpp_simplearray.cpp \
 	$(MODMESH_PYMOD)/wrap_SimpleArray.cpp \
 	$(MODMESH_PYMOD)/wrap_ConcreteBuffer.cpp \
+	$(MODMESH_PYMOD)/buffer_pymod.cpp \
 	Makefile
 	g++ -c solve_cpp_simplearray.cpp -o solve_cpp_simplearray.o -O3 -fPIC -std=c++17 ${INC}
 	g++ -c $(MODMESH_PYMOD)/wrap_ConcreteBuffer.cpp -o wrap_ConcreteBuffer.o -O3 -fPIC -std=c++17 ${INC}
 	g++ -c $(MODMESH_PYMOD)/wrap_SimpleArray.cpp -o wrap_SimpleArray.o -O3 -fPIC -std=c++17 ${INC}
-	g++ solve_cpp_simplearray.o wrap_ConcreteBuffer.o wrap_SimpleArray.o -o $@ -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB)
+	g++ -c $(MODMESH_PYMOD)/buffer_pymod.cpp -o buffer_pymod.o -O3 -fPIC -std=c++17 ${INC}
+	g++ solve_cpp_simplearray.o wrap_ConcreteBuffer.o wrap_SimpleArray.o buffer_pymod.o -o $@ -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB)
 
 ../image/03_solve_cpp_simplearray.png: 03_solve_cpp_simplearray.py solve_cpp_simplearray.so
 	./$<

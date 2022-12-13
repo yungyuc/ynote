@@ -35,7 +35,7 @@
 
 #include <atomic>
 
-#include <modmesh/buffer/buffer.hpp>
+#include <modmesh/toggle/toggle.hpp>
 
 #ifdef __GNUG__
 #define MODMESH_PYTHON_WRAPPER_VISIBILITY __attribute__((visibility("hidden")))
@@ -48,6 +48,14 @@ namespace modmesh
 
 namespace python
 {
+
+namespace detail
+{
+
+template <class T>
+std::string to_str(T const & self) { return Formatter() << self >> Formatter::to_str; }
+
+} /* end namespace detail */
 
 template <typename T>
 bool dtype_is_type(pybind11::array const & arr)
@@ -116,7 +124,7 @@ struct process_attribute<modmesh::python::mmtag>
     {
         if (modmesh::python::WrapperProfilerStatus::me().enabled())
         {
-            // modmesh::TimeRegistry::me().entry(get_name(call)).start();
+            modmesh::TimeRegistry::me().entry(get_name(call)).start();
         }
     }
 
@@ -124,7 +132,7 @@ struct process_attribute<modmesh::python::mmtag>
     {
         if (modmesh::python::WrapperProfilerStatus::me().enabled())
         {
-            // modmesh::TimeRegistry::me().entry(get_name(call)).stop();
+            modmesh::TimeRegistry::me().entry(get_name(call)).stop();
         }
     }
 
