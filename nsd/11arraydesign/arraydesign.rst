@@ -611,6 +611,543 @@ detects the point group right before fitting:
 
 The overhead of the Python house-keeping code is all gone.
 
+.. _nsd-arraydesign-simplearray:
+
+SimpleArray
+===========
+
+It has been shown that array is important for high-performance code.  It is
+commonplace to develop a home-brewed array library for your system in C++,
+because it does not only provide general array operations, but also a place to
+house the ad hoc optimization that is crucial to performance.
+
+In the above code we use a class template named ``SimpleArray``.  It is a
+header-only library that provides multi-dimensional accessors to a contiguous
+memory buffer.  The primary use case is for fundamental numerical types.  It has
+the following behaviors:
+
+* Multi-dimensional access to regular memory buffers
+* Simple memory allocation by using fixed size
+* Separate buffer ownership and meta data
+
+``SimpleArray`` makes available the basic array meta data: shape, stride, and
+type.  In addition to a spcific application, it also allows ghost (negative)
+index in the first dimension.
+
+.. note::
+
+  A comparison between ``SimpleArray`` and the C++ ``std::vector`` is made below
+  in the table :ref:`nsd-simplearray-stdvector`.
+
+  .. list-table:: Comparison between SimpleArray and C++ Vector
+    :name: nsd-simplearray-stdvector
+    :header-rows: 1
+    :align: left
+
+    * - ``SimpleArray``
+      - ``std::vector``
+    * - | Fixed size (length):
+        | * Only allocate memory on construction
+        |
+      - | Variable size (length):
+        | * Buffer may be invalidated
+        | * Implicit memory allocation (reallocation)
+    * - | Multi-dimensional access
+        | * Use ``operator()``
+      - | One-dimensional access
+        | * Use ``operator[]``
+
+  While the STL container ``std::vector`` is frequently used as a
+  one-dimensional array of dynamic memory allocation, it does not have the exact
+  capability and limitation that we want for high-performance code.
+
+  ``std::vector`` is definitely a powerful container.  But its flexbility
+  sometimes slows down the system or makes it harder to control.
+  ``SimpleArray`` fills in the gap.
+
+.. _nsd-arraydesign-concretebuffer:
+
+Buffer Ownership
+++++++++++++++++
+
+``SimpleArray`` uses a class ``ConcreteBuffer`` to manage the memory buffer, as
+shown below in the listing :ref:`nsd-arraydesign-simplearray-buffer`:
+
+.. code-block:: cpp
+  :name: nsd-arraydesign-simplearray-buffer
+  :caption: ``SimpleArray`` uses ``ConcreteBuffer`` to Manage Buffer
+  :linenos:
+
+  template <typename T>
+  class SimpleArray
+  {
+      using buffer_type = ConcreteBuffer;
+      std::shared_ptr<buffer_type> m_buffer;
+  };
+
+``ConcreteBuffer`` itself is a class managed by ``std::shared_ptr``:
+
+.. code-block:: cpp
+  :linenos:
+
+  class ConcreteBuffer
+      : public std::enable_shared_from_this<ConcreteBuffer>
+  {
+  private:
+      // Protect the constructors
+      struct ctor_passkey {};
+
+  public:
+      static std::shared_ptr<ConcreteBuffer> construct(size_t nbytes)
+      {
+          return std::make_shared<ConcreteBuffer>(nbytes, ctor_passkey());
+      }
+
+      ...
+  };
+
+We would like to turn off the move semantics so that the memory controlled by
+``ConcreteBuffer`` is not moved away unexpectedly:
+
+.. code-block:: cpp
+  :linenos:
+
+  // Turn off move
+  ConcreteBuffer(ConcreteBuffer &&) = delete;
+  ConcreteBuffer & operator=(ConcreteBuffer &&) = delete;
+
+To make it possible to control when the memory controlled by ``ConcreteBuffer``
+may be released, it internally is implemented by using ``std::unique_ptr`` and a
+custom deleter class:
+
+.. code-block:: cpp
+  :linenos:
+
+  // Use a deleter to customize memory management with unique_ptr
+  using data_deleter_type = detail::ConcreteBufferDataDeleter;
+  using unique_ptr_type = std::unique_ptr<int8_t, data_deleter_type>;
+
+  size_t m_nbytes;  // Remember the amount of bytes
+  unique_ptr_type m_data;  // Point to the allocated momery
+
+Memory allocation is done in the constructor:
+
+.. code-block:: cpp
+  :linenos:
+
+  ConcreteBuffer(size_t nbytes, const ctor_passkey &)
+      : m_nbytes(nbytes)
+      , m_data(allocate(nbytes))
+  {}
+
+  // Allocate memory
+  static unique_ptr_type allocate(size_t nbytes)
+  {
+      unique_ptr_type ret(nullptr, data_deleter_type());
+      if (0 != nbytes)
+      {
+          ret = unique_ptr_type(new int8_t[nbytes], data_deleter_type());
+      }
+      return ret;
+  }
+
+``ConcreteBuffer`` Remover
+--------------------------
+
+The deleter ``ConcreteBufferDataDeleter`` is a proxy to a polymorphic remover
+functor type ``ConcreteBufferRemover``:
+
+.. code-block:: cpp
+  :linenos:
+
+  struct ConcreteBufferDataDeleter
+  {
+      using remover_type = ConcreteBufferRemover;
+      explicit ConcreteBufferDataDeleter(std::unique_ptr<remover_type> && remover_in)
+          : remover(std::move(remover_in))
+      {}
+      void operator()(int8_t * p) const
+      {
+          if (!remover)
+          {
+              delete[] p;  // Array deletion if no remover is available.
+          }
+          else
+          {
+              (*remover)(p);
+          }
+      }
+      std::unique_ptr<remover_type> remover{nullptr};
+  };
+
+The base class and the default implementation of ``ConcreteBufferRemover`` also
+uses the array deletion:
+
+.. code-block:: cpp
+  :linenos:
+
+  struct ConcreteBufferRemover
+  {
+      virtual ~ConcreteBufferRemover() = default;
+      virtual void operator()(int8_t * p) const
+      {
+          delete[] p;
+      }
+  };
+
+It may be customized to avoid releasing memory.  When using ``ConcreteBuffer``
+to hold pointer to a memory buffer managed by another sub-system, we may need to
+avoid releasing the memory when ``ConcreteBuffer`` destructs.
+
+.. code-block:: cpp
+  :linenos:
+
+  struct ConcreteBufferNoRemove : public ConcreteBufferRemover
+  {
+      void operator()(int8_t *) const override {}
+  };
+
+The full code is in :ref:`ConcreteBuffer.hpp
+<nsd-arraydesign-example-concretebuffer>`.
+
+Multi-Dimensional Data Access
++++++++++++++++++++++++++++++
+
+Three basic meta data are stored in ``SimpleArray`` to support multi-dimensional
+data access: shape, stride, and type.  The type information is provided by the
+template argument.  We do not need to pay a lot of attention to it.
+
+.. code-block:: cpp
+  :linenos:
+
+  template <typename T>
+  class SimpleArray
+  {
+  public:
+      // Type information.
+      using value_type = T;
+      static constexpr size_t ITEMSIZE = sizeof(value_type);
+
+      using buffer_type = ConcreteBuffer;
+      /// Contiguous data buffer for the array.
+      std::shared_ptr<buffer_type> m_buffer;
+
+      using shape_type = small_vector<size_t>;
+      /// Each element in this vector is the number of element in the
+      /// corresponding dimension.
+      shape_type m_shape;
+      /// Each element in this vector is the number of elements (not number of
+      /// bytes) to skip for advancing an index in the corresponding dimension.
+      shape_type m_stride;
+  };
+
+Shape describes the number of elements in each of the dimension of the array.
+In a one-dimensional array, the shape has only one element:
+
+.. code-block:: cpp
+  :linenos:
+
+  explicit SimpleArray(size_t length)
+      : m_buffer(buffer_type::construct(length * ITEMSIZE))
+      , m_shape{length}
+      , m_stride{1}
+      , m_body(m_buffer->data<T>())
+  {}
+
+The size of the shape vector is the number of dimensionality:
+
+.. code-block:: cpp
+  :linenos:
+
+  explicit SimpleArray(shape_type const & shape)
+      : m_shape(shape)
+      , m_stride(calc_stride(m_shape))
+  {
+      if (!m_shape.empty())
+      {
+          m_buffer = buffer_type::construct(m_shape[0] * m_stride[0] * ITEMSIZE);
+          m_body = m_buffer->data<T>();
+      }
+  }
+
+Stride is the number of elements to be skipped when the index is changed by 1 in
+the corresponding dimension.  The calculation is done by ``calc_stride()``.
+
+.. code-block:: cpp
+  :linenos:
+
+  static shape_type calc_stride(shape_type const & shape)
+  {
+      shape_type stride(shape.size());
+      if (!shape.empty())
+      {
+          stride[shape.size() - 1] = 1;
+          for (size_t it = shape.size() - 1; it > 0; --it)
+          {
+              stride[it - 1] = stride[it] * shape[it];
+          }
+      }
+      return stride;
+  }
+
+Now the shape and stride are determined, and will be used in the
+multi-dimensional accessor.  The accessor is broken into the
+element accessor in the form of ``operator()()`` and pointer accessor
+``vptr()``.  When getting the address of an element, the pointer accessor is
+handy.
+
+.. code-block:: cpp
+  :linenos:
+
+  template <typename T>
+  class SimpleArray
+  {
+      ...
+      template <typename... Args>
+      value_type const & operator()(Args... args) const
+      { return *vptr(args...); }
+      template <typename... Args>
+      value_type & operator()(Args... args)
+      { return *vptr(args...); }
+
+      template <typename... Args>
+      value_type const * vptr(Args... args) const
+      { return m_body + buffer_offset(m_stride, args...); }
+      template <typename... Args>
+      value_type * vptr(Args... args)
+      { return m_body + buffer_offset(m_stride, args...); }
+      ...
+  };
+
+``SimpleArray`` uses the variadic template to get the indices in each of the
+dimensions and calculate the memory offset of the specified element.  The
+helper template ``buffer_offset()`` is used to avoid conditioned branching in
+runtime.
+
+.. code-block:: cpp
+  :linenos:
+
+  namespace detail
+  {
+  // Use recursion in templates.
+  template <size_t D, typename S>
+  size_t buffer_offset_impl(S const &)
+  {
+      return 0;
+  }
+  template <size_t D, typename S, typename Arg, typename... Args>
+  size_t buffer_offset_impl(S const & strides, Arg arg, Args... args)
+  {
+      return arg * strides[D] +
+             buffer_offset_impl<D + 1>(strides, args...);
+  }
+  } /* end namespace detail */
+
+  template <typename S, typename... Args>
+  size_t buffer_offset(S const & strides, Args... args)
+  {
+      return detail::buffer_offset_impl<0>(strides, args...);
+  }
+
+To this point, we will be able to access the elements using ``operator()()``:
+
+.. code-block:: cpp
+
+  SimpleArray<int> arr(small_vector<size_t>{3, 4});
+  arr_int(1, 2) = -8;
+
+The full code is in :ref:`SimpleArray.hpp
+<nsd-arraydesign-example-simplearray>`.
+
+.. _nsd-arraydesign-smallvector:
+
+Small Vector Optimization
+-------------------------
+
+For implmenting the shape and stride, ``SimpleArray`` employs the small vector
+optimization.  When using arrays it is actually rare to use very high
+dimensions, e.g., 6.  Instead, 1, 2, and 3 dimensions are the majority of the
+use cases.  As we know dynamic allocation is expensive, it is good to spend a
+little bit of memory space to reduce the runtime overhead.
+
+The optimization is to use a small block of memory in the class template
+(``small_vector``).  Instead of using pointers for size and capacity, unsigned
+integers are used to keep track of the number of elements.
+
+.. code-block:: cpp
+  :linenos:
+
+  template <typename T, size_t N = 3>
+  class small_vector
+  {
+  public:
+      T const * data() const { return m_head; }
+      T * data() { return m_head; }
+  private:
+      T * m_head = nullptr;
+      unsigned int m_size = 0;
+      unsigned int m_capacity = N;
+      std::array<T, N> m_data;
+  };
+
+Upon construction, if the requested size is smaller than ``N``, no dynamic
+memory allocation is done:
+
+.. code-block:: cpp
+  :linenos:
+
+  explicit small_vector(size_t size)
+      : m_size(static_cast<unsigned int>(size))
+  {
+      if (m_size > N)
+      {
+          m_capacity = m_size;
+          // Allocate only when the size is too large.
+          m_head = new T[m_capacity];
+      }
+      else
+      {
+          m_capacity = N;
+          m_head = m_data.data();
+      }
+  }
+
+  small_vector() { m_head = m_data.data(); }
+
+No deallocation is needed in the destructor if there was not dynamic memory
+used:
+
+.. code-block:: cpp
+  :linenos:
+
+  ~small_vector()
+  {
+      if (m_head != m_data.data() && m_head != nullptr)
+      {
+          delete[] m_head;
+          m_head = nullptr;
+      }
+  }
+
+Copy constructor (as well as copy assignment operator, which is omitted here for
+clarity) may also allocate memory:
+
+.. code-block:: cpp
+  :linenos:
+
+  small_vector(small_vector const & other)
+      : m_size(other.m_size)
+  {
+      if (other.m_head == other.m_data.data())
+      {
+          m_capacity = N;
+          m_head = m_data.data();
+      }
+      else
+      {
+          m_capacity = m_size;
+          m_head = new T[m_capacity];
+      }
+      std::copy_n(other.m_head, m_size, m_head);
+  }
+
+The move constructor (and move assignment operator, which is omitted here for
+clarity) should not allocate memory, but should take the 
+
+.. code-block:: cpp
+  :linenos:
+
+  small_vector(small_vector && other) noexcept
+      : m_size(other.m_size)
+  {
+      if (other.m_head == other.m_data.data())
+      {
+          m_capacity = N;
+          std::copy_n(other.m_data.begin(), m_size, m_data.begin());
+          m_head = m_data.data();
+      }
+      else
+      {
+          m_capacity = m_size;
+          m_head = other.m_head;
+          other.m_size = 0;
+          other.m_capacity = N;
+          other.m_head = other.m_data.data();
+      }
+  }
+
+The full code is in :ref:`small_vector.hpp
+<nsd-arraydesign-example-smallvector>`.
+
+Ghost (Negative) Index
+++++++++++++++++++++++
+
+Normally we access the element in an array using non-negative indices.  But just
+like the C-style POD array, it is not wrong to allow negative indices as long as
+we do not access the memory out of the bound.  It is a common trick played for
+implementing lookup tables.
+
+To avoid incurring overhead for a normal array whose index starts with 0,
+``SimpleArray`` implement the feature with only the leading dimension.  What
+we need to do is to add the number of ghost elements (indexed using negative
+integer) and the starting address of the "non-ghost" body elements.
+
+.. code-block:: cpp
+  :linenos:
+
+  template <typename T>
+  class SimpleArray
+  {
+  private:
+      // Number of ghost elements
+      size_t m_nghost = 0;
+      // Starting address of non-ghost
+      value_type * m_body = nullptr;
+  };
+
+The body address is calculated based on the data pointer, stride, and the ghost
+number:
+
+.. code-block:: cpp
+  :linenos:
+
+  static T * calc_body(T * data, shape_type const & stride, size_t nghost)
+  {
+      if (nullptr == data || stride.empty() || 0 == nghost)
+      {
+          // Do nothing.
+      }
+      else
+      {
+          shape_type shape(stride.size(), 0);
+          shape[0] = nghost;
+          data += buffer_offset(stride, shape);
+      }
+      return data;
+  }
+
+The ghost number and body address are calculated and assigned upon construction,
+e.g., in the copy and move constructors:
+
+.. code-block:: cpp
+  :linenos:
+
+  SimpleArray(SimpleArray const & other)
+      : m_buffer(other.m_buffer->clone())
+      , m_shape(other.m_shape)
+      , m_stride(other.m_stride)
+      , m_nghost(other.m_nghost)
+      , m_body(calc_body(m_buffer->data<T>(), m_stride, other.m_nghost))
+  {}
+
+  SimpleArray(SimpleArray && other) noexcept
+      : m_buffer(std::move(other.m_buffer))
+      , m_shape(std::move(other.m_shape))
+      , m_stride(std::move(other.m_stride))
+      , m_nghost(other.m_nghost)
+      , m_body(other.m_body)
+  {}
+
 AOS and SOA
 ===========
 

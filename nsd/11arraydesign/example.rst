@@ -66,6 +66,36 @@ Example Code: C++ and C for Python
   :language: python
   :linenos:
 
+.. literalinclude:: code/modmesh_copy/modmesh/buffer/ConcreteBuffer.hpp
+  :name: nsd-arraydesign-example-concretebuffer
+  :caption:
+    ``ConcreteBuffer`` for memory control
+    (:download:`ConcreteBuffer.hpp
+    <code/modmesh_copy/modmesh/buffer/ConcreteBuffer.hpp>`).  See
+    https://github.com/solvcon/modmesh for how it works in an application.
+  :language: cpp
+  :linenos:
+
+.. literalinclude:: code/modmesh_copy/modmesh/buffer/SimpleArray.hpp
+  :name: nsd-arraydesign-example-simplearray
+  :caption:
+    ``SimpleArray`` for multi-dimensional array
+    (:download:`SimpleArray.hpp
+    <code/modmesh_copy/modmesh/buffer/SimpleArray.hpp>`).  See
+    https://github.com/solvcon/modmesh for how it works in an application.
+  :language: cpp
+  :linenos:
+
+.. literalinclude:: code/modmesh_copy/modmesh/buffer/small_vector.hpp
+  :name: nsd-arraydesign-example-smallvector
+  :caption:
+    Small vector optimization
+    (:download:`small_vector.hpp
+    <code/modmesh_copy/modmesh/buffer/small_vector.hpp>`).  See
+    https://github.com/solvcon/modmesh for how it works in an application.
+  :language: cpp
+  :linenos:
+
 .. add 10 blank lines to avoid messing up with the vim modeline.
 
 
