@@ -30,9 +30,9 @@ void import_numpy()
     }
 }
 
-}
+} /* end namespace python */
 
-}
+} /* end namespace modmesh */
 
 template <typename T>
 T calc_norm_amax(modmesh::SimpleArray<T> const & arr0, modmesh::SimpleArray<T> const & arr1)
@@ -61,15 +61,21 @@ solve1(modmesh::SimpleArray<double> u)
     double norm;
     while (!converged)
     {
+        norm = 0.0;
         ++step;
         for (size_t it=1; it<nx-1; ++it)
         {
             for (size_t jt=1; jt<nx-1; ++jt)
             {
                 un(it,jt) = (u(it+1,jt) + u(it-1,jt) + u(it,jt+1) + u(it,jt-1)) / 4;
+                double const v = std::abs(un(it,jt) - u(it,jt));
+                if (v > norm)
+                {
+                    norm = v;
+                }
             }
         }
-        norm = calc_norm_amax(u, un);
+        // additional loop slows down: norm = calc_norm_amax(u, un);
         if (norm < 1.e-5) { converged = true; }
         u = un;
     }
