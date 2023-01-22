@@ -14,12 +14,17 @@ MKLLIB ?= ${MKLROOT}/lib
 MKLEXT ?= a
 CXXFLAGS :=
 BLASLINK := -lcblas
-export DYLD_LIBRARY_PATH=.
+export DYLD_LIBRARY_PATH:=.:${DYLD_LIBRARY_PATH}
 # For CBLAS.
 export CPATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/Headers
 else ifeq ($(UNAME_S),Linux)
+ifeq (${MKLROOT},)
 MKLINC ?= /usr/include/mkl
 MKLLIB ?= /usr/lib/x86_64-linux-gnu
+else
+MKLINC ?= ${MKLROOT}/include
+MKLLIB ?= ${MKLROOT}/lib/intel64
+endif
 MKLEXT ?= so
 BLASLINK := \
 	${MKLLIB}/libmkl_intel_lp64.${MKLEXT} \
@@ -27,7 +32,7 @@ BLASLINK := \
 	${MKLLIB}/libmkl_core.${MKLEXT} \
 	-lpthread -lm -ldl
 CXXFLAGS := -Wl,--no-as-needed
-export LD_LIBRARY_PATH=.
+export LD_LIBRARY_PATH:=.:${LD_LIBRARY_PATH}
 endif
 
 .PHONY: default
@@ -92,7 +97,7 @@ hellomain3: hellomain.o libshared_hello.so Makefile
 	g++ $< -L. -lshared_hello -o $@
 
 distance: distance.cpp Makefile
-	g++ $< -o $@ $(BLASLINK)
+	g++ $< -o $@ -I. $(BLASLINK)
 
 types: types.cpp Makefile
 	g++ $< -o $@
