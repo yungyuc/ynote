@@ -9,11 +9,14 @@ ifeq ($(UNAME_S),Darwin)
 INC += -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/Headers
 LINKFLAGS := -framework Accelerate
 else ifeq ($(UNAME_S),Linux)
-INC += -I/usr/include/mkl
-
 CXXFLAGS += -DHASMKL -Wl,--no-as-needed
-
+ifeq (${MKLROOT},)
+INC += -I/usr/include/mkl
 MKLLIB ?= /usr/lib/x86_64-linux-gnu
+else
+INC += -I${MKLROOT}/include
+MKLLIB ?= ${MKLROOT}/lib/intel64
+endif
 MKLEXT ?= so
 
 LINKFLAGS := \
