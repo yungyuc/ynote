@@ -106,9 +106,16 @@ private:
         }
     }
 
+    friend bool operator==(ByteCounter const & a, ByteCounter const & b);
+
     ByteCounterImpl * m_impl;
 
 }; /* end class ByteCounter */
+
+bool operator==(ByteCounter const & a, ByteCounter const & b)
+{
+    return a.m_impl == b.m_impl;
+}
 
 /**
  * Very simple allocator that counts the number of bytes allocated through it.
