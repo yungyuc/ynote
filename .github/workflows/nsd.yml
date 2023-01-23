@@ -201,11 +201,9 @@ jobs:
 
     - name: 11arraydesign_solve_cpp
       run: |
-        make -C ${{ env.ARRAYDESIGNROOT }} solve_cpp.so
+        make -j -C ${{ env.ARRAYDESIGNROOT }} solve_cpp.so
         make -C ${{ env.ARRAYDESIGNROOT }} solve_cpp_xarray.so
 
     - name: 11arraydesign_data_prep
-      # macos does not have MKL.
-      if: startsWith(matrix.os, 'ubuntu')
       run: |
         make -C ${{ env.ARRAYDESIGNROOT }} data_prep.so

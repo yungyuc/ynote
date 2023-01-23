@@ -12,6 +12,7 @@ class Timer:
         self._t1 = time.time()
         print("Wall time: {:g} s".format(self._t1 - self._t0))
 
+print("prep")
 # [begin prep pycon]
 with Timer():
     # np.unique returns a sorted array.
@@ -44,6 +45,7 @@ imagepath = os.path.join(imagedir, imagebase)
 print('write to {}'.format(imagepath))
 plt.savefig(imagepath, dpi=150)
 
+print("lumped")
 # [begin lumped pycon]
 with Timer():
     # Do the calculation for the 1000 groups of points.
@@ -56,6 +58,7 @@ with Timer():
         polygroup[i,:] = data_prep.fit_poly(sub_x, sub_y, 2)
 # [end lumped pycon]
 
+print("point build")
 # [begin point build pycon]
 with Timer():
     # Using numpy to build the point groups takes a lot of time.
@@ -65,6 +68,7 @@ with Timer():
         data_groups.append((xdata[slct], ydata[slct]))
 # [end point build pycon]
 
+print("fitting")
 # [begin fitting pycon]
 with Timer():
     # Fitting helper runtime is much less than building the point groups.
@@ -73,6 +77,7 @@ with Timer():
         polygroup[it,:] = data_prep.fit_poly(sub_x, sub_y, 2)
 # [end fitting pycon]
 
+print("batch")
 # [begin batch pycon]
 with Timer():
     rbatch = data_prep.fit_polys(xdata, ydata, 2)
@@ -80,6 +85,8 @@ with Timer():
 
 print(rbatch.shape)
 # Verify batch.
-assert (rbatch[i] == polygroup[i]).all()
+assert len(rbatch) == len(polygroup)
+for i in range(1000):
+    assert (rbatch[i] == polygroup[i]).all()
 
 # vim: set ff=unix fenc=utf8 et sw=4 ts=4 sts=4 tw=79:

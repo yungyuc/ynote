@@ -1,22 +1,103 @@
 #include <pybind11/pybind11.h>
-#define FORCE_IMPORT_ARRAY
-#include <xtensor-python/pyarray.hpp>
+#include <modmesh/buffer/buffer.hpp>
+#include <modmesh/buffer/pymod/buffer_pymod.hpp>
+
+#include <pybind11/numpy.h>
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+
+#ifdef HASMKL
+#include <mkl_lapack.h>
+#include <mkl_lapacke.h>
+#else // HASMKL
+#ifdef __MACH__
+#include <clapack.h>
+#include <Accelerate/Accelerate.h>
+#endif // __MACH__
+#endif // HASMKL
 
 #include <vector>
 #include <algorithm>
 
-#include <xtensor/xarray.hpp>
-#include <xtensor/xadapt.hpp>
-#include <xtensor/xview.hpp>
-#include <xtensor-blas/xlinalg.hpp>
+namespace modmesh
+{
+
+namespace python
+{
+
+void import_numpy()
+{
+    auto local_import_numpy = []()
+    {
+        import_array2("cannot import numpy", false); // or numpy c api segfault.
+        return true;
+    };
+    if (!local_import_numpy())
+    {
+        throw pybind11::error_already_set();
+    }
+}
+
+} /* end namespace python */
+
+} /* end namespace modmesh */
+
+modmesh::SimpleArray<double> solve
+(
+    modmesh::SimpleArray<double> const & sarr
+  , modmesh::SimpleArray<double> const & rhs
+)
+{
+    // Populate the column major input by transposing
+    modmesh::SimpleArray<double> mat(
+        std::vector<size_t>{sarr.shape(1), sarr.shape(0)});
+    for (size_t i = 0; i < mat.shape(0); ++i)
+    {
+        for (size_t j = 0; j < mat.shape(1); ++j)
+        {
+            mat(i, j) = sarr(j, i);
+        }
+    }
+
+    modmesh::SimpleArray<double> b = rhs;
+    int n = rhs.size();
+    modmesh::SimpleArray<int> ipiv(n);
+
+    int status;
+    int nn = mat.shape(0);
+    int bncol = 1;
+    int bnrow = b.shape(0);
+    int matnrow = mat.shape(1);
+
+    // FIXME: This call is not yet validated. I am not sure about the
+    // correctness of the solution.
+    dgesv_( // column major.
+        &nn // int * n: number of linear equation
+      , &bncol // int * nrhs: number of RHS
+      , mat.data() // double * a: array (lda, n)
+      , &matnrow // int * lda: leading dimension of array a
+      , ipiv.data() // int * ipiv: pivot indices
+      , b.data() // double * b: array (ldb, nrhs)
+      , &bnrow // int * ldb: leading dimension of array b
+      , &status // for column major matrix, ldb remains the leading dimension.
+    );
+
+    return b;
+}
 
 // [begin example: single fit]
 /**
  * This function calculates the least-square regression of a point cloud to a
  * polynomial function of a given order.
  */
-template <class AT>
-xt::xarray<double> fit_poly(AT & xarr, AT & yarr, size_t order)
+modmesh::SimpleArray<double> fit_poly
+(
+    modmesh::SimpleArray<double> const & xarr
+  , modmesh::SimpleArray<double> const & yarr
+  , size_t start
+  , size_t stop
+  , size_t order
+)
 {
     if (xarr.size() != yarr.size())
     {
@@ -24,7 +105,7 @@ xt::xarray<double> fit_poly(AT & xarr, AT & yarr, size_t order)
     }
 
     // The rank of the linear map is (order+1).
-    xt::xarray<double> matrix(std::vector<size_t>{order+1, order+1});
+    modmesh::SimpleArray<double> matrix(std::vector<size_t>{order+1, order+1});
 
     // Use the x coordinates to build the linear map for least-square
     // regression.
@@ -34,7 +115,7 @@ xt::xarray<double> fit_poly(AT & xarr, AT & yarr, size_t order)
         {
             double & val = matrix(it, jt);
             val = 0;
-            for (size_t kt=0; kt<xarr.size(); ++kt)
+            for (size_t kt=start; kt<stop; ++kt)
             {
                 val += pow(xarr[kt], it+jt);
             }
@@ -43,18 +124,18 @@ xt::xarray<double> fit_poly(AT & xarr, AT & yarr, size_t order)
 
     // Use the x and y coordinates to build the vector in the right-hand side
     // of the linear system.
-    xt::xarray<double> rhs(std::vector<size_t>{order+1});
+    modmesh::SimpleArray<double> rhs(std::vector<size_t>{order+1});
     for (size_t jt=0; jt<order+1; ++jt)
     {
         rhs[jt] = 0;
-        for (size_t kt=0; kt<yarr.size(); ++kt)
+        for (size_t kt=start; kt<stop; ++kt)
         {
             rhs[jt] += pow(xarr[kt], jt) * yarr[kt];
         }
     }
 
     // Solve the linear system for the least-square minimization.
-    xt::xarray<double> lhs = xt::linalg::solve(matrix, rhs);
+    modmesh::SimpleArray<double> lhs = solve(matrix, rhs);
     std::reverse(lhs.begin(), lhs.end()); // to make numpy.poly1d happy.
 
     return lhs;
@@ -66,18 +147,19 @@ xt::xarray<double> fit_poly(AT & xarr, AT & yarr, size_t order)
  * This function calculates the least-square regression of multiple sets of
  * point clouds to the corresponding polynomial functions of a given order.
  */
-template <class AT>
-xt::xarray<double> fit_polys
+modmesh::SimpleArray<double> fit_polys
 (
-    xt::xarray<double> & xarr, xt::xarray<double> & yarr, size_t order
+    modmesh::SimpleArray<double> const & xarr
+  , modmesh::SimpleArray<double> const & yarr
+  , size_t order
 )
 {
     size_t xmin = std::floor(*std::min_element(xarr.begin(), xarr.end()));
     size_t xmax = std::ceil(*std::max_element(xarr.begin(), xarr.end()));
     size_t ninterval = xmax - xmin;
 
-    xt::xarray<double> lhs(std::vector<size_t>{ninterval, order+1});
-    lhs.fill(0); // sentinel.
+    modmesh::SimpleArray<double> lhs(std::vector<size_t>{ninterval, order+1});
+    std::fill(lhs.begin(), lhs.end(), 0); // sentinel.
     size_t start=0;
     for (size_t it=0; it<xmax; ++it)
     {
@@ -91,14 +173,12 @@ xt::xarray<double> fit_polys
             if (xarr[stop]>=it+1) { break; }
         }
 
-        // Obtain the slice of the input that is to be processed in this
-        // iteration.
-        AT const sub_x = xt::view(xarr, xt::range(start, stop));
-        AT const sub_y = xt::view(yarr, xt::range(start, stop));
-
         // Use the single polynomial helper function.
-        xt::xarray<double> sub_lhs = fit_poly(sub_x, sub_y, order);
-        xt::view(lhs, it, xt::all()) = sub_lhs;
+        auto sub_lhs = fit_poly(xarr, yarr, start, stop, order);
+        for (size_t jt=0; jt<order+1; ++jt)
+        {
+            lhs(it, jt) = sub_lhs[jt];
+        }
 
         start = stop;
     }
@@ -113,28 +193,27 @@ xt::xarray<double> fit_polys
  */
 PYBIND11_MODULE(data_prep, m)
 {
-    using array_type = xt::xarray<double>;
+    // Boilerplate for using the SimpleArray with Python
+    {
+        modmesh::python::import_numpy();
+        modmesh::python::wrap_ConcreteBuffer(m);
+        modmesh::python::wrap_SimpleArray(m);
+    }
 
-    xt::import_numpy();
     m.def
     (
         "fit_poly"
       , []
         (
-            xt::pyarray<double> & xarr_in
-          , xt::pyarray<double> & yarr_in
+            pybind11::array_t<double> & xarr_in
+          , pybind11::array_t<double> & yarr_in
           , size_t order
         )
         {
-            std::vector<size_t> xarr_shape(xarr_in.shape().begin()
-                                         , xarr_in.shape().end());
-            xt::xarray<double> xarr = xt::adapt(xarr_in.data(), xarr_shape);
-
-            std::vector<size_t> yarr_shape(yarr_in.shape().begin()
-                                         , yarr_in.shape().end());
-            xt::xarray<double> yarr = xt::adapt(yarr_in.data(), yarr_shape);
-
-            return fit_poly(xarr, yarr, order);
+            auto xarr = modmesh::python::makeSimpleArray(xarr_in);
+            auto yarr = modmesh::python::makeSimpleArray(yarr_in);
+            auto ret = fit_poly(xarr, yarr, 0, xarr.size(), order);
+            return modmesh::python::to_ndarray(ret);
         }
     );
     m.def
@@ -142,18 +221,15 @@ PYBIND11_MODULE(data_prep, m)
         "fit_polys"
       , []
         (
-            xt::pyarray<double> & xarr_in
-          , xt::pyarray<double> & yarr_in
+            pybind11::array_t<double> & xarr_in
+          , pybind11::array_t<double> & yarr_in
           , size_t order
         )
         {
-            std::vector<size_t> xarr_shape(xarr_in.shape().begin()
-                                         , xarr_in.shape().end());
-            xt::xarray<double> xarr = xt::adapt(xarr_in.data(), xarr_shape);
-            std::vector<size_t> yarr_shape(yarr_in.shape().begin()
-                                         , yarr_in.shape().end());
-            xt::xarray<double> yarr = xt::adapt(yarr_in.data(), yarr_shape);
-            return fit_polys<array_type>(xarr, yarr, order);
+            auto xarr = modmesh::python::makeSimpleArray(xarr_in);
+            auto yarr = modmesh::python::makeSimpleArray(yarr_in);
+            auto ret = fit_polys(xarr, yarr, order);
+            return modmesh::python::to_ndarray(ret);
         }
     );
 }
