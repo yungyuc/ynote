@@ -34,6 +34,34 @@ file an issue on GitHub, send an email to the grader or me, or send a message in
 the private telegram chatroom.  (Preference is in that order and do not send
 homework assignments to the sciwork community.)
 
+.. _nsd-23sp-enroll:
+
+Enrollment Approval
+===================
+
+If the enrollment system says the course is full, it is full.  It is the limit
+of my resource for helping the class.  I do not take additional enrollment.  But
+if you can convince me that you will learn well without my help, I may consider.
+The necessary conditions to convince me are:
+
+1. Successfully build the teaching code https://github.com/solvcon/modmesh and
+   make sure it works.  Run at least two of its apps and know what they do.  If
+   you need help, do *not* email me.  Go to https://discord.gg/P9U7PFv instead.
+2. Follow :ref:`the email convention <nsd-23sp-email-convention>` to show me
+   the proof.
+
+If you can learn well without my help, you are capable of training yourself with
+the materials in the course without needing to take it.  If you do not
+understand what I meant, perhaps you still need my help.  I will offer the
+course in every semester and you can take it next time.  Alternately, join
+`sciwork <https://sciwork.dev>`__ and learn it with the broader community.
+
+.. note::
+
+  Learning with the community provides an opportunity to learn in your own pace.
+  Oftentimes it works better for coding than taking a course (including this
+  course).
+
 .. _nsd-23sp-email-convention:
 
 Email Convention
@@ -172,7 +200,7 @@ topic derived from them, but also encouraged to come up with an original one.
 .. _nsd-23sp-project-conarr:
 
 Contiguous Array
-================
+++++++++++++++++
 
 Multi-dimensional arrays of fundamental types and struct are a building block
 for numerical code.  It may be as simple as a pointer to a contiguous memory
@@ -194,7 +222,7 @@ A handy multi-dimensional array library should provide the following features:
 .. _nsd-23sp-project-columnar:
 
 Columnar Array
-==============
+++++++++++++++
 
 There are generally two ways to implement arrays of composite types.  One is to
 pack the composite data and use an array for them, i.e., the so-called array of
@@ -247,7 +275,7 @@ The requirements of the columnar array library:
 .. _nsd-23sp-project-graphpart:
 
 Graph Partitioning
-==================
+++++++++++++++++++
 
 Numerical solution of partial differential equations (PDEs) depends on
 discretization of space.  The entities describing the discretized space is
@@ -276,7 +304,7 @@ The graph partitioning code should support:
 .. _nsd-23sp-project-rtree:
 
 R-Tree Search Engine
-====================
+++++++++++++++++++++
 
 R-tree is an index to speed up searches in space.  It is usually referred to as
 a spatial index or just a tree.  In one-dimensional space, a common search tree
@@ -301,7 +329,7 @@ The requirements of an implementation of the R-Tree search engine are:
 .. _nsd-23sp-project-voronoi:
 
 Voronoi Diagram
-===============
++++++++++++++++
 
 The Voronoi diagram is a decomposition of a region that any point in a
 sub-region is closest to the site of the sub-region.  A classical example is to
@@ -321,7 +349,7 @@ The requirements of the Voronoi diagram code are:
 .. _nsd-23sp-project-curve:
 
 Parametric Description of Curved Geometry
-=========================================
++++++++++++++++++++++++++++++++++++++++++
 
 To describe the smooth geometry of an object in space, Bezier curves are
 usually used.  The spatial discretization may be applied on the objects for
@@ -337,7 +365,7 @@ The requirements of the Bezier code:
 .. _nsd-23sp-project-polybool:
 
 Boolean Operations on Polygons
-==============================
+++++++++++++++++++++++++++++++
 
 In Euclidean space we are interested in finding the Boolean, i.e., AND, OR,
 NOT, XOR, of polygons.  The polygonal Boolean operations are useful when we
