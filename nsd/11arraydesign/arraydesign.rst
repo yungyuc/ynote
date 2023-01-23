@@ -276,10 +276,9 @@ While numpy does speed up the naive Python loops, it has two drawbacks:
    method.
 
 Here we will see how much faster it can get to move the code from numpy to C++.
-To simplify the algorithm implementation, I use a library named `xtensor
-<http://xtensor.readthedocs.io/>`_.  It defines the multi-dimensional array
-data structure suitable for compile-time optimization.  An array library like
-that makes it easy to organize the code and achieve faster runtime.
+To simplify the implementation, I use an array library from `modmesh
+<https://github.com/solvcon/modmesh>`_.  It helps to organize the code and
+achieve faster runtime.
 
 Except the parentheses, the C++ version looks almost the same as the Python
 version.
@@ -1534,33 +1533,25 @@ elsewhere <https://github.com/solvcon/modmesh>`__):
 Exercises
 =========
 
-1. xtensor allows writing array-based code in C++, just like what numpy does
-   for Python.  Use xtensor to write array-based code in C++ by modifying the
-   C++ version of the point-Jacobi solver.  The array-based C++ version should
-   not have the inner loops.
-2. By allowing changing the signature of the function ``fit_poly()``, how can
+1. By allowing changing the signature of the function ``fit_poly()``, how can
    we ensure the shapes of ``xarr`` and ``yarr`` to be the same, without the
    explicit check with ``"xarr and yarr size mismatch"``?  Write code to show.
 
 References
 ==========
 
-.. [1] xtensor; multi-dimensional arrays with broadcasting and lazy computing:
-   https://xtensor.readthedocs.io
+.. [1] modmesh: https://github.com/solvcon/modmesh
 
-.. [2] xtensor-python; Python bindings for the xtensor C++ multi-dimensional
-   array library: https://xtensor-python.readthedocs.io
-
-.. [3] pybind11 Seamless operability between C++11 and Python:
+.. [2] pybind11 Seamless operability between C++11 and Python:
    https://pybind11.readthedocs.io/en/stable/
 
-.. [4] IPython / Jupyter integration for pybind11:
+.. [3] IPython / Jupyter integration for pybind11:
    https://github.com/aldanor/ipybind
 
-.. [5] Memory Layout Transformations:
+.. [4] Memory Layout Transformations:
    https://software.intel.com/content/www/us/en/develop/articles/memory-layout-transformations.html
 
-.. [6] Chapter 31 - Abstraction for AoS and SoA Layout in C++, *GPU Computing
+.. [5] Chapter 31 - Abstraction for AoS and SoA Layout in C++, *GPU Computing
    Gems Jade Edition*, pp. 429-441, Robert Strzodka, January 1, 2012.
    http://www.sciencedirect.com/science/article/pii/B9780123859631000319
 

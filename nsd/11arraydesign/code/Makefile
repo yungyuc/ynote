@@ -67,25 +67,22 @@ testimport: libst
 data_prep.so: data_prep.cpp Makefile
 	g++ $< -o $@ -O3 -fPIC -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB) ${INC} -I${MKLINC} ${MKLLINKLINE}
 
-solve_cpp.so: solve_cpp.cpp Makefile
-	g++ solve_cpp.cpp -o $@ -O3 -fPIC -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB) ${INC}
+solve_cpp_xarray.so: solve_cpp_xarray.cpp Makefile
+	g++ $< -o $@ -O3 -fPIC -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB) ${INC}
 
-../image/03_solve_cpp.png: 03_solve_cpp.py solve_cpp.so
+../image/03_solve_cpp_xarray.png: 03_solve_cpp_xarray.py solve_cpp_xarray.so
 	./$<
 
-solve_cpp_simplearray.so: \
-	solve_cpp_simplearray.cpp \
-	$(MODMESH_PYMOD)/wrap_SimpleArray.cpp \
-	$(MODMESH_PYMOD)/wrap_ConcreteBuffer.cpp \
-	$(MODMESH_PYMOD)/buffer_pymod.cpp \
-	Makefile
-	g++ -c solve_cpp_simplearray.cpp -o solve_cpp_simplearray.o -O3 -fPIC -std=c++17 ${INC}
-	g++ -c $(MODMESH_PYMOD)/wrap_ConcreteBuffer.cpp -o wrap_ConcreteBuffer.o -O3 -fPIC -std=c++17 ${INC}
-	g++ -c $(MODMESH_PYMOD)/wrap_SimpleArray.cpp -o wrap_SimpleArray.o -O3 -fPIC -std=c++17 ${INC}
-	g++ -c $(MODMESH_PYMOD)/buffer_pymod.cpp -o buffer_pymod.o -O3 -fPIC -std=c++17 ${INC}
-	g++ solve_cpp_simplearray.o wrap_ConcreteBuffer.o wrap_SimpleArray.o buffer_pymod.o -o $@ -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB)
+%.o: $(MODMESH_PYMOD)/%.cpp Makefile
+	g++ -c $< -o $@ -O3 -fPIC -std=c++17 ${INC}
 
-../image/03_solve_cpp_simplearray.png: 03_solve_cpp_simplearray.py solve_cpp_simplearray.so
+solve_cpp.o: solve_cpp.cpp Makefile
+	g++ -c $< -o $@ -O3 -fPIC -std=c++17 ${INC}
+
+solve_cpp.so: solve_cpp.o wrap_SimpleArray.o wrap_ConcreteBuffer.o buffer_pymod.o Makefile
+	g++ solve_cpp.o wrap_ConcreteBuffer.o wrap_SimpleArray.o buffer_pymod.o -o $@ -shared -std=c++17 -lpython$(PYTHON_VERSION) -L$(PYTHON_LIB)
+
+../image/03_solve_cpp.png: 03_solve_cpp.py solve_cpp.so
 	./$<
 
 ../image/04_fit_poly.png: 04_fit_poly.py data_prep.so

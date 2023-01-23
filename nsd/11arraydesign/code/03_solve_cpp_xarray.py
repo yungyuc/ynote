@@ -16,7 +16,7 @@ def make_grid():
 nx, x, uoriginal = make_grid()
 
 # [begin example]
-import solve_cpp_simplearray
+import solve_cpp_xarray
 # [end example]
 
 import time
@@ -30,7 +30,7 @@ class Timer:
 
 # [begin pycon]
 with Timer():
-    u, step, norm = solve_cpp_simplearray.solve_cpp(uoriginal)
+    u, step, norm = solve_cpp_xarray.solve_cpp(uoriginal)
 # [end pycon]
 
 from matplotlib import pyplot as plt
@@ -38,7 +38,7 @@ from matplotlib import pyplot as plt
 def show_result(u, step, norm, size=7):
     print("step", step, "norm", norm)
     fig, ax = plt.subplots(figsize=(size,size))
-    cs = ax.contour(x, x, u.ndarray.T)
+    cs = ax.contour(x, x, u.T)
     ax.clabel(cs, inline=1, fontsize=10)
 
     ax.set_xticks(np.linspace(0,1,6))
