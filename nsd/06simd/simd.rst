@@ -766,22 +766,24 @@ Exercises
 References
 ==========
 
-.. [1] Crunching Numbers with AVX and AVX2 (AVX tutorials):
+.. [1] :doc:`./example`
+
+.. [2] Crunching Numbers with AVX and AVX2 (AVX tutorials):
    https://www.codeproject.com/Articles/874396/Crunching-Numbers-with-AVX-and-AVX
 
-.. [2] Agner Fog (Agner's website): https://www.agner.org
+.. [3] Agner Fog (Agner's website): https://www.agner.org
 
    * Instruction table (latency information):
      https://www.agner.org/optimize/instruction_tables.pdf
    * Software optimization resources: https://www.agner.org/optimize/
 
-.. [3] x86 and amd64 instruction reference (unofficial) by Félix Cloutier:
+.. [4] x86 and amd64 instruction reference (unofficial) by Félix Cloutier:
    https://www.felixcloutier.com/x86/
 
-.. [4] Intel Intrinsics Guide:
+.. [5] Intel Intrinsics Guide:
    https://software.intel.com/sites/landingpage/IntrinsicsGuide/
 
-.. [5] Yung-Yu Chuang, NTU, Computer Organization and Assembly Languages:
+.. [6] Yung-Yu Chuang, NTU, Computer Organization and Assembly Languages:
    https://www.csie.ntu.edu.tw/~cyy/courses/assembly/12fall/news/
 
 .. [6] Randal Bryant and Nathan Beckmann, CMU 15-418/15-618: Parallel Computer

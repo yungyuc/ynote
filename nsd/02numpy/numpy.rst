@@ -1380,7 +1380,9 @@ Exercises
 References
 ==========
 
-.. [1] `Broadcasting arrays in Numpy
+.. [1] :doc:`./example`
+
+.. [2] `Broadcasting arrays in Numpy
    <https://eli.thegreenplace.net/2015/broadcasting-arrays-in-numpy/>`__ by Eli
    Bendersky
 

@@ -1613,4 +1613,9 @@ Exercises
         return 0;
     }
 
+References
+==========
+
+.. [1] :doc:`./example`
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

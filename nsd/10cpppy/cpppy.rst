@@ -169,8 +169,8 @@ Python and the staticity in C++.  You can directly call pybind11_ API, but a
 better way is to create an additional wrapping layer between the code that uses
 pybind11 and your library code.  It allows to insert additional code in a
 systematic way.  Since it is not easy to see the point in a small example, I
-pull in the code for `a bigger project "turgon"
-<https://github.com/yungyuc/turgon>`__ for demonstration.
+pull in the code for `a slightly bigger project (modmesh)
+<https://github.com/solvcon/modmesh>`__ for demonstration.
 
 Intermediate Class Template
 +++++++++++++++++++++++++++
@@ -2022,9 +2022,11 @@ Exercises
 References
 ==========
 
-.. [1] Project turgon (work in progress): https://github.com/yungyuc/turgon.
+.. [1] :doc:`./example`
 
-.. [2] S.C. Chang, "The Method of Space-Time Conservation Element and Solution
+.. [2] modmesh: https://github.com/solvcon/modmesh
+
+.. [3] S.C. Chang, "The Method of Space-Time Conservation Element and Solution
    Element -- A New Approach for Solving the Navier-Stokes and Euler
    Equations," J. Comput. Phys., 119, pp. 295-324, (1995).  DOI:
    `10.1006/jcph.1995.1137 <https://doi.org/10.1006/jcph.1995.1137>`__

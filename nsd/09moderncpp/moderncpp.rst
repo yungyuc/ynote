@@ -1528,14 +1528,16 @@ Exercises
 References
 ==========
 
-.. [1] `Copy elision
+.. [1] :doc:`./example`
+
+.. [2] `Copy elision
   <https://en.cppreference.com/w/cpp/language/copy_elision>`__ at
   cppreference.com .
 
-.. [2] `Lambda expressions
+.. [3] `Lambda expressions
   <https://en.cppreference.com/w/cpp/language/lambda>`__ at cppreference.com .
 
-.. [3] `C++ Lambdas Under The Hood
+.. [4] `C++ Lambdas Under The Hood
   <https://web.mst.edu/~nmjxv3/articles/lambdas.html>`__
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

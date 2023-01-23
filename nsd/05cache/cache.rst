@@ -96,7 +96,7 @@ Memory comes in many kinds in the hierarchy.  I put them in 4 categories:
      * sequential read 8 GB/s
      * write 3.8 GB/s
 
-Here is a table (excerpt from Figure 6.23 in CS:APP (3/e)) [1]_ showing the
+Here is a table (excerpt from Figure 6.23 in CS:APP (3/e)) [2]_ showing the
 latency of each of the memory, measured in CPU cycle (less than 1 ns):
 
 .. table:: Latency at each level of hierarchical memory
@@ -697,18 +697,20 @@ Exercises
 References
 ==========
 
-.. [1] Computer Systems: A Programmer's Perspective, Chapter 6 The Memory
+.. [1] :doc:`./example`
+
+.. [2] Computer Systems: A Programmer's Perspective, Chapter 6 The Memory
   Hierarchy, Randal E. Bryant and David R. O'Hallaron:
   https://csapp.cs.cmu.edu/
 
-.. [2] Gallery of Processor Cache Effects:
+.. [3] Gallery of Processor Cache Effects:
   http://igoro.com/archive/gallery-of-processor-cache-effects/
 
-.. [3] Lecture Notes of Applications of Parallel Computers by David Bindel:
+.. [4] Lecture Notes of Applications of Parallel Computers by David Bindel:
   https://www.cs.cornell.edu/~bindel/class/cs5220-s10/slides/lec03.pdf
 
-.. [4] https://en.wikichip.org/wiki/WikiChip
+.. [5] https://en.wikichip.org/wiki/WikiChip
 
-.. [5] https://www.uops.info/
+.. [6] https://www.uops.info/
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

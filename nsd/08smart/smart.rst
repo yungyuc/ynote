@@ -1322,4 +1322,9 @@ Exercises
 3. Compare the runtime performance between ``shared_ptr(new Type)`` and
    ``make_shared<Type>``.  Explain why there is a difference of performance.
 
+References
+==========
+
+.. [1] :doc:`./example`
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

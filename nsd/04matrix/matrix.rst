@@ -18,14 +18,14 @@ me on the anecdotal statement.
 Linear Algebra
 ==============
 
-One of the most frequent use of matrices is linear algebra.  BLAS_ [1]_ and
-LAPACK_ [2]_ are the two most important libraries for numerical calculations for
+One of the most frequent use of matrices is linear algebra.  BLAS_ [2]_ and
+LAPACK_ [3]_ are the two most important libraries for numerical calculations for
 linear algebra.  BLAS stands for Basic Linear Algebra Subprograms, and LAPACK is
 Linear Algebra PACKage.  They were originally developed in Fortran_.  The
 Fortran code is still being maintained today, and serves as a reference
 implementation.  Production code is encouraged to use the vendor-optimized
-implementation, e.g., Intel's Math Kernel Library (MKL) [3]_, Apple's
-Accelerate/vecLib [4]_, etc.
+implementation, e.g., Intel's Math Kernel Library (MKL) [4]_, Apple's
+Accelerate/vecLib [5]_, etc.
 
 BLAS is organized at 3 levels:
 
@@ -211,7 +211,7 @@ Variable-Length Array
 
 The C++ multi-dimensional array index is convenient, but it doesn't always work
 when the array size is unknown in the compile time, which is also known as
-variable-length arrays (VLA).  VLA is included in the C standard [6]_, but not
+variable-length arrays (VLA).  VLA is included in the C standard [7]_, but not
 in the C++ standard.
 
 ``g++`` accepts the following code for GCC provides the `VLA extension
@@ -588,7 +588,7 @@ matrix and vector.
   y_i = \sum_{j=1}^n A_{ij} x_j, \quad i = 1, \ldots, m
 
 By applying `Einstein's summation convention
-<https://mathworld.wolfram.com/EinsteinSummation.html>`__ [7]_, the summation
+<https://mathworld.wolfram.com/EinsteinSummation.html>`__ [8]_, the summation
 sign may be suppressed to use the repeated indices for summation
 
 .. math::
@@ -934,7 +934,7 @@ good way to work around the brute-force, N-cube algorithm.
 
 .. note::
 
-  An algorithm of slightly lower complexity in time is available [8]_, but not
+  An algorithm of slightly lower complexity in time is available [9]_, but not
   discussed here.  We use the naive algorithm to focus the discussions on the
   code development.
 
@@ -1765,27 +1765,26 @@ References
 .. _LAPACK: http://www.netlib.org/lapack/
 .. _Fortran: https://fortran-lang.org
 
-.. [1] BLAS: http://www.netlib.org/blas/.
+.. [1] :doc:`./example`
 
-.. [2] LAPACK: http://www.netlib.org/lapack/.
+.. [2] BLAS: http://www.netlib.org/blas/.
 
-.. [3] MKL: https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/onemkl.html.
+.. [3] LAPACK: http://www.netlib.org/lapack/.
 
-.. [4] vecLib: https://developer.apple.com/documentation/accelerate/veclib.
+.. [4] MKL: https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/onemkl.html.
 
-.. [5] G. Strang, Linear Algebra and Its Applications, 4th ed. Belmont, Calif: Thomson, Brooks/Cole, 2006.
+.. [5] vecLib: https://developer.apple.com/documentation/accelerate/veclib.
 
-.. [6]
+.. [6] G. Strang, Linear Algebra and Its Applications, 4th ed. Belmont, Calif: Thomson, Brooks/Cole, 2006.
+
+.. [7]
   C11 standard final draft N1570, C 6.7.6.2, April, 2011:
   http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
 
-.. [7] Einstein Summation: https://mathworld.wolfram.com/EinsteinSummation.html
-
-.. [8]
-  Strassen, Volker, Gaussian elimination is not optimal, Numer. Math. 13, p.
-  354-356, 1969.  https://doi.org/10.1007/BF02165411
+.. [8] Einstein Summation: https://mathworld.wolfram.com/EinsteinSummation.html
 
 .. [9]
-  :doc:`example`
+  Strassen, Volker, Gaussian elimination is not optimal, Numer. Math. 13, p.
+  354-356, 1969.  https://doi.org/10.1007/BF02165411
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:

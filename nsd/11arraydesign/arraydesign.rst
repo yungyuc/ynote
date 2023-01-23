@@ -1540,18 +1540,20 @@ Exercises
 References
 ==========
 
-.. [1] modmesh: https://github.com/solvcon/modmesh
+.. [1] :doc:`./example`
 
-.. [2] pybind11 Seamless operability between C++11 and Python:
+.. [2] modmesh: https://github.com/solvcon/modmesh
+
+.. [3] pybind11 Seamless operability between C++11 and Python:
    https://pybind11.readthedocs.io/en/stable/
 
-.. [3] IPython / Jupyter integration for pybind11:
+.. [4] IPython / Jupyter integration for pybind11:
    https://github.com/aldanor/ipybind
 
-.. [4] Memory Layout Transformations:
+.. [5] Memory Layout Transformations:
    https://software.intel.com/content/www/us/en/develop/articles/memory-layout-transformations.html
 
-.. [5] Chapter 31 - Abstraction for AoS and SoA Layout in C++, *GPU Computing
+.. [6] Chapter 31 - Abstraction for AoS and SoA Layout in C++, *GPU Computing
    Gems Jade Edition*, pp. 429-441, Robert Strzodka, January 1, 2012.
    http://www.sciencedirect.com/science/article/pii/B9780123859631000319
 

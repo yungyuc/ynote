@@ -1033,4 +1033,9 @@ Exercises
 2. When using a single thread, what is the runtime overhead of the instance
    counting technique?  Write a program and analyze.
 
+References
+==========
+
+.. [1] :doc:`./example`
+
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2:
