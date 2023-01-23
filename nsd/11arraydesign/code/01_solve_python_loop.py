@@ -16,7 +16,6 @@ def make_grid():
 
 nx, x, uoriginal = make_grid()
 
-# [begin example]
 import time
 import numpy as np
 
@@ -27,9 +26,10 @@ class Timer:
         self._t1 = time.time()
         print("Wall time: {:g} s".format(self._t1 - self._t0))
 
+# [begin example]
 def solve_python_loop():
-    u = uoriginal.copy()
-    un = u.copy()
+    u = uoriginal.copy()  # Input from outer scope
+    un = u.copy()  # Create the buffer for the next time step
     converged = False
     step = 0
     # Outer loop.
@@ -43,12 +43,12 @@ def solve_python_loop():
         u[...] = un[...]
         converged = True if norm < 1.e-5 else False
     return u, step, norm
+# [end example]
 
 with Timer():
     u, step, norm = solve_python_loop()
 
 print(step)
-# [end example]
 
 # Run the Python solver
 def show_result(u, step, norm, size=7):

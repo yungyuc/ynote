@@ -15,12 +15,12 @@ def make_grid():
 
 nx, x, uoriginal = make_grid()
 
-# [begin example]
 import numpy as np
 
+# [begin example]
 def solve_array():
-    u = uoriginal.copy()
-    un = u.copy()
+    u = uoriginal.copy()  # Input from outer scope
+    un = u.copy()  # Create the buffer for the next time step
     converged = False
     step = 0
     while not converged:

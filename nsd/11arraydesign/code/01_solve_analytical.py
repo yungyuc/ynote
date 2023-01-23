@@ -15,9 +15,9 @@ def make_grid():
 
 nx, x, uoriginal = make_grid()
 
-# [begin example]
 import numpy as np
 
+# [begin example]
 def solve_analytical():
     u = np.empty((len(x), len(x)), dtype='float64')
     for ix, cx in enumerate(x):
@@ -26,8 +26,8 @@ def solve_analytical():
 # [end example]
 
 def solve_python_loop():
-    u = uoriginal.copy()
-    un = u.copy()
+    u = uoriginal.copy()  # Input from outer scope
+    un = u.copy()  # Create the buffer for the next time step
     converged = False
     step = 0
     # Outer loop.
