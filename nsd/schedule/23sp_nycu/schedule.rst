@@ -40,13 +40,13 @@ Enrollment Approval
 ===================
 
 If the enrollment system says the course is full, it is full.  It is the limit
-of my resource for helping the class.  I do not take additional enrollment.  But
-if you can convince me that you will learn well without my help, I may consider.
-The necessary conditions to convince me are:
+of my resource for helping the class.  I do not plan to take additional
+enrollment, but if you can convince me that you will learn well without my help,
+I would consider.  The necessity of convincing me is:
 
 1. Successfully build the teaching code https://github.com/solvcon/modmesh and
    make sure it works.  Run at least two of its apps and know what they do.  If
-   you need help, do *not* email me.  Go to https://discord.gg/P9U7PFv instead.
+   you need help, go to https://discord.gg/P9U7PFv.
 2. Follow :ref:`the email convention <nsd-23sp-email-convention>` to show me
    the proof.
 
