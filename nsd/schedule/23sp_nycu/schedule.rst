@@ -42,7 +42,7 @@ Enrollment Approval
 If the enrollment system says the course is full, it is full.  It is the limit
 of my resource for helping the class.  I do not plan to take additional
 enrollment, but if you can convince me that you will learn well without my help,
-I would consider.  The necessity of convincing me is:
+I will consider.  The necessity of convincing me is:
 
 1. Successfully build the teaching code https://github.com/solvcon/modmesh and
    make sure it works.  Run at least two of its apps and know what they do.  If
@@ -51,16 +51,15 @@ I would consider.  The necessity of convincing me is:
    the proof.
 
 If you can learn well without my help, you are capable of training yourself with
-the materials in the course without needing to take it.  If you do not
-understand what I meant, perhaps you still need my help.  I will offer the
-course in every semester and you can take it next time.  Alternately, join
-`sciwork <https://sciwork.dev>`__ and learn it with the broader community.
+the materials without needing to take the course.  If you do not understand what
+I meant, perhaps you still need my help.  I will offer the course in every
+semester and you can take it next time.  Alternately, join `sciwork
+<https://sciwork.dev>`__ and learn it with the broader community.
 
 .. note::
 
-  Learning with the community provides an opportunity to learn in your own pace.
-  Oftentimes it works better for coding than taking a course (including this
-  course).
+  Learning with the community provides an opportunity to do it in your own pace.
+  Oftentimes it works better for coding than taking the course.
 
 .. _nsd-23sp-email-convention:
 
@@ -135,7 +134,7 @@ if necessary.
     -
   * - 12
     - 5/1
-    - No meeting (laber day)
+    - No meeting (labor day)
     -
   * - 13
     - 5/8
