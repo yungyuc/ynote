@@ -14,8 +14,8 @@ git, make, etc.) to learn the modern development processes.  This is a practical
 course for making software.  The grade composition is: homework 30%, mid-term
 exam 30%, and term project 40%.
 
-Practical skills can only be acquired by practicing.  It is why the project is
-so much emphasized.  If you are not familiar with self-learning, it will be
+Practical skills can only be acquired by practicing.  It is why the term project
+is so much emphasized.  If you are not familiar with self-learning, it will be
 difficult for you, so I would like to offer additional help.  One of the help is
 the `sciwork community <https://sciwork.dev>`__.  It is set up to help people
 who want to write scientific code.  I understand that it may be difficult for
@@ -30,9 +30,8 @@ The second thing I would like you to know is the practicing homework assignment
 both GitHub PR and E3.  I created the homework #0 to help you practice the use
 of GitHub, and a demonstration is provided at
 https://github.com/yungyuc/nsdhw_23sp/pull/1.  Should you have any questions,
-file an issue on GitHub, send an email to the grader or me, or send a message in
-the private telegram chatroom.  (Preference is in that order and do not send
-homework assignments to the sciwork community.)
+file an issue on GitHub or send an email to the grader or me.  (Preference is in
+that order and do not send homework assignments to the sciwork community.)
 
 .. _nsd-23sp-enroll:
 
