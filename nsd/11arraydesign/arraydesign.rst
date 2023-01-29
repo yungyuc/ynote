@@ -192,8 +192,8 @@ where :math:`\alpha_n = b_nd_n`.  Apply the last boundary condition
 
   u(1,y) = \sin(\pi y) = \sum_{n=1}^{\infty}\alpha_n\sinh(n\pi)\sin(n\pi)
 
-It is obtained that :math:`\alpha_1 = \sinh^{-1}(\pi)` and :math:`\alpha_k = 0
-\forall k = 2, 3, \ldots`.  The solution of :math:`u` is obtained:
+to obtain that :math:`\alpha_1 = \sinh^{-1}(\pi)` and :math:`\alpha_n = 0 \;
+\forall \; n > 1`.  The solution of :math:`u` is then determined:
 
 .. math::
 
