@@ -171,9 +171,8 @@ problem.  Everyone needs to *individually* write a proposal, develop the code,
 and present the project to the class at the end of the course.  The grading
 guidelines are described in :doc:`../../project/project`.
 
-The software needs to be open-source, hosted on `github.com
-<https://github.com/>`__, and executable on `Ubuntu 20.04 LTS
-<http://releases.ubuntu.com/20.04/>`__ on 64-bit x86 through command line.
+The software needs to be open-source and hosted on `github.com
+<https://github.com/>`__.  It should be executable through command line.
 Building the software should use a single command.
 
 The project proposal should be submit through `the homework repository
