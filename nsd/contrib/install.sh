@@ -159,8 +159,8 @@ pybind11() {
   cmakeargs+=("-DPYTHON_EXECUTABLE:FILEPATH=`which python3`")
   cmakeargs+=("-DPYBIND11_TEST=OFF")
   cmake_install sudo \
-    ${PYBIND_ORG:-pybind} pybind11 ${PYBIND_BRANCH:-v2.6.2} \
-    ${PYBIND_LOCAL:-pybind11-2.6.2} "${cmakeargs[@]}"
+    ${PYBIND_ORG:-pybind} pybind11 ${PYBIND_BRANCH:-v2.9.2} \
+    ${PYBIND_LOCAL:-pybind11-2.9.2} "${cmakeargs[@]}"
 
 }
 
@@ -209,6 +209,7 @@ xtensor_blas() {
 xtensor_python() {
 
   cmakeargs=("-DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}")
+  cmakeargs+=("-DPYTHON_EXECUTABLE:FILEPATH=`which python3`")
   cmakeargs+=("-DCMAKE_BUILD_TYPE=Release")
   cmake_install sudo \
     ${XTENSOR_PYTHON_ORG:-xtensor-stack} xtensor-python \
