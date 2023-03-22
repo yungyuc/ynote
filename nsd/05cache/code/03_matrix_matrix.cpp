@@ -295,6 +295,44 @@ Matrix multiply_indirect(Matrix const & mat1, Matrix const & mat2)
 }
 
 /*
+ * Indirect naive matrix matrix multiplication but loop in a different order
+ * (i,j,k).  It is much faster than the original order (i,k,j), but I do not
+ * know why (yet)!
+ */
+Matrix multiply_indirect_order1(Matrix const & mat1, Matrix const & mat2)
+{
+    validate_multiplication(mat1, mat2);
+
+    Matrix ret(mat1.nrow(), mat2.ncol());
+
+    StopWatch sw;
+
+    for (size_t i=0; i<ret.nrow(); ++i)
+    {
+        for (size_t j=0; j<ret.ncol(); ++j)
+        {
+            ret(i,j) = 0;
+        }
+    }
+
+    for (size_t i=0; i<mat1.nrow(); ++i)
+    {
+        for (size_t j=0; j<mat1.ncol(); ++j)
+        {
+            for (size_t k=0; k<mat2.ncol(); ++k)
+            {
+                ret(i,k) += mat1(i,j) * mat2(j,k);
+            }
+        }
+    }
+
+    ret.elapsed() = sw.lap();
+    ret.nflo() = calc_nflo(mat1, mat2);
+
+    return ret;
+}
+
+/*
  * Direct naive matrix matrix multiplication.
  */
 Matrix multiply_direct(Matrix const & mat1, Matrix const & mat2)
@@ -536,6 +574,10 @@ Matrix time_tile(
         {
             runner = multiply_indirect;
         }
+        else if ("indirect_order1" == tag)
+        {
+            runner = multiply_indirect_order1;
+        }
         else if ("direct" == tag)
         {
             runner = multiply_direct;
@@ -579,6 +621,7 @@ int main(int argc, char ** argv)
     Matrix mat_gold = time_tile("mkl", nullptr, mat1, mat2);
 
     time_tile("indirect", &mat_gold, mat1, mat2);
+    time_tile("indirect_order1", &mat_gold, mat1, mat2);
     time_tile("direct", &mat_gold, mat1, mat2);
 
     time_tile<32>("", &mat_gold, mat1, mat2);
