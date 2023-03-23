@@ -296,8 +296,8 @@ Matrix multiply_indirect(Matrix const & mat1, Matrix const & mat2)
 
 /*
  * Indirect naive matrix matrix multiplication but loop in a different order
- * (i,j,k).  It is much faster than the original order (i,k,j), but I do not
- * know why (yet)!
+ * (i,j,k).  It is much faster than the original order (i,k,j), because mat2
+ * now has a much better locality.
  */
 Matrix multiply_indirect_order1(Matrix const & mat1, Matrix const & mat2)
 {
