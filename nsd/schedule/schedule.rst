@@ -5,6 +5,7 @@ Schedule
 .. toctree::
   :maxdepth: 1
 
+  23au_nycu/schedule23au
   23sp_nycu/schedule
 
 .. Future
