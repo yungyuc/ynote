@@ -13,12 +13,13 @@ engineering problems.  We will be using Python, C++, and other tools (e.g.,
 bash, git, make, etc.) to learn the modern development processes.  This is a
 practical course.
 
-Homework takes 30% of grade, mid-term exam 30%, and term project 40%.
+Homework takes 30% of grade, mid-term exam 30%, and term project 40%.  You need
+to submit homework assignments using both GitHub PR (the homework repository
+https://github.com/yungyuc/nsdhw_23au) and E3.
 
-You need to submit homework assignments using both GitHub PR (the homework
-repository https://github.com/yungyuc/nsdhw_23au) and E3.  Should you have any
-questions, send an email to the grader or me.  If the question is about the
-materials on the homework repository, you may file an issue.
+.. warning::
+
+  Please read everything carefully before taking this course.
 
 .. _nsd-23au-project:
 
@@ -26,15 +27,14 @@ Term Project
 ============
 
 Practical skills can only be acquired by practicing.  The term project is design
-for the practice.  Please carefully read the information in
-:doc:`../../project/project` before taking this course.
+for the practice.  Please read about it at :doc:`../../project/project`.
 
 The course requests you to find a topic to code for.  Because most people are
-not familiar with numerical software, it may be difficult.  Joining the `sciwork
-community <https://sciwork.dev>`__ allows you to ask for help from the
-community.  Please join the discord server https://discord.gg/6MAkFrD and follow
-the rules.  (If you simply want to make friends who care about numerical
-software, welcome too.)
+not familiar with numerical software, it may be difficult.  I work with the
+`sciwork community <https://sciwork.dev>`__ to let you obtain additional help
+from the community.  Please join the discord server https://discord.gg/6MAkFrD
+and follow the rules.  (If you simply want to make friends who code, welcome
+too.)
 
 The project proposal should be submit through the homework repository
 https://github.com/yungyuc/nsdhw_23au.
@@ -60,12 +60,14 @@ semester and you can take it next time.  Alternately, join `sciwork
 
 .. _nsd-23sp-email-convention:
 
-Email Convention
-================
+Email Discussions
+=================
 
 Should you have any questions about the course, please send me :ref:`an email
 <contact>` with the subject line starting with ``[nsd-course]``.  Email is a
-great tool for serious discussions and I prefer it.
+great tool for serious discussions and I prefer it.  For homework grading,
+please send an email to the grader.  If the question is about the materials on
+the homework repository, you may file an issue.
 
 .. _nsd-23au-time-table:
 
