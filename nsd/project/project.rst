@@ -172,7 +172,7 @@ Graph Partitioning
 ++++++++++++++++++
 
 Numerical solution of partial differential equations (PDEs) depends on
-discretization of space.  The entities describing the discretized space is
+discretization of space.  The entities describing the discretized space are
 called grid or mesh.  The mesh can be broadly categorized into structured and
 unstructured mesh.  The latter is more flexible than the former.
 
@@ -239,6 +239,31 @@ The requirements of the Voronoi diagram code are:
    diagram using a serial (integer) number.  The index access implies the
    entities and the Voronoi diagram are associated with each other.
 3. Fast searching for nearby entities is supported with a spatial index.
+
+.. _nsd-project-meshconv:
+
+Mesh Data Conversion
+++++++++++++++++++++
+
+Numerical solution of partial differential equations (PDEs) depends on
+discretization of space.  The entities describing the discretized space are
+called grid or mesh.  To successful carry out the numerical analysis, there are
+3 types of codes: (i) a mesh generator creates the mesh, (ii) a solver computes
+the solution, and (iii) a visualizer provides the analysis.  The mesh data play
+a central role among the codes.
+
+Different codes take different formats for the mesh data.  There needs to be
+another code to convert the mesh and solution data for the corresponding codes.
+The converting code should work as a standalone executable.  It will be good
+if the code also works as a library to be plugged in other associated codes for
+easier automation.
+
+Examples of the numerical analytical codes:
+
+1. `Plot3D <https://en.wikipedia.org/wiki/PLOT3D_file_format>`__ is a NASA code
+   to visualize solution with structured mesh.  It's format is also used by many
+   computing code as mesh input.
+2. `SU2 <https://su2code.github.io>`__ is a solver for fluid dynamics.
 
 .. _nsd-project-curve:
 
