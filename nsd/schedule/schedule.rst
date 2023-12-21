@@ -7,8 +7,13 @@ Schedule
 
   23au_nycu/schedule23au
 
-.. Future
-.. ======
+Future
+======
+
+.. toctree::
+  :maxdepth: 1
+
+  24sp_nycu/schedule24sp
 
 Past
 ====
