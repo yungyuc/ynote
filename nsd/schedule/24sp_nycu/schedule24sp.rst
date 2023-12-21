@@ -5,7 +5,7 @@ NSD Schedule 2024 Spring NYCU
 .. begin schedule contents
 
 `Link to NYCU course system.
-<https://timetable.nctu.edu.tw/?r=main/crsoutline&Acy=112&Sem=1&CrsNo=535702>`__
+<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=112&Sem=2&CrsNo=535703>`__
 
 The course introduces the art of building numerical software, i.e., computer
 programs applying numerical methods for solving mathematical, scientific, or
