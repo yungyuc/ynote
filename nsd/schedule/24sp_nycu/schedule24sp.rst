@@ -100,20 +100,20 @@ meetings may be added if necessary.
     - proposal open
   * - 4
     - 3/11
-    - No meeting
-    -
-  * - 5
-    - 3/18
     - Unit 3: :doc:`../../03cpp/cpp`
     - hw #2
+  * - 5
+    - 3/18
+    - Unit 4: :doc:`../../04matrix/matrix`
+    -
   * - 6
     - 3/25
-    - Unit 4: :doc:`../../04matrix/matrix`
-    - proposal due
+    - Unit 5: :doc:`../../05cache/cache`
+    - hw #3; proposal due
   * - 7
     - 4/1
-    - Unit 5: :doc:`../../05cache/cache`
-    - hw #3
+    - Proposal review
+    -
   * - 8
     - 4/8
     - Mid-term examination
@@ -156,7 +156,7 @@ meetings may be added if necessary.
     -
   * - 18
     - 6/17
-    - To be planned
+    - No meeting
     -
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:

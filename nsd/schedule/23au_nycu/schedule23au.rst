@@ -156,7 +156,7 @@ meetings may be added if necessary.
     -
   * - 18
     - 1/8
-    - To be planned
+    - No meeting
     -
 
 .. vim: set ff=unix fenc=utf8 sw=2 ts=2 sts=2 tw=79:
