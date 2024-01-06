@@ -5,14 +5,6 @@ Schedule
 .. toctree::
   :maxdepth: 1
 
-  23au_nycu/schedule23au
-
-Future
-======
-
-.. toctree::
-  :maxdepth: 1
-
   24sp_nycu/schedule24sp
 
 Past
@@ -21,6 +13,7 @@ Past
 .. toctree::
   :maxdepth: 1
 
+  23au_nycu/schedule23au
   23sp_nycu/schedule
   22au_nycu/schedule
   22sp_nycu/schedule
