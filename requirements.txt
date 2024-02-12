@@ -1,8 +1,8 @@
 pillow
-sphinx==4.4.0
-sphinx-rtd-theme==1.0.0
+#sphinx==4.4.0
+#sphinx-rtd-theme==1.0.0
 # To workaround 2.12 linenos issue in sphinx:
 # https://github.com/pygments/pygments/issues/632
-pygments==2.11.2
+#pygments==2.11.2
 furo
 docutils
