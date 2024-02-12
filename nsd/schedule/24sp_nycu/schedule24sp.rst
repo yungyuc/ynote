@@ -31,10 +31,9 @@ for the practice.  Please read about it at :doc:`../../project/project`.
 
 The course requests you to find a topic to code for.  Because most people are
 not familiar with numerical software, it may be difficult.  I work with the
-`sciwork community <https://sciwork.dev>`__ to let you obtain additional help
-from the community.  Please join the discord server https://discord.gg/6MAkFrD
-and follow the rules.  (If you simply want to make friends who code, welcome
-too.)
+`sciwork community <https://sciwork.dev>`__ to help you.  Please join the
+discord server https://discord.gg/tZsUnx4XmB and follow the rules.  (If you
+simply want to make friends who code, welcome too.)
 
 The project proposal should be submit through the homework repository
 https://github.com/yungyuc/nsdhw_24sp.
