@@ -49,8 +49,8 @@ of my resource for helping the class.  I do not plan to take additional
 enrollment, but if you can convince me that you will learn well without my help,
 I will consider.  The way to convince me is to build the teaching code
 https://github.com/solvcon/modmesh.  Make sure it works by running two of its
-apps and know what they do.  Go to https://discord.gg/P9U7PFv to show your
-results or ask questions.
+apps and know what they do.  Go to https://discord.gg/P9U7PFv (channel #solvcon)
+to show your results or ask questions.
 
 If you can learn well without my help, you are capable of training yourself with
 the materials without needing to take the course.  (If you do not understand
