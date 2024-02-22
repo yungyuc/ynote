@@ -100,20 +100,21 @@ meetings may be added if necessary.
     - proposal open
   * - 4
     - 3/11
-    - Unit 3: :doc:`../../03cpp/cpp`
-    - hw #2
+    - No meeting
+    -
   * - 5
     - 3/18
-    - Unit 4: :doc:`../../04matrix/matrix`
-    -
+    - Unit 3: :doc:`../../03cpp/cpp`
+    - hw #2
   * - 6
     - 3/25
-    - Unit 5: :doc:`../../05cache/cache`
-    - hw #3; proposal due
+    - Unit 4: :doc:`../../04matrix/matrix`
+    -
   * - 7
     - 4/1
-    - Proposal review
-    -
+    - Unit 5: :doc:`../../05cache/cache`
+      and proposal review
+    - hw #3; proposal due
   * - 8
     - 4/8
     - Mid-term examination
