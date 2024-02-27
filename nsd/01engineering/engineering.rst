@@ -138,8 +138,8 @@ in the calling shell:
 
   $ unset MYENVVAR
   $ ./dosomething.sh
-  $ echo ${MYENVVAR:-"MYENVVAR is not set"}
   do something
+  $ echo ${MYENVVAR:-"MYENVVAR is not set"}
   MYENVVAR is not set
 
 When sourcing the script in the current shell, the variable ``MYENVVAR`` gets
@@ -149,8 +149,8 @@ set:
 
   $ unset MYENVVAR
   $ source ./dosomething.sh
-  $ echo ${MYENVVAR:-"MYENVVAR is not set"}
   do something
+  $ echo ${MYENVVAR:-"MYENVVAR is not set"}
   MYENVVAR is set to what I want
 
 Redirection
