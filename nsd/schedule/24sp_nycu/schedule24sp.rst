@@ -74,6 +74,10 @@ the homework repository, you may file an issue.
 Time Table
 ==========
 
+The lecture is 7:00am -- 9:50am every Monday in the classroom EC114.  Personal
+discussions may be arranged on 10:00am after the lecture in meeting room EC500A,
+or by appointment using `sciwork meetup <https://sciwork.dev/meetup/>`__.
+
 Lectures, homework assignments, and projects are listed here.  Additional
 meetings may be added if necessary.
 
