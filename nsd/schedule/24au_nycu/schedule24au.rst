@@ -4,8 +4,8 @@ NSD Schedule 2024 Autumn NYCU
 
 .. begin schedule contents
 
-.. `Link to NYCU course system.
-.. <https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=112&Sem=2&CrsNo=535703>`__
+`Link to NYCU course system.
+<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=113&Sem=1&CrsNo=535702&lang=>`__
 
 .. warning::
 
