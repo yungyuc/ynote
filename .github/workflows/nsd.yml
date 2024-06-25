@@ -29,7 +29,7 @@ jobs:
 
     strategy:
         matrix:
-          os: [ubuntu-22.04, macos-11]
+          os: [ubuntu-22.04, macos-13]
 
         fail-fast: false
 
@@ -54,9 +54,9 @@ jobs:
       if: startsWith(matrix.os, 'macos')
       run: |
         # brew update  # No update because it is slow
-        # Force using python 3.10 from homebrew
+        # Force using python 3.11 from homebrew
         brew unlink python
-        brew link --force --overwrite python@3.10
+        brew link --force --overwrite python@3.11
         brew install make cmake llvm libomp radare2
 
     - name: pip (ubuntu)
