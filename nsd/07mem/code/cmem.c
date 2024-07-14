@@ -3,7 +3,11 @@
 #include <stdio.h>
 
 #ifdef __APPLE__
-// Macos hasn't implemented the C11 aligned_alloc as of the time 2019/8.
+#include <AvailabilityMacros.h>
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101500
+#pragma message "macos version is less than 10.15: implement custom aligned_alloc"
+// Macos hasn't implemented the C11 aligned_alloc as of the time 2019/8. It is
+// included in macos version 10.15: https://reviews.llvm.org/D138196 .
 void * aligned_alloc(size_t alignment, size_t size)
 {
     void * ptr;
@@ -11,12 +15,13 @@ void * aligned_alloc(size_t alignment, size_t size)
     return ptr;
 }
 #endif
+#endif
 
 void outer();
 
 int main(int argc, char ** argv)
 {
-    printf("frame address of main: %p\n", __builtin_frame_address(0));
+    printf("frame address of main:  %p\n", __builtin_frame_address(0));
 
     outer();
 
@@ -36,7 +41,7 @@ int64_t * inner()
     {
         data_stack[it] = 100 + it;
     }
-    printf("stack memory: %p\n", data_stack);
+    printf("stack memory:           %p\n", data_stack);
 
     // A dynamic array.
     int64_t * data_dynamic = (int64_t *) malloc(32 * sizeof(int64_t));
@@ -45,7 +50,7 @@ int64_t * inner()
     {
         data_dynamic[it] = 200 + it;
     }
-    printf("dynamic memory: %p\n", data_dynamic);
+    printf("dynamic memory:         %p\n", data_dynamic);
 
     return data_dynamic;
 }
@@ -103,17 +108,17 @@ void outer()
 
     // Reallocate the memory with smaller or larger size.
     data = (int64_t *) malloc((1UL << 20) * 2 * sizeof(int64_t));
-    printf("address by malloc: %p\n", data);
+    printf("address by malloc:                    %p\n", data);
     data = (int64_t *) realloc(data, (1UL << 20) * 1 * sizeof(int64_t));
     printf("address by realloc to smaller memory: %p\n", data);
     data = (int64_t *) realloc(data, (1UL << 20) * 4 * sizeof(int64_t));
-    printf("address by realloc to larger memory: %p\n", data);
+    printf("address by realloc to larger memory:  %p\n", data);
     free(data);
     printf("=== realloc tested\n");
 
     // Aligned allocation.
     int64_t * data1 = (int64_t *) malloc(sizeof(int64_t));
-    printf("address by malloc: %p\n", data1);
+    printf("address by malloc:        %p\n", data1);
     int64_t * data2 = (int64_t *) aligned_alloc(256, 256 * sizeof(int64_t));
     printf("address by aligned_alloc: %p\n", data2);
     free(data1);

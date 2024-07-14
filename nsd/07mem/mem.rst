@@ -91,7 +91,7 @@ Main Function
 
   int main(int argc, char ** argv)
   {
-      printf("frame address of main: %p\n", __builtin_frame_address(0));
+      printf("frame address of main:  %p\n", __builtin_frame_address(0));
 
       outer();
 
@@ -147,17 +147,17 @@ Outer Function
 
       // Reallocate the memory with smaller or larger size.
       data = (int64_t *) malloc((1UL << 20) * 2 * sizeof(int64_t));
-      printf("address by malloc: %p\n", data);
+      printf("address by malloc:                    %p\n", data);
       data = (int64_t *) realloc(data, (1UL << 20) * 1 * sizeof(int64_t));
       printf("address by realloc to smaller memory: %p\n", data);
       data = (int64_t *) realloc(data, (1UL << 20) * 4 * sizeof(int64_t));
-      printf("address by realloc to larger memory: %p\n", data);
+      printf("address by realloc to larger memory:  %p\n", data);
       free(data);
       printf("=== realloc tested\n");
 
       // Aligned allocation.
       int64_t * data1 = (int64_t *) malloc(sizeof(int64_t));
-      printf("address by malloc: %p\n", data1);
+      printf("address by malloc:        %p\n", data1);
       int64_t * data2 = (int64_t *) aligned_alloc(256, 256 * sizeof(int64_t));
       printf("address by aligned_alloc: %p\n", data2);
       free(data1);
@@ -185,7 +185,7 @@ Inner Function
       {
           data_stack[it] = 100 + it;
       }
-      printf("stack memory: %p\n", data_stack);
+      printf("stack memory:           %p\n", data_stack);
 
       // A dynamic array.
       int64_t * data_dynamic = (int64_t *) malloc(32 * sizeof(int64_t));
@@ -194,7 +194,7 @@ Inner Function
       {
           data_dynamic[it] = 200 + it;
       }
-      printf("dynamic memory: %p\n", data_dynamic);
+      printf("dynamic memory:         %p\n", data_dynamic);
 
       return data_dynamic;
   }
@@ -202,32 +202,36 @@ Inner Function
 C API Usage
 +++++++++++
 
+.. note::
+
+  The printouts in this section are generated on macos version 14.
+
 See the change of local frame:
 
 .. code-block:: none
 
-  frame address of main: 0x7ffee17ea220
-  frame address of outer: 0x7ffee17ea210
-  frame address of inner: 0x7ffee17ea1e0
+  frame address of main:  0x16f3feed0
+  frame address of outer: 0x16f3feeb0
+  frame address of inner: 0x16f3fee80
 
 Stack address in the :ref:`inner function <nsd-mem-example-cmem-inner>`:
 
 .. code-block:: none
 
-  stack memory: 0x7ffee17ea0d0
+  stack memory:           0x16f3fed60
 
 Dynamic memory is far away from the stack:
 
 .. code-block:: none
 
-  dynamic memory: 0x7fedf5c05ab0
+  dynamic memory:         0x12e605c60
 
 The allocated dynamic memory is returned to the :ref:`outer function
 <nsd-mem-example-cmem-outer>`:
 
 .. code-block:: none
 
-  data returned from inner: 0x7fedf5c05ab0
+  data returned from inner: 0x12e605c60
 
 Showing :c:func:`!malloc`, :c:func:`!free`, and :c:func:`!calloc` work:
 
@@ -241,9 +245,9 @@ Results of running :c:func:`!realloc` (on macos):
 
 .. code-block:: none
 
-  address by malloc: 0x7fedf6800000
-  address by realloc to smaller memory: 0x7fedf6800000
-  address by realloc to larger memory: 0x7fedf6800000
+  address by malloc:                    0x12f000000
+  address by realloc to smaller memory: 0x130008000
+  address by realloc to larger memory:  0x138000000
   === realloc tested
 
 .. note::
@@ -254,35 +258,18 @@ Results of running :c:func:`!realloc` (on macos):
 
   .. code-block:: none
 
-    address by malloc: 0x7f27fd790010
+    address by malloc:                    0x7f27fd790010
     address by realloc to smaller memory: 0x7f27fd790010
-    address by realloc to larger memory: 0x7f27fb78f010
+    address by realloc to larger memory:  0x7f27fb78f010
     === realloc tested
 
 Use :c:func:`!aligned_alloc` to allocate memory at 256 (0x100) bytes:
 
 .. code-block:: none
 
-  address by malloc: 0x7fedf5c05ab0
-  address by aligned_alloc: 0x7fedf6009800
+  address by malloc:        0x12e605df0
+  address by aligned_alloc: 0x12e809800
   === aligned_alloc tested
-
-.. note::
-
-  macos does not provide :c:func:`!aligned_alloc`, but provide
-  :c:func:`!posix_memalign`.  We can make a simple wrapper like:
-
-  .. code-block:: c
-
-    #ifdef __APPLE__
-    // Macos hasn't implemented the C11 aligned_alloc as of the time 2019/8.
-    void * aligned_alloc(size_t alignment, size_t size)
-    {
-        void * ptr;
-        posix_memalign(&ptr, alignment, size);
-        return ptr;
-    }
-    #endif
 
 .. note::
 
@@ -290,9 +277,28 @@ Use :c:func:`!aligned_alloc` to allocate memory at 256 (0x100) bytes:
 
   .. code-block:: none
 
-    address by malloc: 0x55abd8f127c0
+    address by malloc:        0x55abd8f127c0
     address by aligned_alloc: 0x55abd8f12800
     === aligned_alloc tested
+
+Do Not Free Memory Twice
+++++++++++++++++++++++++
+
+You may not free the same memory twice.
+
+.. code-block:: c
+
+  free(data);
+  free(data); // Double free results into error.
+
+The second call to the `free` function results in the "double-free" problem.
+Typical error messages (macos) are like:
+
+.. code-block:: none
+
+  cmem(22983,0x1f8e14c00) malloc: Double free of object 0x14ee05c60
+  cmem(22983,0x1f8e14c00) malloc: *** set a breakpoint in malloc_error_break to debug
+  Abort trap: 6
 
 Never Access Freed Memory
 +++++++++++++++++++++++++
@@ -304,7 +310,6 @@ In the :ref:`outer function`, after freeing the memory for ``data``:
   // You must free the memory after you finish using it.  Otherwise it will
   // remain in the process unclaimed, results in the "memory leak".
   free(data);
-  //free(data); // Double free results into error.
   printf("=== free tested\n");
 
 if it is later accessed, we will not get correct behavior:
