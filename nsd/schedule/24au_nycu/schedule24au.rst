@@ -11,44 +11,49 @@ NSD Schedule 2024 Autumn NYCU
 
   Please read everything carefully before taking this course.
 
-The course introduces the art of building numerical software, i.e., computer
-programs applying numerical methods for solving mathematical, scientific, or
-engineering problems.  We will be using Python, C++, and other tools (bash, git,
-make, etc.) to learn the modern development processes.
+The practical course introduces the art of building numerical software, i.e.,
+computer programs applying numerical methods for solving mathematical,
+scientific, or engineering problems.  We will be using Python, C++, and other
+tools (bash, git, make, etc.) to learn the modern development processes.
 
 Homework takes 30% of grade, mid-term exam 30%, and term project 40%.  You need
 to submit homework assignments using both GitHub PR (the homework repository
 https://github.com/yungyuc/nsdhw_24au) and E3.
-
-This is a practical course.  Lectures alone are not sufficient for your
-learning.  A teaching code is available at https://github.com/solvcon/modmesh,
-which you should trace and ask questions about.  You are requested to
-participate in the `sciwork meetup on-site <https://sciwork.dev/meetup/>`__ or
-the community online in the `\#nsd channel <https://discord.gg/tZsUnx4XmB>`__ on
-the sciwork discord server (you can find me there as @yyc).  The community
-activity is for your term project and understanding the teaching code.  (If you
-simply want to make friends who code, welcome too.)
 
 .. _nsd-24au-project:
 
 Term Project
 ============
 
-Practical skills can only be acquired by practicing.  The term project is design
-for the practice.  Please read about it at :doc:`../../project/project`.
-Upon enrollment, you need to have an idea about what to do for your term
-project.  Join the open-source `sciwork community <https://sciwork.dev>`__ to
-clarify what you want to do *before* enrollment.
+Practical skills are learned by doing.  The lectures are to facilitate your
+work.  The term project plays a central role in the course.  Read it at
+:doc:`../../project/project`.  Upon enrollment, you need to have an idea about
+what to do for your term project.  Your preformance of the term project will be
+assessed primarily through the presentation scheduled at the end of the
+semester.  You may work on a standalone project of your own ideas or contribute
+to an existing open-source project for the presentation.
+
+It is required to constantly discuss your term project.  The course works with
+the `sciwork community <https://sciwork.dev>`__ to provide you an environment
+for the technical discussions.  Bring your term project to the `sciwork meetup
+(on-site) <https://sciwork.dev/meetup/>`__ or the `sciwork discord \#nsd channel
+(online) <https://discord.gg/tZsUnx4XmB>`__.  (You can reach me with the handle
+@yyc on the discord server.)
+
+I prepared a teaching code https://github.com/solvcon/modmesh for you to observe
+how to conduct collaborative code development in an open source way.  The
+project is also developed for real-world applications.  You may contribute to
+the teaching code and use it for the term project.
 
 .. _nsd-24au-enroll:
 
 No Additional Enrollment
 ========================
 
-If the enrollment system says the course is full, it is full.  It is the limit
-of my resource for helping the class.  I do not sign for additional enrollment.
-If are still interested in the course materials, use the `sciwork community
-<https://sciwork.dev>`__ on-site or online to find me.
+If the enrollment system says the course is full, it is full.  I do not accept
+additional enrollment.  It is the limit of my resource for helping the class.
+But I am happy to discuss with you in the `sciwork on-site events
+<https://sciwork.dev>`__ or `online <https://discord.gg/tZsUnx4XmB>`__.
 
 .. _nsd-24au-email-convention:
 
@@ -81,7 +86,8 @@ meetings may be added if necessary.
 
 .. list-table::
   :header-rows: 1
-  :align: center
+  :stub-columns: 1
+  :align: left
   :width: 100%
 
   * - Week
@@ -91,36 +97,28 @@ meetings may be added if necessary.
   * - 1
     - 9/2 Mon
     - :doc:`Introduction <../../00intro>`
-      and unit 1: :doc:`../../01engineering/engineering`
     - | hw #1
       | proposal open
-  * - 1
-    - | 9/5 Thu 
-      | (18:00--21:00)
-      | (Room TBD)
-    - Supplement to unit 1: :doc:`../../01engineering/engineering`
-    -
+      | start to prototype
   * - 2
     - 9/9 Mon
-    - Unit 2: :doc:`../../02numpy/numpy`
+    - Unit 1: :doc:`../../01engineering/engineering`
     -
   * - 3
     - 9/16 Mon
-    - Unit 3: :doc:`../../03cpp/cpp`
-    - | hw #2
-      | proposal due
-      | prototype start
+    - Unit 2: :doc:`../../02numpy/numpy`
+    - | proposal due
   * - 4
     - 9/23 Mon
-    - Unit 4: :doc:`../../04matrix/matrix`
-    -
+    - Unit 3: :doc:`../../03cpp/cpp`
+    - hw #2
   * - 5
     - 9/30 Mon
-    - No Meeting
+    - No meeting
     -
   * - 6
     - 10/7 Mon
-    - No meeting
+    - Unit 4: :doc:`../../04matrix/matrix`
     -
   * - 7
     - 10/14 Mon

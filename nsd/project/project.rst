@@ -10,8 +10,8 @@ Practical Project
 
 The course requires to develop a hybrid software system of C++11 (modern C++)
 and Python for a numerical, scientific, or engineering problem.  Everyone needs
-to *individually* write a proposal, develop the code, and present the project to
-the class at the end of the course.
+to write a proposal, develop the code, and present the project to the class at
+the end of the course.
 
 The software needs to be open-source and hosted on `github.com
 <https://github.com/>`__.  It should be executable through command line.
