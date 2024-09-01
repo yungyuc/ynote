@@ -452,24 +452,14 @@ The example code for array new and delete is:
   {
       // An array on the stack.  It is popped away when execution leaves this
       // function.  You cannot use the memory outside this function.
-      int64_t data_stack[32];
-
-      for (size_t it = 0; it < 32; ++it)
-      {
-          data_stack[it] = 100 + it;
-      }
+      Block data_stack[2];
       std::cout << "stack array memory: " << data_stack << std::endl;
-
+  
       // A dynamic array.
-      int64_t * data_dynamic = new int64_t[32];
-
-      for (size_t it = 0; it < 32; ++it)
-      {
-          data_dynamic[it] = 200 + it;
-      }
+      Block * data_dynamic = new Block[2];
       std::cout << "dynamic array memory: " << data_dynamic << std::endl;
       std::cout << "=== new[] tested" << std::endl;
-
+  
       delete[] data_dynamic;
       std::cout << "=== delete[] tested" << std::endl;
   }
@@ -478,10 +468,18 @@ The execution results are:
 
 .. code-block:: none
 
-  stack array memory: 0x7ffee70ab0f0
-  dynamic array memory: 0x7ffea6405ab0
+  Block (0x16bd06ed8) constructed
+  Block (0x16bd08ed8) constructed
+  stack array memory: 0x16bd06ed8
+  Block (0x12380b810) constructed
+  Block (0x12380d810) constructed
+  dynamic array memory: 0x12380b810
   === new[] tested
+  Block (0x12380d810) destructed
+  Block (0x12380b810) destructed
   === delete[] tested
+  Block (0x16bd08ed8) destructed
+  Block (0x16bd06ed8) destructed
 
 .. _nsd-mem-example-cppmem-placement:
 
@@ -496,6 +494,8 @@ The example code for placement new is:
   void placement()
   {
       char * buffer = new char[sizeof(Block)];
+      std::cout << "allocated memory: " << reinterpret_cast<void*>(buffer)
+                << std::endl;
 
       Block * block = new (buffer) Block;
       for (size_t it = 0; it < 1024; ++it)
@@ -514,9 +514,10 @@ The execution results are:
 
 .. code-block:: none
 
-  Block (0x7ffea6809800) constructed
+  allocated memory: 0x13b00c400
+  Block (0x13b00c400) constructed
   === placement new tested
-  Block (0x7ffea6809800) destructed
+  Block (0x13b00c400) destructed
 
 .. note::
 
@@ -532,8 +533,8 @@ The execution results are:
 
   .. code-block:: none
 
-    cppmem(34359,0x1167b5e00) malloc: *** error for object 0x7f89e5009800: pointer being freed was not allocated
-    cppmem(34359,0x1167b5e00) malloc: *** set a breakpoint in malloc_error_break to debug
+    cppmem(20334,0x1e99a0f40) malloc: double free for ptr 0x13b00c400
+    cppmem(20334,0x1e99a0f40) malloc: *** set a breakpoint in malloc_error_break to debug
 
   The reason is that the memory buffer is managed separately:
 

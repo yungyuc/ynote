@@ -59,21 +59,11 @@ void array_form()
 {
     // An array on the stack.  It is popped away when execution leaves this
     // function.  You cannot use the memory outside this function.
-    int64_t data_stack[32];
-
-    for (size_t it = 0; it < 32; ++it)
-    {
-        data_stack[it] = 100 + it;
-    }
+    Block data_stack[2];
     std::cout << "stack array memory: " << data_stack << std::endl;
 
     // A dynamic array.
-    int64_t * data_dynamic = new int64_t[32];
-
-    for (size_t it = 0; it < 32; ++it)
-    {
-        data_dynamic[it] = 200 + it;
-    }
+    Block * data_dynamic = new Block[2];
     std::cout << "dynamic array memory: " << data_dynamic << std::endl;
     std::cout << "=== new[] tested" << std::endl;
 
@@ -84,6 +74,8 @@ void array_form()
 void placement()
 {
     char * buffer = new char[sizeof(Block)];
+    std::cout << "allocated memory: " << reinterpret_cast<void*>(buffer)
+              << std::endl;
 
     Block * block = new (buffer) Block;
     for (size_t it = 0; it < 1024; ++it)
