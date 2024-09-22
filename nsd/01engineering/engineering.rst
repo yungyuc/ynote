@@ -293,6 +293,10 @@ Note a tab is **required** at the beginning of each recipe line.  And rules and
 recipes are line-based.  If a recipe should use a single line and no more, or
 it needs to use ``\`` for line continuation.  So is the rule.
 
+.. note::
+
+  The example code is in :ref:`nsd-engineering-make-example`.
+
 ``make``: Automating Your Recipes
 +++++++++++++++++++++++++++++++++
 
@@ -318,6 +322,8 @@ it needs to use ``\`` for line continuation.  So is the rule.
   the Unix ethos: printable, debuggable, understandable stuff.
 
   -- *Stuart Feldman*
+
+.. _nsd-engineering-make-format:
 
 Makefile Format
 +++++++++++++++
@@ -391,6 +397,8 @@ needs to be rebuilt:
   g++ -c hellomain.cpp -o hellomain.o
   g++ hello.o hellomain.o -o hello
 
+.. _nsd-engineering-make-auto:
+
 Automatic Variables
 +++++++++++++++++++
 
@@ -427,6 +435,8 @@ have the duplicated file names.
   g++ -c hellomain.cpp -o hellomain.o
   g++ hello.o hellomain.o -o hello
 
+.. _nsd-engineering-make-implicit:
+
 Implicit Rule
 +++++++++++++
 
@@ -462,6 +472,8 @@ are fewer places for mistakes:
   g++ -c hello.cpp -o hello.o
   g++ -c hellomain.cpp -o hellomain.o
   g++ hello.o hellomain.o -o hello
+
+.. _nsd-engineering-make-phony:
 
 Popular Phony Targets
 +++++++++++++++++++++
@@ -1344,5 +1356,7 @@ References
 .. [1] https://www.gnu.org/software/bash/manual/bash.html
 .. [2] https://www.gnu.org/software/make/manual/make.html
 .. [3] https://pybind11.readthedocs.io/
+.. [4] :doc:`./example`
+
 
 .. vim: set ff=unix fenc=utf8 et sw=2 ts=2 sts=2:
