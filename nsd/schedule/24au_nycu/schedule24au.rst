@@ -114,7 +114,8 @@ meetings may be added if necessary.
     - hw #2
   * - 5
     - 9/30 Mon
-    - No meeting
+    - | Project and prototype review
+      | Supplement to unit 3: :doc:`../../03cpp/cpp`
     -
   * - 6
     - 10/7 Mon
@@ -123,8 +124,7 @@ meetings may be added if necessary.
   * - 7
     - 10/14 Mon
     - Unit 5: :doc:`../../05cache/cache`
-    - | hw #3
-      | prototype review
+    - hw #3
   * - 8
     - 10/21 Mon
     - Mid-term examination
