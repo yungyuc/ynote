@@ -1689,7 +1689,7 @@ protocol <python:listobjects>`:
 It also shows the some C API of the :ref:`iterator protocol <python:iterator>`:
 
 * :c:func:`python:PyObject_GetIter` obtains a Python iterator
-* :c:func:`python:PyObject_Next` obtains the next element from a Python iterator
+* :c:func:`python:PyIter_Next` obtains the next element from a Python iterator
 
 The following C++ example code iterates through each element of the input
 :py:class:`python:list` and return a shallow copy of that list:
@@ -1698,8 +1698,6 @@ The following C++ example code iterates through each element of the input
   :linenos:
 
   #include "pybind11/pybind11.h"
-
-  #include <string>
 
   using namespace pybind11;
 
@@ -1731,6 +1729,8 @@ The following C++ example code iterates through each element of the input
           )
       ;
   }
+
+The results in the Python side are:
 
 .. code-block:: pycon
   :linenos:
@@ -1764,8 +1764,6 @@ function for adding a key-value pair in it:
   :linenos:
 
   #include "pybind11/pybind11.h"
-
-  #include <string>
 
   using namespace pybind11;
 
@@ -1833,8 +1831,6 @@ Here is a simple example for using Python exceptions from C++ (see also
 
   #include "pybind11/pybind11.h"
 
-  #include <string>
-
   using namespace pybind11;
 
   PyObject * function_with_exception(PyObject * o)
@@ -1895,7 +1891,6 @@ The exception results in the Python side are:
 
 .. code-block:: pycon
 
-  >>> tup = ('first value', 'second value')
   >>> try:
   >>>     function_with_exception(('first value', 'second value'))
   >>> except RuntimeError as e:
