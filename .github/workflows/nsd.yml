@@ -55,8 +55,8 @@ jobs:
       run: |
         # brew update  # No update because it is slow
         # Force using python 3.11 from homebrew
-        brew unlink python
-        brew link --force --overwrite python@3.11
+        #brew unlink python
+        #brew link --force --overwrite python@3.11
         brew install make cmake llvm libomp radare2
 
     - name: pip (ubuntu)
