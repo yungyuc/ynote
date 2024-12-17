@@ -75,6 +75,13 @@ Time Table
 
 The lecture hours are 7:00am -- 9:50am every Monday in the classroom EC114.
 
+.. warning::
+
+  The proposal is due in the third week.  Do not miss it.  You may start to
+  write the proposal before the semester.  Writing a project proposal helps you
+  learn software development even if you do not take the course.  You won't
+  regret.
+  
 .. list-table::
   :header-rows: 1
   :stub-columns: 1
@@ -121,31 +128,31 @@ The lecture hours are 7:00am -- 9:50am every Monday in the classroom EC114.
     -
   * - 9
     - 4/14 Mon
-    - Unit 7: :doc:`../../07mem/mem`
-    - hw #4
+    - Update project progress
+    -
   * - 10
     - 4/21 Mon
-    - Unit 8: :doc:`../../08smart/smart`
-    -
+    - Unit 7: :doc:`../../07mem/mem`
+    - hw #4
   * - 11
     - 4/28 Mon
-    - Unit 9: :doc:`../../09moderncpp/moderncpp`
-    - hw #5
+    - Unit 8: :doc:`../../08smart/smart`
+    -
   * - 12
     - 5/5 Mon
-    - Unit 10: :doc:`../../10cpppy/cpppy`
-    -
+    - Unit 9: :doc:`../../09moderncpp/moderncpp`
+    - hw #5
   * - 13
     - 5/12 Mon
-    - Unit 11: :doc:`../../11arraydesign/arraydesign`
-    - hw #6
+    - Unit 10: :doc:`../../10cpppy/cpppy`
+    -
   * - 14
     - 5/19 Mon
-    - Unit 12: :doc:`../../12advpy/advpy`
-    -
+    - Unit 11: :doc:`../../11arraydesign/arraydesign`
+    - hw #6
   * - 15
     - 5/26 Mon
-    - Discuss numerical applications
+    - Unit 12: :doc:`../../12advpy/advpy`
     -
   * - 16
     - 6/2 Mon
