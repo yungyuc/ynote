@@ -5,7 +5,7 @@ Schedule
 .. toctree::
   :maxdepth: 1
 
-  24au_nycu/schedule24au
+  25sp_nycu/schedule25sp
 
 Past
 ====
@@ -13,6 +13,7 @@ Past
 .. toctree::
   :maxdepth: 1
 
+  24au_nycu/schedule24au
   24sp_nycu/schedule24sp
   23au_nycu/schedule23au
   23sp_nycu/schedule
