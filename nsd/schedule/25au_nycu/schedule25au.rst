@@ -4,7 +4,7 @@ NSD Schedule 2025 Autumn NYCU
 
 .. begin schedule contents
 
-`NYCU course code 535705 (permanent course number (CSDS30003).
+`NYCU course code 535705 (permanent course number CSDS30003).
 <https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=114&Sem=1&CrsNo=535705>`__
 
 .. warning::
