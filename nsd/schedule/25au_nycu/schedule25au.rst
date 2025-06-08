@@ -37,7 +37,11 @@ Discussion
 
 The lecture meetings are not only for lecturing but also for discussing.
 Students are required to attend every meeting to discuss ideas and progress of
-the project.
+the project.  Discussion requires hard-learning skills, and students are
+**strongly recommended** to also take the course `Academic English Writing
+(course code 562045)
+<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=114&Sem=1&CrsNo=562045>`__
+if they have not.
 
 You should also bring your term project to the `sciwork meetup (on-site)
 <https://sciwork.dev/meetup/>`__ and the `sciwork discord \#nsd channel (online)
