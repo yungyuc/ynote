@@ -35,9 +35,9 @@ modmesh <https://github.com/solvcon/modmesh>`__ as an entry point.
 Discussion
 ==========
 
-The lecture meetings are not only for lecturing but also for discussing.
-Students are required to attend every meeting to discuss ideas and progress of
-the project.  Discussion requires hard-learning skills and students are
+Students are required to attend every lecture meeting because it is also for
+discussing the ideas and progress of the term project.  Discussion requires
+hard-learning skills and students are
 **strongly recommended** to also take the course `Academic English Writing
 (course code 562045)
 <https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=114&Sem=1&CrsNo=562045>`__
