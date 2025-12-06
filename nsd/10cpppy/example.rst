@@ -11,15 +11,6 @@ Example Code: C++ and C for Python
   :linenos:
   :end-before: # vim: set
 
-.. literalinclude:: code/01_burgers.py
-  :name: nsd-cpppy-example-burgers
-  :caption:
-    Use :py:mod:`!libst` to solve the Bergers equation
-    (:download:`01_burgers.py <code/01_burgers.py>`).
-  :language: python
-  :linenos:
-  :end-before: # vim: set
-
 .. literalinclude:: code/pybind11_python_example/setup.py
   :name: nsd-cpppy-example-setup
   :caption:

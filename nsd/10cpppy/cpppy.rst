@@ -2,62 +2,141 @@
 C++ and C for Python
 ====================
 
-Expectation from Python
-=======================
+The slow Python is a key feature to make a fast computation system.  While
+making everything fast can theoretically make a fast system, it does not work in
+reality.
 
-Python is the choice of driving scripts for numerical calculations.  Before
-introducing how to connect the low-level C++ and C code to the high-level
-Python, I would like to introduce how it looks at the high level.
+Speedup has to be done step by step.  One hotspot a time, identify what takes
+the most runtime and modify the system to speed it up.  After speeding up one
+thing, something used to be fast becomes slow.  The software structure changes,
+so does the runtime.
 
-Linear Wave
-+++++++++++
+When everything runs slowly, there is a problem in the architecture.  The
+high-level, highly flexible Python will help adjust the architecture quickly.
+C++ does not do it.
 
-Here is the governing equation of propagating linear waves:
+A fast system needs both Python and C++.
+
+Python to Control Workflow
+==========================
+
+Python helps us focus on the problem-solving workflow.  The flexible lets us
+quickly implement high-level operations.  Making things work quickly, correctly,
+and clearly is the key.  Coding quickly allows us to iterate at a fast pace.
+When there is an issue (there is always an issue!) we can quickly fix them.
+
+Let us see how it works by using the high-level code written to clearly describe
+a problem regardless of your familiarity.  This is a linear wave equation that
+governs how waves propagate.
 
 .. math::
 
   \frac{\partial u}{\partial t} + \frac{\partial u}{\partial x} = 0
 
-Assume a sinusoidal wave is given as the initial condition.  Using the
-following code, we will see it propagating from left to right with the phase
-velocity of unity.
+Assuming a sinusoidal wave is given by the initial condition.  By solving the
+partial differential equation (PDE), we will see the solution propagating from
+left to right with the phase velocity of unity.
 
-.. literalinclude:: code/01_linear.py
-  :language: python
-  :linenos:
-  :start-after: # [begin example]
-  :end-before: # [end example]
+The solution uses 6 steps in the flow: (1) import functional modules, (2) build
+grid, (3) initialize field, (4) configure visualization, (5) compute, and (6)
+visualize.
 
-The full example code is in :ref:`01_linear.py <nsd-cpppy-example-linear>`.
-The plotted results are:
+The first step is to include necessary code for the solution.  The solution
+needs to do two things: calculation and visualization.  The Python script does
+not contain code for the heavy-lifting calcuation, so it needs to include the
+helper code implemented elsewhere.
+
+.. code-block:: python
+
+  # numpy is fundamental to the data processing
+  import numpy as np
+  # matplotlib is to visualize
+  from matplotlib import pyplot as plt
+
+  # libst is the calculation code we wrote in C++
+  import libst
+
+In the second step, we create the grid.  The grid is the discretized space for
+the numerical method that solves for the differential equation.  The
+differential equation is in a one-dimensional space, so the grid is a
+one-dimensional array for the coordinate.
+
+.. code-block:: python
+
+  # Build the one-dimensional uniform grid and the corresponding solver
+  grid = libst.Grid(0, 4*2*np.pi, 4*64)
+  cfl = 1
+  dx = (grid.xmax - grid.xmin) / grid.ncelm
+  dt = dx * cfl
+  svr = libst.LinearScalarSolver(grid=grid, time_increment=dt)
+
+In the third step, initialize the solution field using the initial condition to
+the differential equation.  The solver object (``svr``) holds the array for the
+solution field (the variable :math:`u`).  The code below initializes the field
+by setting the value in each of the elements.
+
+.. code-block:: python
+
+  # Initialize the field using a sinusoidal
+  for e in svr.selms(odd_plane=False):
+      if e.xctr < 2*np.pi or e.xctr > 2*2*np.pi:
+          v = 0
+          dv = 0
+      else:
+          v = np.sin(e.xctr)
+          dv = np.cos(e.xctr)
+      e.set_so0(0, v)
+      e.set_so1(0, dv)
+
+In the fouth step, set up matplotlib to prepare for plotting.  It involves how
+matplotlib API.  We create the figure, set up the value limit, axis labels, and
+other appearance settings of the plot.
+
+.. code-block:: python
+
+  # Set up plotting
+  plt.figure(figsize=(15,10))
+  plt.xlim((0, 8))
+  plt.xlabel('$x$ $(\pi)$')
+  plt.ylabel('$u$')
+  plt.grid()
+
+Then plot the solution data at the initial condition before starting the
+calculation in the next step.
+
+.. code-block:: python
+
+  # Plot the initial condition
+  plt.plot(svr.xctr() / np.pi, svr.get_so0(0).ndarray, '-', label='begin')
+
+In the fifth step, launch the solver and run the calculation.  The equation has
+a temporal term and the solver delivers time-accurate solution.  In this sense,
+the calculation is also called time-marching.  We specify the number of steps
+as an argument to the marching function ``march_alpha2()``.
+
+.. code-block:: python
+
+  # Time march
+  svr.setup_march()
+  svr.march_alpha2(50)
+
+In the sixth (last) step, plot the calculated data.
+
+.. code-block:: python
+
+  # Plot the time marched solution
+  plt.plot(svr.xctr() / np.pi, svr.get_so0(0).ndarray, '-', label='end')
+
+Add legend in the plot.  We want to have the legend for both the initial
+condition (``begin``) and the final solution (``end``).
+
+.. code-block:: python
+
+  plt.legend()
+
+Running the script will create the plot like below.
 
 .. figure:: image/01_linear.png
-  :align: center
-  :width: 100%
-
-Inviscid Burgers Equation
-+++++++++++++++++++++++++
-
-The second example is a non-linear equation (the inviscid Burgers equation):
-
-.. math::
-
-  \frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} = 0
-
-The initial condition is still a sinusoidal wave.  But unlike the linear
-equation, with the inviscid Burgers equation, the non-linear wave propagates in
-a very different way.
-
-.. literalinclude:: code/01_burgers.py
-  :language: python
-  :linenos:
-  :start-after: # [begin example]
-  :end-before: # [end example]
-
-The full example code is in :ref:`01_burgers.py <nsd-cpppy-example-burgers>`.
-The plotted results are:
-
-.. figure:: image/01_burgers.png
   :align: center
   :width: 100%
 
@@ -88,7 +167,6 @@ There is `an example for using setuptools to build pybind11
 <https://github.com/pybind/python_example/blob/master/setup.py>`__:
 
 .. code-block:: python
-  :linenos:
 
   from setuptools import setup
 
@@ -180,7 +258,6 @@ Here is one way to implement the additional wrapping layer:
 .. code-block:: cpp
   :name: nsd-cpppy-wrap-base
   :caption: The base class template for custom wrappers.
-  :linenos:
 
   /**
    * Helper template for pybind11 class wrappers.
@@ -278,7 +355,6 @@ the grid definition class :cpp:class:`!Grid`.  Its wrapper is the simplest:
 .. code-block:: cpp
   :name: nsd-cpppy-wrap-grid
   :caption: The custom wrapper class for the class :cpp:class:`!Grid`.
-  :linenos:
   :emphasize-lines: 45
 
   class
@@ -416,7 +492,6 @@ For example, the following :ref:`Solver <nsd-cpppy-wrap-solver>` and uses
 .. code-block:: cpp
   :name: nsd-cpppy-wrap-solver
   :caption: The custom wrapper class for the class :cpp:class:`!Solver`.
-  :linenos:
   :emphasize-lines: 7-14
 
   class
@@ -477,7 +552,6 @@ stored in the data objects.
 .. code-block:: cpp
   :name: nsd-cpppy-wrap-celm
   :caption: The custom wrapper class for the class :cpp:class:`!Celm`.
-  :linenos:
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -504,7 +578,6 @@ stored in the data objects.
 .. code-block:: cpp
   :name: nsd-cpppy-wrap-selm
   :caption: The custom wrapper class for the class and :cpp:class:`!Selm`.
-  :linenos:
 
   class
   SPACETIME_PYTHON_WRAPPER_VISIBILITY
@@ -540,7 +613,6 @@ the commonality of the wrapper classes and significantly shortens the code.
 .. code-block:: cpp
   :name: nsd-cpppy-wrap-module
   :caption: C++ code to define extension module.
-  :linenos:
   :emphasize-lines: 10, 15-17, 22-24
 
   #include "spacetime/python.hpp" // must be first
@@ -785,7 +857,6 @@ layer, along with other code that calls pybind11 API, and above the low-level
 C++ library in "turgon".
 
 .. code-block:: cpp
-  :linenos:
   :emphasize-lines: 29-30, 40-41
 
   // The whole class is defined along with other code that calls pybind11 API
@@ -856,7 +927,6 @@ C++ library in "turgon".
 The wrapping code is:
 
 .. code-block:: cpp
-  :linenos:
   :emphasize-lines: 1
 
   using elm_iter_type = SolverElementIterator<wrapped_type>;
@@ -881,7 +951,6 @@ Here we use a concrete solver of linear wave (governing equation is :math:`u_t
 
 .. literalinclude:: code/04_iter.py
   :language: python
-  :linenos:
   :start-after: # [begin example]
   :end-before: # [end example]
 
@@ -1178,7 +1247,6 @@ The Python C API is more convenient for inspecting or debugging the
 count automatically:
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 
@@ -1222,7 +1290,6 @@ count automatically:
 The test code in the Python side is:
 
 .. code-block:: python
-  :linenos:
 
   def check_string_value():
       print(type(string_value), string_value)
@@ -1330,7 +1397,6 @@ an attribute of an object using the :c:func:`python:PyObject_SetAttr` and
 Use pybind11 to write test code for the two API:
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 
@@ -1416,7 +1482,6 @@ name: :c:func:`python:PyObject_SetAttrString` and
 :c:func:`python:PyObject_GetAttrString`.  The example code is:
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 
@@ -1502,7 +1567,6 @@ Python C API allows to make Python function call from C.  The follow C++ code
 takes a Python callable and use :c:func:`python:PyObject_Call`:
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 
@@ -1563,7 +1627,6 @@ The Python C API for import a Python module is
 :c:func:`python:PyImport_ImportModule`.  The C++ test code:
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 
@@ -1619,7 +1682,6 @@ The example code returns a new :py:class:`python:tuple` that has the order
 reversed:
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 
@@ -1695,7 +1757,6 @@ The following C++ example code iterates through each element of the input
 :py:class:`python:list` and return a shallow copy of that list:
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 
@@ -1733,7 +1794,6 @@ The following C++ example code iterates through each element of the input
 The results in the Python side are:
 
 .. code-block:: pycon
-  :linenos:
 
   >>> v0 = 'first value'
   >>> v1 = 'second value'
@@ -1761,7 +1821,6 @@ The C++ example code create a :py:class:`python:dict` and provides an alternate
 function for adding a key-value pair in it:
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 
@@ -1827,7 +1886,6 @@ Here is a simple example for using Python exceptions from C++ (see also
 :ref:`python:api-exceptions` and :doc:`python:c-api/exceptions`):
 
 .. code-block:: cpp
-  :linenos:
 
   #include "pybind11/pybind11.h"
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 # [begin example]
+# numpy is fundamental to the data processing
 import numpy as np
+# matplotlib is to visualize
 from matplotlib import pyplot as plt
 
 # Import the extension module that is written in C++
