@@ -42,6 +42,7 @@ if os.environ.get("READTHEDOCS", "") == "True":
 extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
+    'sphinx_copybutton',
     'pstake',
 ]
 

@@ -6,3 +6,4 @@ pillow
 pygments==2.11.2
 furo
 docutils
+sphinx_copybutton

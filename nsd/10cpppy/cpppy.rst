@@ -7,20 +7,17 @@ making everything fast can theoretically make a fast system, it does not work in
 reality.
 
 Speedup has to be done step by step.  One hotspot a time, identify what takes
-the most runtime and modify the system to speed it up.  After speeding up one
-thing, something used to be fast becomes slow.  The software structure changes,
-so does the runtime.
+the most runtime and adjust the system.  After one thing is sped up, new
+hotspots surface.  The software structure changes, so does the runtime.
 
-When everything runs slowly, there is a problem in the architecture.  The
-high-level, highly flexible Python will help adjust the architecture quickly.
-C++ does not do it.
-
-A fast system needs both Python and C++.
+The high-level, highly flexible Python will help adjust the structure quickly.
+C++ is not suitable for the quick change.  A fast system will need both Python
+and C++.
 
 Python to Control Workflow
 ==========================
 
-Python helps us focus on the problem-solving workflow.  The flexible lets us
+Python helps us focus on the problem-solving workflow.  The flexibility lets us
 quickly implement high-level operations.  Making things work quickly, correctly,
 and clearly is the key.  Coding quickly allows us to iterate at a fast pace.
 When there is an issue (there is always an issue!) we can quickly fix them.
@@ -41,10 +38,9 @@ The solution uses 6 steps in the flow: (1) import functional modules, (2) build
 grid, (3) initialize field, (4) configure visualization, (5) compute, and (6)
 visualize.
 
-The first step is to include necessary code for the solution.  The solution
-needs to do two things: calculation and visualization.  The Python script does
-not contain code for the heavy-lifting calcuation, so it needs to include the
-helper code implemented elsewhere.
+The first step is to include necessary code for the solution.  The Python script
+does not contain code for the heavy-lifting calcuation, so it needs to include
+the helper code implemented elsewhere.
 
 .. code-block:: python
 
@@ -140,104 +136,73 @@ Running the script will create the plot like below.
   :align: center
   :width: 100%
 
-pybind11 Build System
-=====================
+Bridge between Python and C++
+=============================
 
-`pybind11 <https://pybind11.readthedocs.io/>`_ is a header-only C++ template
-library, that allows calling CPython API and provides C++ friendly semantics to
-allow Python to call C++ constructs and vise versa.
+To use code written in C++, we need a bridge.  Python used to be called a glue
+language for its ability to easily work with C.  The Python interpreter is
+implemented by using C, and may be used as a C library that implements an
+interpreter pattern.
 
-A header-only library doesn't have anything to be built.  When we say
-"building" pybind11, we mean to build the project that uses pybind11.
+The bridge between Python and C++ is a way to call the C API of Python (CPython
+API) from C++ to execute the Python code.  It allows us to call into C and C++
+code from Python, and also call into Python code from C and C++.  We can also
+operate Python objects from C and C++, and vice versa.
 
-To build pybind11, we need CPython.  It optionally depends on numpy and eigen.
-There are several suggested ways to build.  Here list those I think important:
+After the industry adopted C++11 (the so-called modern C++), `pybind11
+<https://pybind11.readthedocs.io/>`_ became the de facto Python wrapping tool.
+It is a header-only C++ template library, providing C++-friendly semantics for
+Python to use C++ constructs and vise versa.
 
-setuptools
-++++++++++
+Build pybind11
+++++++++++++++
 
-`setuptools <https://setuptools.readthedocs.io/en/latest/>`_ is an enhancement
-to Python built-in `distutils
-<https://docs.python.org/3/library/distutils.html>`__.  Because pybind11_ is
-released on `PyPI <https://pypi.org>`__ as a Python package
-(https://pypi.org/project/pybind11/), both setuptools and distutils can get the
-header files and use them to build C++ file that use pybind11.
+When saying to "build" pybind11, we mean to build the C++ project that uses it.
+A header-only library like pybind11 does not really have binary to be built.
 
-There is `an example for using setuptools to build pybind11
-<https://github.com/pybind/python_example/blob/master/setup.py>`__:
+To make pybind11 work for numerical code, we also need to have `CPython
+<https://github.com/python/cpython>`__ and `numpy <https://numpy.org>`__.  You
+need to install pybind11.  Follow the :ref:`pybind11 document to install
+it<pybind11:installing>`.
 
-.. code-block:: python
+The preferred way to build pybind11 is to use `cmake <https://cmake.org>`_.  See
+the :ref:`pybind11 document to build with cmake<pybind11:cmake>`.  This is a
+simple example adapted from the pybind11 document.
 
-  from setuptools import setup
-
-  # Available at setup time due to pyproject.toml
-  from pybind11.setup_helpers import Pybind11Extension, build_ext
-  from pybind11 import get_cmake_dir
-
-  import sys
-
-  __version__ = "0.0.1"
-
-  # The main interface is through Pybind11Extension.
-  # * You can add cxx_std=11/14/17, and then build_ext can be removed.
-  # * You can set include_pybind11=false to add the include directory yourself,
-  #   say from a submodule.
-  #
-  # Note:
-  #   Sort input source files if you glob sources to ensure bit-for-bit
-  #   reproducible builds (https://github.com/pybind/python_example/pull/53)
-
-  ext_modules = [
-      Pybind11Extension("python_example",
-          ["src/main.cpp"],
-          # Example: passing in the version to the compiled code
-          define_macros = [('VERSION_INFO', __version__)],
-      ),
-  ]
-
-  setup(
-      name="python_example",
-      version=__version__,
-      author="Sylvain Corlay",
-      author_email="sylvain.corlay@gmail.com",
-      url="https://github.com/pybind/python_example",
-      description="A test project using pybind11",
-      long_description="",
-      ext_modules=ext_modules,
-      extras_require={"test": "pytest"},
-      # Currently, build_ext only provides an optional "highest supported C++
-      # level" feature, but in the future it may provide more features.
-      cmdclass={"build_ext": build_ext},
-      zip_safe=False,
-  )
-
-The full example code is available in :ref:`setup.py <nsd-cpppy-example-setup>`
-and :ref:`main.cpp <nsd-cpppy-example-setup-main>`.
-
-cmake with pybind11 in a Sub-Directory
-++++++++++++++++++++++++++++++++++++++
-
-When the source tree is put in a sub-directory in your project, as mentioned in
-the :ref:`document <pybind11:cmake>`.  you can use `cmake <https://cmake.org>`_
-``add_subdirectory`` to include the pybind11_ package:
+In the ``CMakeLists.txt``, specify the required cmake version and the project
+name:
 
 .. code-block:: cmake
 
-  cmake_minimum_required(VERSION 3.9)
-  project(example)
+  # Set the required cmake version.
+  cmake_minimum_required(VERSION 3.15...4.0)
+  # Set cmake project name.
+  project(example LANGUAGES CXX)
 
-  add_subdirectory(pybind11)
+Then find the pybind11 package you installed:
+
+.. code-block:: cmake
+
+  # Find pybind11 package installed in the system.
+  set(PYBIND11_FINDPYTHON ON)
+  find_package(pybind11 CONFIG REQUIRED)
+
+  # Alternately, you may provide an option to specify the path to pybind11:
+  #option(pybind11_path "pybind11 path")
+  #find_package(pybind11 CONFIG REQUIRED PATHS ${pybind11_path})
+
+Then add the C++ source file to create the Python extension module:
+
+.. code-block:: cmake
+
+  # Create a pybind11 module.
   pybind11_add_module(example example.cpp)
 
-pybind11 provides a cmake command ``pybind11_add_module``.  It sets various
-flags to build your C++ code as an extension module.
+Use the ``install`` command to create the file for the extension module:
 
-cmake with Installed pybind11
-+++++++++++++++++++++++++++++
+.. code-block:: cmake
 
-If pybind11_ is installed using cmake_ itself, the ``*.cmake`` files that
-pybind11 supplies are installed to the specified location.  It is not necessary
-to write ``add_subdirectory`` in the ``CMakeLists.txt`` in your project.
+  install(TARGETS example DESTINATION .)
 
 Custom Wrapping Layer
 =====================
