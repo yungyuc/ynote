@@ -204,29 +204,40 @@ Use the ``install`` command to create the file for the extension module:
 
   install(TARGETS example DESTINATION .)
 
-Custom Wrapping Layer
-=====================
+Glue Abstraction
+================
 
-Wrapper needs to take care of the differences between the dynamic behaviors in
-Python and the staticity in C++.  You can directly call pybind11_ API, but a
-better way is to create an additional wrapping layer between the code that uses
-pybind11 and your library code.  It allows to insert additional code in a
-systematic way.  Since it is not easy to see the point in a small example, I
-pull in the code for `a slightly bigger project (modmesh)
-<https://github.com/solvcon/modmesh>`__ for demonstration.
+Adding an abstract layer between your (wrapping) code and the wrapping tool
+(pybind11) allows you to control everything when developing the computing
+system.  Although high-performance computing is paranoid about indirect
+constructs because of their runtime cost, a wrapping layer over the pybind11
+wrapping code is fine, because it will not be run twice in a process.
 
-Intermediate Class Template
-+++++++++++++++++++++++++++
+The glue abstraction is C++ code, allowing to insert additional treatment in a
+systematic way.
 
-Here is one way to implement the additional wrapping layer:
+Base Class for Wrapping Code
+++++++++++++++++++++++++++++
+
+Classes are the most pragmatic tool to organize many functions in Python and
+C++.  So our glue abstraction will be built upon the assumption: The wrapping
+code focuses on classes.
+
+The assumption widely applies to numerical code.  The most viable way to
+organize the logic around processsing large amount of data is object-oriented
+programming.  Most of the code takes the form of class member functions.
+
+We use a base class template, ``WrapBase``, on top of pybind11 to expose the
+object-oriented C++ code to Python.  It takes template arguments for the derived
+wrapper class (``Wrapper``) and the wrapped class (``Wrapped``).  It also takes
+two optional template arguments for the custom holder type (``Holder``) to
+manage the lifecycle of the wrapped object, and the wrapped base class
+(``WrappedBase``).
 
 .. code-block:: cpp
   :name: nsd-cpppy-wrap-base
-  :caption: The base class template for custom wrappers.
+  :caption: Base class template ``WrapBase`` for custom wrappers.
 
-  /**
-   * Helper template for pybind11 class wrappers.
-   */
   template
   <
       class Wrapper
@@ -236,18 +247,34 @@ Here is one way to implement the additional wrapping layer:
     , class WrappedBase = Wrapped
   >
   class
-  SPACETIME_PYTHON_WRAPPER_VISIBILITY
   WrapBase
   {
 
+  private:
+
+      // This "class_" is the alias we made above, not directly the pybind11::class_.
+      class_ m_cls;
+
+  }; /* end class WrapBase */
+
+The base wrapper class has a member datum ``m_cls`` of the type
+``pybind11::class_``, so that we can call pybind11 wrapping helpers through it.
+The real wrapping code will be written in the derived classes of ``WrapBase``.
+``WrapBase`` provides commonly used type aliases for the wrapping code in the
+derived class can be shared more easily.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-base-types
+  :caption: Type aliases in the base class template ``WrapBase``.
+
   public:
 
-      // These aliases will be used in derived classes.
+      // These type aliases helps share code among the derived (wrapper) classes.
       using wrapper_type = Wrapper;
       using wrapped_type = Wrapped;
       using wrapped_base_type = WrappedBase;
       using holder_type = Holder;
-      using base_type = WrapBase
+      using root_base_type = WrapBase
       <
           wrapper_type
         , wrapped_type
@@ -255,13 +282,32 @@ Here is one way to implement the additional wrapping layer:
         , wrapped_base_type
       >;
 
-      // This alias is to help the pybind11 code in this template.
+      // If the wrapped base type is not the same as the wrapped type, pybind11 needs to know.
       using class_ = typename std::conditional
       <
           std::is_same< Wrapped, WrappedBase >::value
         , pybind11::class_< wrapped_type, holder_type >
         , pybind11::class_< wrapped_type, wrapped_base_type, holder_type >
       >::type;
+
+Make ``WrapBase`` a Singleton
++++++++++++++++++++++++++++++
+
+There should be only one instance of the conversion code between Python and C++.
+It does not make sense to have multiple instances of the same wrapper class.
+Only one can and should be executed.
+
+``WrapBase`` should be made a singleton class.  The static member function
+``commit()`` uses the Meyers' singleton pattern and returns the only instance of
+the derived wrapper class.  C++11 standard guarantees thread-safety of the
+static variable ``derived``.  The only constructor of ``WrapBase`` is protected
+so that the derived ``wrapper_type`` can call it.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-base-singleton
+  :caption: Make ``WrapBase`` a singleton.
+
+  public:
 
       static wrapper_type & commit
       (
@@ -275,41 +321,96 @@ Here is one way to implement the additional wrapping layer:
       }
 
       WrapBase() = delete;
-      WrapBase(WrapBase const & ) = default;
+      WrapBase(WrapBase const & ) = delete;
       WrapBase(WrapBase       &&) = delete;
-      WrapBase & operator=(WrapBase const & ) = default;
+      WrapBase & operator=(WrapBase const & ) = delete;
       WrapBase & operator=(WrapBase       &&) = delete;
       ~WrapBase() = default;
 
-  // Make a macro for the wrapping functions by using perfect forwarding.
-  #define DECL_ST_PYBIND_CLASS_METHOD(METHOD) \
-      template< class... Args > \
-      wrapper_type & METHOD(Args&&... args) { \
-          m_cls.METHOD(std::forward<Args>(args)...); \
-          return *static_cast<wrapper_type*>(this); \
-      }
-
-      DECL_ST_PYBIND_CLASS_METHOD(def)
-      DECL_ST_PYBIND_CLASS_METHOD(def_readwrite)
-      DECL_ST_PYBIND_CLASS_METHOD(def_property)
-      DECL_ST_PYBIND_CLASS_METHOD(def_property_readonly)
-      DECL_ST_PYBIND_CLASS_METHOD(def_property_readonly_static)
-
-  // Delete the macro after it is not used anymore.
-  #undef DECL_ST_PYBIND_CLASS_METHOD
-
   protected:
 
+      // The constructor will be called from the derived class.
       WrapBase(pybind11::module * mod, const char * pyname, const char * clsdoc)
         : m_cls(*mod, pyname, clsdoc)
       {}
 
-  private:
+Since the wrapper class is a singleton, we delete both the copy and move.  The
+default constructor is also deleted.
 
-      // This "class_" is the alias we made above, not directly the pybind11::class_.
-      class_ m_cls;
+Add pybind11 wrapping API to ``WrapBase``
++++++++++++++++++++++++++++++++++++++++++
 
-  }; /* end class WrapBase */
+Pybind11 has wrapping helpers defined on ``pybind11::class_``.  To make them
+available in ``WrapBase``, we use macros to avoid repeating code.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-base-macro-helpers
+  :caption: Graft pybind11 class API to be ``WrapBase`` member functions.
+
+  public:
+
+  // Define the macros to graft pybind11 class API.
+  #define DECL_MM_PYBIND_CLASS_METHOD_UNTIMED(METHOD)                           \
+      template <class... Args>                                                  \
+      wrapper_type & METHOD(Args &&... args)                                    \
+      {                                                                         \
+          m_cls.METHOD(std::forward<Args>(args)...);                            \
+          return *static_cast<std::add_pointer_t<wrapper_type>>(this);          \
+      }
+
+  #define DECL_MM_PYBIND_CLASS_METHOD_TIMED(METHOD)                             \
+      template <class... Args>                                                  \
+      wrapper_type & METHOD##_timed(Args &&... args)                            \
+      {                                                                         \
+          m_cls.METHOD(std::forward<Args>(args)..., mmtag());                   \
+          return *static_cast<std::add_pointer_t<wrapper_type>>(this);          \
+      }
+
+  #define DECL_MM_PYBIND_CLASS_METHOD(METHOD)     \
+      DECL_MM_PYBIND_CLASS_METHOD_UNTIMED(METHOD) \
+      DECL_MM_PYBIND_CLASS_METHOD_TIMED(METHOD)
+
+      DECL_MM_PYBIND_CLASS_METHOD(def)
+      DECL_MM_PYBIND_CLASS_METHOD(def_static)
+
+      DECL_MM_PYBIND_CLASS_METHOD(def_readwrite)
+      DECL_MM_PYBIND_CLASS_METHOD(def_readonly)
+      DECL_MM_PYBIND_CLASS_METHOD(def_readwrite_static)
+      DECL_MM_PYBIND_CLASS_METHOD(def_readonly_static)
+
+      DECL_MM_PYBIND_CLASS_METHOD(def_property)
+      DECL_MM_PYBIND_CLASS_METHOD(def_property_static)
+      DECL_MM_PYBIND_CLASS_METHOD(def_property_readonly)
+      DECL_MM_PYBIND_CLASS_METHOD(def_property_readonly_static)
+
+      DECL_MM_PYBIND_CLASS_METHOD_UNTIMED(def_buffer)
+
+  // Delete the macros after they should not be used anymore.
+  #undef DECL_MM_PYBIND_CLASS_METHOD_UNTIMED
+  #undef DECL_MM_PYBIND_CLASS_METHOD_TIMED
+  #undef DECL_MM_PYBIND_CLASS_METHOD
+
+C pre-processor macros are often used to remove duplicated code like this.  But
+it will be bad if the macros are left in the global scope and pollute it.  To
+prevent that, we undefine them after use.  For the same reason, we use long
+names for them, so that even if we forget to undefine them, they will not likely
+to cause name collision.
+
+To have the class template ``WrapBase`` allows us to add handy wrapping API like
+`def_alias`.  It is particularly useful when we want to provide compatibility
+layer when renaming a already exposed C++ function.
+
+.. code-block:: cpp
+  :name: nsd-cpppy-wrap-base-alias
+  :caption: Graft pybind11 class API to be ``WrapBase`` member functions.
+
+  public:
+
+    wrapper_type & def_alias(char const * from_name, char const * to_name)
+    {
+        cls().attr(to_name) = cls().attr(from_name);
+        return *static_cast<std::add_pointer_t<wrapper_type>>(this);
+    }
 
 Wrappers for Data Classes
 +++++++++++++++++++++++++
