@@ -5,7 +5,7 @@ NSD Schedule 2026 Spring NYCU
 .. begin schedule contents
 
 `NYCU course code 535702 (permanent course number CSDS30003).
-<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=114&Sem=1&CrsNo=535705>`__
+<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=114&Sem=2&CrsNo=535702>`__
 
 .. warning::
 
@@ -39,8 +39,8 @@ Students are required to attend every lecture meeting because it is also for
 discussing the ideas and progress of the term project.  Discussion requires
 hard-learning skills and students are
 **strongly recommended** to also take the course `Academic English Writing
-(course code 562045)
-<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=114&Sem=1&CrsNo=562045>`__
+(permanent course code GELT00014)
+<https://timetable.nycu.edu.tw/?r=main/crsoutline&Acy=114&Sem=2&CrsNo=562044>`__
 if they have not.
 
 You should also bring your term project to the `sciwork meetup (on-site)
