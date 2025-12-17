@@ -5,6 +5,7 @@ Old Schedule
 .. toctree::
   :maxdepth: 1
 
+  25au_nycu/schedule25au
   25sp_nycu/schedule25sp
   24au_nycu/schedule24au
   24sp_nycu/schedule24sp
