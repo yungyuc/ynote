@@ -70,7 +70,7 @@ Time Table
 ==========
 
 The lecture hours are 7:00am -- 9:50am every Monday.  The lecture uses the
-classroom EC022.
+classroom EC114.
 
 The project proposal is due in the third week.  Do not miss it.  You may start
 to write the proposal before the semester.  Writing a project proposal helps you
