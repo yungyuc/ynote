@@ -195,10 +195,10 @@ int main(int argc, char ** argv)
     mat(0,0) = 3; mat(0,1) = 5; mat(0,2) = 2;
     mat(1,0) = 2; mat(1,1) = 1; mat(1,2) = 3;
     mat(2,0) = 4; mat(2,1) = 3; mat(2,2) = 2;
-    Matrix b(n, 2, false);
-    b(0,0) = 57; b(0,1) = 23;
-    b(1,0) = 22; b(1,1) = 12;
-    b(2,0) = 41; b(2,1) = 84;
+    Matrix b(n, 1, false);
+    b(0,0) = 57;
+    b(1,0) = 22;
+    b(2,0) = 41;
     std::vector<int> ipiv(n);
 
     std::cout << "A:" << mat << std::endl;
@@ -254,10 +254,10 @@ int main(int argc, char ** argv)
     mat2(0,0) = 3; mat2(0,1) = 5; mat2(0,2) = 2;
     mat2(1,0) = 2; mat2(1,1) = 1; mat2(1,2) = 3;
     mat2(2,0) = 4; mat2(2,1) = 3; mat2(2,2) = 2;
-    Matrix b2(n, 2, true);
-    b2(0,0) = 57; b2(0,1) = 23;
-    b2(1,0) = 22; b2(1,1) = 12;
-    b2(2,0) = 41; b2(2,1) = 84;
+    Matrix b2(n, 1, true);
+    b2(0,0) = 57;
+    b2(1,0) = 22;
+    b2(2,0) = 41;
 
     std::cout << "A:" << mat2 << std::endl;
     std::cout << "b:" << b2 << std::endl;
